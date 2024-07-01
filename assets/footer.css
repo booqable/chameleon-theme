@@ -28,7 +28,6 @@
   line-height: var(--line-height-md, 1.3333);
   font-weight: var(--font-weight-semibold, 600);
   margin: 0;
-  word-break: break-word;
 }
 
 .footer__menu-heading {
