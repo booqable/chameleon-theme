@@ -10,7 +10,6 @@
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
-  {%- assign image_placeholder     = settings.image_placeholder -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -113,22 +112,14 @@
             {%- for block in section.blocks -%}
               {%- assign image = block.settings.image -%}
 
-              {%- if image != blank -%}
-                {%- assign image = image -%}
-              {%- elsif image_placeholder != blank -%}
-                {%- assign image = image_placeholder -%}
-              {%- else -%}
-                {%- assign image = blank -%}
-              {%- endif -%}
-
-              <div class="logos__image-wrapper{% if image == blank %} no-image{% endif %}" id="{{- block.id -}}">
+              <div class="logos__image-wrapper" id="{{- block.id -}}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
                     loading: 'lazy',
                     class: 'logos__image',
-                    custom_width: '150',
-                    custom_size: '150px'
+                    custom_width: '450',
+                    custom_size: '450px'
                   -%}
                 {%- endif -%}
               </div>
@@ -156,7 +147,7 @@
         "type": "text",
         "id": "title",
         "label": "Title",
-        "default": "Title"
+        "default": "Trusted by the world's top companies"
       },
       {
         "type": "select",
@@ -176,7 +167,7 @@
             "label": "Color set 3"
           }
         ],
-        "default": "two"
+        "default": "one"
       },
       {
         "type": "header",
@@ -332,7 +323,8 @@
           {
             "type": "image_picker",
             "id": "image",
-            "label": "Image"
+            "label": "Image",
+            "default": "booqable://assets/image-partner-logo-preview-black.png"
           }
         ]
       }

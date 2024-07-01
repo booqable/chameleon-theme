@@ -313,9 +313,9 @@
         "block_242972": {
           "type": "block",
           "settings": {
-            "button_1": "Select equipment",
-            "button_2": "Button",
-            "button_url_1": "booqable://collections/",
+            "button_1": "",
+            "button_2": "Select equipment",
+            "button_url_1": "",
             "button_url_2": "booqable://root/",
             "heading": "Select your equipment",
             "image": "booqable://assets/image-tough-step-2.jpg",
@@ -433,6 +433,8 @@
       "block_order": [],
       "settings": {
         "bg_text": "FAQ",
+        "button_label": "",
+        "button_url": "",
         "color_palette": "two",
         "description": "Explore the FAQs to ensure you're well-prepared for your construction project with us.",
         "padding_bottom": "small",

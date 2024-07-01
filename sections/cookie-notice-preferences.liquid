@@ -1,7 +1,7 @@
 {%- assign cookies_activated     = settings.cookie_notice_activated -%}
 {%- assign cookies_color_palette = settings.cookie_notice_color_palette -%}
 
-{%- if cookies_activated %}
+{%- if cookies_activated or section_preview %}
   {%- assign paragraph_text      = section.settings.paragraph_text -%}
   {%- assign button_text         = section.settings.button_text -%}
   {%- assign background          = section.settings.background_color -%}
@@ -25,6 +25,14 @@
       align-items: center;
     }
 
+    .cookie-notice-preferences__inner--preview {
+      margin-top: 16px;
+    }
+
+    .cookie-notice-preferences__inner--preview button {
+      margin: 0;
+    }
+
     .cookie-notice-preferences__inner button {
       {%- case cookies_color_palette -%}
         {%- when 'one' -%}
@@ -40,7 +48,7 @@
     }
   </style>
 
-  <div class="cookie-notice-preferences__inner">
+  <div class="cookie-notice-preferences__inner{% if section_preview %} cookie-notice-preferences__inner--preview{% endif %}">
     <div class="cookie-notice-preferences__text bq-content rx-content text-{{- section.key -}}">
       {{- paragraph_text -}}
     </div>

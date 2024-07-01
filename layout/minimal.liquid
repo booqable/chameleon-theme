@@ -7,10 +7,19 @@
     <meta name="theme-color" content="{%- if settings.accent_background != blank -%}{{- settings.accent_background -}}{%- else -%}{{- branding_color -}}{%- endif -%}">
     {% comment %} Base stylesheets {% endcomment %}
     {{ "base.css" | asset_url | stylesheet_tag }}
-    {{ "header.css" | asset_url | stylesheet_tag }}
+    
+    {% unless section_preview %}
+      {{ "header.css" | asset_url | stylesheet_tag }}
+    {% endunless %}
     {% comment %} Fonts {% endcomment %}
     <script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous"></script>
-    {{ content_for_header }}
+
+    {% if section_preview %}
+      {{ options_and_scripts }}
+      {{ content_for_styles }}
+    {% else %}
+      {{ content_for_header }}
+    {% endif %}
 
     {% render 'fonts', settings: settings %}
     {% render 'root-styles', settings: settings %}
@@ -22,25 +31,29 @@
     %}
   </head>
   <body>
-    <header class="header" id="header">
-      <div style="padding: 16px 0">
-        <div class="header__container container">
-          <a href="{{ routes.root_url }}" class="header__logo">
-            {%- if shop.logo_url != blank -%}
-              <img class="header__logo-image" src="{{ shop.logo_url }}" alt="{{ shop.name }}">
-            {%- else -%}
-              <h2 class="header__logo-text">{{- shop.name -}}</h2>
-            {%- endif -%}
-          </a>
+    {% unless section_preview %}
+      <header class="header" id="header">
+        <div style="padding: 16px 0">
+          <div class="header__container container">
+            <a href="{{ routes.root_url }}" class="header__logo">
+              {%- if shop.logo_url != blank -%}
+                <img class="header__logo-image" src="{{ shop.logo_url }}" alt="{{ shop.name }}">
+              {%- else -%}
+                <h2 class="header__logo-text">{{- shop.name -}}</h2>
+              {%- endif -%}
+            </a>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    {% endunless %}
 
     <main id="main">
       {{ content_for_layout }}
     </main>
 
     {{ content_for_body }}
+
+    <script src="{{ "lazysizes.min.js" | asset_url }}" defer></script>
 
   </body>
 </html>

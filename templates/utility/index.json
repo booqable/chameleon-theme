@@ -211,6 +211,8 @@
       "blocks": {},
       "block_order": [],
       "settings": {
+        "button_label": "",
+        "button_url": "",
         "color_palette": "one",
         "description": "<p>Whether you need to rent a trailer for private or commercial use, renting from Trailerable is easy.</p>",
         "padding_bottom": "small",
@@ -244,6 +246,8 @@
       "block_order": [],
       "settings": {
         "bg_text": "Accessories",
+        "button_label": "",
+        "button_url": "",
         "color_palette": "one",
         "description": "",
         "padding_bottom": "small",
@@ -347,9 +351,9 @@
       ],
       "settings": {
         "color_palette": "one",
-        "padding_bottom": "none",
+        "padding_bottom": "medium",
         "padding_bottom_mobile": "medium",
-        "padding_top": "none",
+        "padding_top": "medium",
         "padding_top_mobile": "small",
         "show_carousel": true,
         "show_excerpt": true,
@@ -365,6 +369,8 @@
       "block_order": [],
       "settings": {
         "bg_text": "FAQ",
+        "button_label": "",
+        "button_url": "",
         "color_palette": "two",
         "description": "<p>Explore the FAQs to ensure you're well-prepared to embark on your trailer journey with us.</p>",
         "padding_bottom": "small",

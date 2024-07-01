@@ -310,6 +310,8 @@
       "block_order": [],
       "settings": {
         "bg_text": "FAQ",
+        "button_label": "",
+        "button_url": "",
         "color_palette": "two",
         "description": "<p>Explore the FAQs to ensure you're well-prepared to book your party gear with us.</p>",
         "padding_bottom": "small",

@@ -126,35 +126,6 @@
   color: currentColor;
 }
 
-.palette-one .cta__header-button.button--primary {
-  background: var(--background-accent, #F4B841);
-  border-color: var(--background-accent, #F4B841);
-  color: var(--color-accent, #0B1A26);
-}
-
-.palette-one .cta__header-button.button--primary:hover {
-  background: var(--background-accent-hover, #F4B841BA);
-  border-color: var(--background-accent-hover, #F4B841BA);
-}
-
-.palette-one .cta__header-button.button--primary:active {
-  background: var(--background-accent-active, #F4B841A6);
-  border-color: var(--background-accent-active, #F4B841A6);
-}
-
-.palette-one .cta__header-button.button--outlined {
-  color: var(--color-accent, #0B1A26);
-  border-color: var(--background-accent, #F4B841);
-}
-
-.palette-one .cta__header-button.button--outlined:hover {
-  background: var(--background-accent-hover, #F4B84152);
-}
-
-.palette-one .cta__header-button.button--outlined:active {
-  background: var(--background-accent-active, #F4B8418F);
-}
-
 .palette-one .cta__image-floral-wrapper g,
 .palette-one .cta__image-floral-wrapper path,
 .palette-one .cta__image-wrapper g,
@@ -175,35 +146,6 @@
   color: currentColor;
 }
 
-.palette-two .cta__header-button.button--primary {
-  background: var(--background-accent-2, #F4B841);
-  border-color: var(--background-accent-2, #F4B841);
-  color: var(--color-accent-2, #0B1A26);
-}
-
-.palette-two .cta__header-button.button--primary:hover {
-  background: var(--background-accent-2-hover, #F4B841BA);
-  border-color: var(--background-accent-2-hover, #F4B841BA);
-}
-
-.palette-two .cta__header-button.button--primary:active {
-  background: var(--background-accent-2-active, #F4B841A6);
-  border-color: var(--background-accent-2-active, #F4B841A6);
-}
-
-.palette-two .cta__header-button.button--outlined {
-  color: var(--color-accent-2, #0B1A26);
-  border-color: var(--background-accent-2, #F4B841);
-}
-
-.palette-two .cta__header-button.button--outlined:hover {
-  background: var(--background-accent-2-hover, #F4B84152);
-}
-
-.palette-two .cta__header-button.button--outlined:active {
-  background: var(--background-accent-2-active, #F4B8418F);
-}
-
 .palette-two .cta__image-floral-wrapper g,
 .palette-two .cta__image-floral-wrapper path,
 .palette-two .cta__image-wrapper g,
@@ -222,35 +164,6 @@
 
 .palette-three .cta__header-title {
   color: currentColor;
-}
-
-.palette-three .cta__header-button.button--primary {
-  background: var(--background-accent-3, #0B1A26);
-  border-color: var(--background-accent-3, #0B1A26);
-  color: var(--color-accent-3, #FFFFFF);
-}
-
-.palette-three .cta__header-button.button--primary:hover {
-  background: var(--background-accent-3-hover, #0B1A26BA);
-  border-color: var(--background-accent-3-hover, #0B1A26BA);
-}
-
-.palette-three .cta__header-button.button--primary:active {
-  background: var(--background-accent-3-active, #0B1A26A6);
-  border-color: var(--background-accent-3-active, #0B1A26A6);
-}
-
-.palette-three .cta__header-button.button--outlined {
-  color: var(--color-accent-3, #FFFFFF);
-  border-color: var(--background-accent-3, #0B1A26);
-}
-
-.palette-three .cta__header-button.button--outlined:hover {
-  background: var(--background-accent-3-hover, #0B1A2652);
-}
-
-.palette-three .cta__header-button.button--outlined:active {
-  background: var(--background-accent-3-active, #0B1A268F);
 }
 
 .palette-three .cta__image-floral-wrapper g,

@@ -377,6 +377,8 @@
       "block_order": [],
       "settings": {
         "bg_text": "FAQs",
+        "button_label": "",
+        "button_url": "",
         "color_palette": "two",
         "description": "<p>Explore the FAQs to ensure you're well-prepared to embark on your fashion journey with us.</p>",
         "padding_bottom": "small",
