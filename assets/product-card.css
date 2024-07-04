@@ -33,6 +33,7 @@
   max-width: none;
 }
 
+.preview-app .product-card__image,
 .product-card__image:not(.focal-image) {
   width: 100%;
   height: 100%;
