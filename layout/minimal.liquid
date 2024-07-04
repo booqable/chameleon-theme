@@ -7,7 +7,7 @@
     <meta name="theme-color" content="{%- if settings.accent_background != blank -%}{{- settings.accent_background -}}{%- else -%}{{- branding_color -}}{%- endif -%}">
     {% comment %} Base stylesheets {% endcomment %}
     {{ "base.css" | asset_url | stylesheet_tag }}
-    
+
     {% unless section_preview %}
       {{ "header.css" | asset_url | stylesheet_tag }}
     {% endunless %}
@@ -30,7 +30,7 @@
       shop: shop
     %}
   </head>
-  <body>
+  <body {% if section_preview %} class="preview-app"{%- endif -%}>
     {% unless section_preview %}
       <header class="header" id="header">
         <div style="padding: 16px 0">
