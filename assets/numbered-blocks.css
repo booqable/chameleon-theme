@@ -119,9 +119,9 @@
   fill: currentColor;
 }
 
-.numbered-blocks .palette-one .button:hover,
-.numbered-blocks .palette-two .button:hover,
-.numbered-blocks .palette-three .button:hover {
+.numbered-blocks .palette-one .button--secondary:hover,
+.numbered-blocks .palette-two .button--secondary:hover,
+.numbered-blocks .palette-three .button--secondary:hover {
   text-shadow: 0.5px 0 currentColor;
 }
 

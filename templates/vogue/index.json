@@ -121,19 +121,13 @@
           "type": "product",
           "settings": {},
           "disabled": null
-        },
-        "product_123449": {
-          "type": "product",
-          "settings": {},
-          "disabled": null
         }
       },
       "block_order": [
         "product",
         "product_123452",
         "product_123451",
-        "product_123450",
-        "product_123449"
+        "product_123450"
       ],
       "settings": {
         "color_palette": "one",

@@ -147,6 +147,10 @@ body > * {
   flex-grow: 1;
 }
 
+.preview-app #main:has(section:only-child) {
+  display: block;
+}
+
 .header--sticky ~ #main {
   padding-top: calc(var(--header-height) - 2px);
 }

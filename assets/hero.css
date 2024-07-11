@@ -5,7 +5,6 @@
 .hero__wrapper {
   height: 100%;
   position: relative;
-  flex-grow: 1;
 }
 
 .hero__container {

@@ -26,7 +26,11 @@
 {%- endcapture -%}
 {% comment %} CSS variables end {% endcomment %}
 
-<div class="spacer__wrapper{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}"></div>
+<div class="spacer__wrapper{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}{% if section_preview %} spacer__wrapper--preview{%- endif -%}" style="{{- variables | escape -}}">
+  {% if section_preview %}
+    <span>This section will render an empty space</span>
+  {% endif %}
+</div>
 
 {% schema %}
   {

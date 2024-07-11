@@ -137,10 +137,19 @@
             {%- assign video_url            = block.settings.video_url | strip -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
+            {%- assign image_placeholder    = settings.image_placeholder -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
             {%- assign overlay_opacity      = block.settings.overlay_opacity -%}
             {%- assign overlay_color        = block.settings.overlay_color -%}
             {%- assign overlay_background   = block.settings.overlay_background -%}
+
+            {%- if image != blank -%}
+              {%- assign image = image -%}
+            {%- elsif image_placeholder != blank -%}
+              {%- assign image = image_placeholder -%}
+            {%- else -%}
+              {%- assign image = blank -%}
+            {%- endif -%}
 
             {% comment %} CSS variables start {% endcomment %}
             {%- capture text_variables -%}
@@ -486,8 +495,7 @@
           {
             "type": "image_picker",
             "id": "image",
-            "label": "Image",
-            "default": "booqable://assets/image-tough-hero.jpg"
+            "label": "Image"
           },
           {
             "type": "image_picker",
@@ -563,7 +571,8 @@
           {
             "type": "url",
             "id": "button_url_1",
-            "label": "Button 1 link"
+            "label": "Button 1 link",
+            "default": "booqable://root"
           },
           {
             "type": "text",
@@ -575,7 +584,8 @@
           {
             "type": "url",
             "id": "button_url_2",
-            "label": "Button 2 link"
+            "label": "Button 2 link",
+            "default": "booqable://root"
           },
           {
             "type": "header",
