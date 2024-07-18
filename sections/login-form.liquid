@@ -1,18 +1,18 @@
 {{ "account.css" | asset_url | stylesheet_tag }}
 
-{%- assign title                 = section.settings.title -%}
-{%- assign description           = section.settings.description -%}
-{%- assign color_palette         = section.settings.color_palette -%}
-{%- assign email_label           = section.settings.email_label -%}
-{%- assign password_label        = section.settings.password_label -%}
-{%- assign button_login_label    = section.settings.button_login_label -%}
-{%- assign create_account_label  = section.settings.create_account_label -%}
-{%- assign reset_password_label  = section.settings.reset_password_label -%}
-{%- assign guest_label           = section.settings.guest_label -%}
-{%- assign padding_top           = section.settings.padding_top -%}
-{%- assign padding_bottom        = section.settings.padding_bottom -%}
-{%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-{%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+{%- assign title                   = section.settings.title -%}
+{%- assign description             = section.settings.description -%}
+{%- assign color_palette           = section.settings.color_palette -%}
+{%- assign email_label             = section.settings.email_label -%}
+{%- assign password_label          = section.settings.password_label -%}
+{%- assign button_login_label      = section.settings.button_login_label -%}
+{%- assign create_account_label    = section.settings.create_account_label -%}
+{%- assign reset_password_label    = section.settings.reset_password_label -%}
+{%- assign continue_as_guest_label = section.settings.continue_as_guest_label -%}
+{%- assign padding_top             = section.settings.padding_top -%}
+{%- assign padding_bottom          = section.settings.padding_bottom -%}
+{%- assign padding_top_mobile      = section.settings.padding_top_mobile -%}
+{%- assign padding_bottom_mobile   = section.settings.padding_bottom_mobile -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -148,7 +148,7 @@
 
       {%- if shop.allow_guest_checkout and guest_checkout_url -%}
         <a href="{{ guest_checkout_url }}" class="account__button account__button--minimal">
-          {{- guest_label | default: "Continue as guest" -}}
+          {{- continue_as_guest_label | default: "Continue as guest" -}}
         </a>
       {%- endif -%}
     {%- endform -%}
@@ -229,7 +229,7 @@
       },
       {
         "type": "text",
-        "id": "guest_label",
+        "id": "continue_as_guest_label",
         "label": "Continue as guest button label"
       },
       {
