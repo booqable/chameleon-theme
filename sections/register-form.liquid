@@ -1,24 +1,24 @@
 {{ "account.css" | asset_url | stylesheet_tag }}
 
-{%- assign title                 = section.settings.title -%}
-{%- assign description           = section.settings.description -%}
-{%- assign color_palette         = section.settings.color_palette -%}
-{%- assign button_login_label    = section.settings.button_login_label -%}
-{%- assign button_signup_label   = section.settings.button_signup_label -%}
-{%- assign name_label            = section.settings.name_label -%}
-{%- assign email_label           = section.settings.email_label -%}
-{%- assign password_label        = section.settings.password_label -%}
-{%- assign password_confirmation = section.settings.password_confirmation -%}
-{%- assign account_type_label    = section.settings.account_type_label -%}
-{%- assign private_label         = section.settings.private_label -%}
-{%- assign company_label         = section.settings.company_label -%}
-{%- assign agree_label           = section.settings.agree_label -%}
-{%- assign agreement_label       = section.settings.agreement_label -%}
-{%- assign accept_button_label   = section.settings.accept_button_label -%}
-{%- assign padding_top           = section.settings.padding_top -%}
-{%- assign padding_bottom        = section.settings.padding_bottom -%}
-{%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-{%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+{%- assign title                                    = section.settings.title -%}
+{%- assign description                              = section.settings.description -%}
+{%- assign color_palette                            = section.settings.color_palette -%}
+{%- assign login_link_label                         = section.settings.login_link_label -%}
+{%- assign button_signup_label                      = section.settings.button_signup_label -%}
+{%- assign name_label                               = section.settings.name_label -%}
+{%- assign email_label                              = section.settings.email_label -%}
+{%- assign password_label                           = section.settings.password_label -%}
+{%- assign password_confirmation_label              = section.settings.password_confirmation_label -%}
+{%- assign account_type_label                       = section.settings.account_type_label -%}
+{%- assign private_label                            = section.settings.private_label -%}
+{%- assign company_label                            = section.settings.company_label -%}
+{%- assign i_agree_label                            = section.settings.i_agree_label -%}
+{%- assign terms_and_agreements_label               = section.settings.terms_and_agreements_label -%}
+{%- assign terms_and_agreements_accept_button_label = section.settings.terms_and_agreements_accept_button_label -%}
+{%- assign padding_top                              = section.settings.padding_top -%}
+{%- assign padding_bottom                           = section.settings.padding_bottom -%}
+{%- assign padding_top_mobile                       = section.settings.padding_top_mobile -%}
+{%- assign padding_bottom_mobile                    = section.settings.padding_bottom_mobile -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -75,7 +75,7 @@
       </span>
 
       <a class="account__link" href="{{ routes.login_url }}">
-        {{- button_login_label | default: "Log in" -}}
+        {{- login_link_label | default: "Log in" -}}
       </a>
     </div>
 
@@ -156,10 +156,10 @@
 
       <div class="account-fieldset__block{% if form.errors.password_confirmation %} account-fieldset--error{%- endif -%}">
         <label for="user_password_confirmation" class="account-fieldset__label">
-          {{- password_confirmation | default: "Password confirmation" -}}
+          {{- password_confirmation_label | default: "Password confirmation" -}}
 
           <span class="account-fieldset__label-backlight">
-            {{- password_confirmation | default: "Password confirmation" -}}
+            {{- password_confirmation_label | default: "Password confirmation" -}}
           </span>
         </label>
 
@@ -227,12 +227,12 @@
 
         <label class="account-checkbox__label" for="user_agreement_accepted">
           <span>
-            {{- agree_label | default: "I agree to the" -}}
+            {{- i_agree_label | default: "I agree to the" -}}
 
             <span class="account__agreement">
               <input type="checkbox" id="user_agreement_opener" style="display: none">
               <label for="user_agreement_opener" class="account__agreement-opener">
-                {{- agreement_label | default: "Terms and agreements" -}}
+                {{- terms_and_agreements_label | default: "Terms and agreements" -}}
               </label>
 
               <span class="account__agreement-modal bq-content rx-content" style="display: none">
@@ -245,7 +245,7 @@
 
                       <span class="account__agreement-buttons">
                         <label class="account-checkbox__button button button--primary button--large" for="user_agreement_opener">
-                          {{ accept_button_label | default: "Agree" }}
+                          {{ terms_and_agreements_accept_button_label | default: "Agree" }}
                         </label>
                       </span>
                     </span>
@@ -332,7 +332,7 @@
       },
       {
         "type": "text",
-        "id": "password_confirmation",
+        "id": "password_confirmation_label",
         "label": "Password confirmation label"
       },
       {
@@ -352,12 +352,12 @@
       },
       {
         "type": "text",
-        "id": "agree_label",
+        "id": "i_agree_label",
         "label": "I agree..."
       },
       {
         "type": "text",
-        "id": "agreement_label",
+        "id": "terms_and_agreements_label",
         "label": "Terms and agreements label"
       },
       {
@@ -366,7 +366,7 @@
       },
       {
         "type": "text",
-        "id": "button_login_label",
+        "id": "login_link_label",
         "label": "Log in button label"
       },
       {
@@ -376,7 +376,7 @@
       },
       {
         "type": "text",
-        "id": "accept_button_label",
+        "id": "terms_and_agreements_accept_button_label",
         "label": "Accept agreement button label (in modal window)"
       },
       {
