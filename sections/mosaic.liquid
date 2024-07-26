@@ -109,7 +109,7 @@
                 {%- endif -%}
 
                 {%- if text != blank -%}
-                  <div class="mosaic__text bq-content rx-content">{{- text | strip_html | truncate: 200, " ..."  -}}</div>
+                  <div class="mosaic__text bq-content rx-content">{{- text -}}</div>
                 {%- endif -%}
 
                 {%- if article_btn != blank and article_btn_url != blank -%}

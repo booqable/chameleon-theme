@@ -5,12 +5,14 @@ class Main {
     this.selector = {
       datePicker: "bq-date-picker",
       datePickerBlock: ".date-picker-instance",
-      image: ".focal-image"
+      image: ".focal-image",
+      excerpt: ".product-card__description"
     }
 
     this.modifier = {
       loaded: "loaded",
-      resize: "resize-active"
+      resize: "resize-active",
+      truncated: "truncated"
     }
 
     this.data = {
@@ -20,7 +22,13 @@ class Main {
 
     this.cssVar = {
       datePickerHeight: '--date-picker-height',
-      datePickerBlockHeight: '--date-picker-block-height',
+      datePickerBlockHeight: '--date-picker-block-height'
+    }
+
+    this.cssProp = {
+      maxHeight: 'max-height',
+      paddingTop: 'padding-top',
+      paddingBottom: 'padding-bottom'
     }
 
     this.time = 500;
@@ -38,15 +46,18 @@ class Main {
   elements() {
     this.datePicker = document.querySelector(this.selector.datePicker);
     this.datePickerBlock = document.querySelector(this.selector.datePickerBlock);
+    this.excerpts = document.querySelectorAll(this.selector.excerpt);
   }
 
   events() {
     this.setLoadedClass();
     this.focalImages();
+    this.setTruncationClass();
     setTimeout(() => this.getDatePickerHeight(), 1000);
 
     window.addEventListener("resize", this.getDatePickerHeight.bind(this));
     window.addEventListener("resize", this.setResizeClass.bind(this));
+    window.addEventListener("resize", this.setTruncationClass.bind(this));
   }
 
   getDatePickerHeight() {
@@ -79,6 +90,25 @@ class Main {
   // adding class after loading content
   setLoadedClass() {
     this.block.classList.add(this.modifier.loaded);
+  }
+
+  // set class for truncation product card description
+  setTruncationClass() {
+    if (!this.excerpts.length) return false;
+
+    const styles = window.getComputedStyle(this.excerpts[0]),
+          paddingTop = parseInt(styles.getPropertyValue(this.cssProp.paddingTop)),
+          paddingBottom = parseInt(styles.getPropertyValue(this.cssProp.paddingBottom)),
+          maxHeight = parseInt(styles.getPropertyValue(this.cssProp.maxHeight)),
+          minHeight = maxHeight / 2 + paddingBottom + paddingTop;
+
+    this.excerpts.forEach(excerpt => {
+      const height = excerpt.getBoundingClientRect().height
+
+      height > minHeight
+        ? excerpt.classList.add(this.modifier.truncated)
+        : excerpt.classList.remove(this.modifier.truncated)
+    })
   }
 
   // change focus positioning of image
