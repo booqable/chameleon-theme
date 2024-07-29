@@ -1,45 +1,55 @@
+{%- assign blocks     = section.blocks -%}
 {%- assign collection = section.settings.collection -%}
-{%- assign blocks = section.blocks -%}
 
-{%- if blocks.size > 0 or collection.items_count > 0 -%}
+{%- if collection != blank -%}
+  {%- assign items         = collection.items -%}
+  {%- assign items_type    = "collection" -%}
+  {%- assign size          = collection.items_count -%}
+{%- else -%}
+  {%- assign items         = blocks -%}
+  {%- assign items_type    = "blocks" -%}
+  {%- assign product_items = "" -%}
 
+  {%- for item in items -%}
+    {%- if product_items == "" -%}
+      {%- assign product_items = item.id -%}
+    {%- else -%}
+      {%- assign product_items = product_items | append: ", " | append: item.id -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- assign product_items_arr = product_items | split: ", " -%}
+  {%- assign size = product_items_arr | size -%}
+{%- endif -%}
+
+{%- if size > 0 -%}
   {{ "products.css" | asset_url | stylesheet_tag }}
   {{ "product-card.css" | asset_url | stylesheet_tag }}
 
-  {%- assign show_carousel         = section.settings.show_carousel -%}
-  {%- assign show_navigation       = section.settings.show_navigation -%}
-  {%- assign show_pagination       = section.settings.show_pagination -%}
+  {%- assign carousel              = false -%}
   {%- assign color_palette         = section.settings.color_palette -%}
-  {%- assign padding_top           = section.settings.padding_top -%}
-  {%- assign padding_bottom        = section.settings.padding_bottom -%}
-  {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-  {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
-  {%- assign timer                 = section.settings.timer -%}
-  {%- assign show_excerpt          = section.settings.show_excerpt -%}
   {%- assign image_placeholder     = settings.image_placeholder -%}
   {%- assign is_focal              = settings.use_focal_images -%}
   {%- assign items_limit           = 12 -%}
-  {%- assign carousel              = false -%}
+  {%- assign padding_bottom        = section.settings.padding_bottom -%}
+  {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+  {%- assign padding_top           = section.settings.padding_top -%}
+  {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
+  {%- assign show_carousel         = section.settings.show_carousel -%}
+  {%- assign show_excerpt          = section.settings.show_excerpt -%}
+  {%- assign show_navigation       = section.settings.show_navigation -%}
+  {%- assign show_pagination       = section.settings.show_pagination -%}
+  {%- assign timer                 = section.settings.timer -%}
 
-  {%- if collection != blank -%}
-    {%- assign items = collection.items -%}
-    {%- assign items_type = "collection" -%}
-
-    {%- if collection.items_count > 1 and show_carousel -%}
-      {%- assign carousel = true -%}
-    {%- endif -%}
-  {%- else -%}
-    {%- assign items = blocks -%}
-    {%- assign items_type = "blocks" -%}
-
-    {%- if blocks.size > 1 and show_carousel -%}
-      {%- assign carousel = true -%}
-    {%- endif -%}
-  {%- endif -%}
-
-  {%- if carousel -%}
+  {%- if size > 1 and show_carousel -%}
     {{ "carousel.css" | asset_url | stylesheet_tag }}
+
+    {%- assign carousel = true -%}
   {%- endif -%}
+
+  {% unless show_pagination %}
+    {%- assign items_limit = nil -%}
+  {% endunless %}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
