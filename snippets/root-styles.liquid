@@ -245,6 +245,11 @@
     {%- endif -%}
   }
 
+  #cc-main {
+    --cc-btn-border-radius: var(--border-radius-dynamic);
+    --cc-modal-border-radius: var(--border-radius-rounded);
+  }
+
   {%- case settings.cookie_notice_color_palette -%}
     {%- when 'one' -%}
       #cc-main {
@@ -259,6 +264,7 @@
         --cc-btn-primary-border-color: transparent;
 
         --cc-btn-primary-hover-bg: var(--background-accent-hover);
+        --cc-btn-primary-hover-color: var(--color-accent);
         --cc-btn-primary-hover-border-color: var(--background-accent-hover);
 
         --cc-btn-secondary-bg: transparent;
@@ -293,6 +299,7 @@
         --cc-btn-primary-border-color: transparent;
 
         --cc-btn-primary-hover-bg: var(--background-accent-2-hover);
+        --cc-btn-primary-hover-color: var(--color-accent-2);
         --cc-btn-primary-hover-border-color: var(--background-accent-2-hover);
 
         --cc-btn-secondary-bg: transparent;
@@ -327,6 +334,7 @@
         --cc-btn-primary-border-color: transparent;
 
         --cc-btn-primary-hover-bg: var(--background-accent-3-hover);
+        --cc-btn-primary-hover-color: var(--color-accent-3);
         --cc-btn-primary-hover-border-color: var(--background-accent-3-hover);
 
         --cc-btn-secondary-bg: transparent;

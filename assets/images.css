@@ -108,9 +108,21 @@
   transform: translate(-50%, -50%);
 }
 
+.images__vision--video {
+  container: images-vision / size;
+}
+
 .images__video {
   pointer-events: none;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-width: none;
+  object-fit: cover;
 }
 
 .images .carousel__wrapper {
@@ -222,18 +234,6 @@
     display: none;
   }
 
-  .images__video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    max-width: none;
-    object-fit: cover;
-  }
-
   .images__text-area {
     justify-content: var(--text-justify-content, flex-start);
     align-items: var(--text-align-items, center);
@@ -257,11 +257,6 @@
 
   .images__wrapper .date-picker__title {
     justify-content: var(--text-justify-content, flex-start);
-  }
-
-  .images__wrapper-full-height .images__video {
-    width: auto;
-    height: 100%;
   }
 
   .images__wrapper.section-with-date-picker .images__container {
@@ -293,9 +288,16 @@
   }
 }
 
-@media (min-width: 1920px) {
-  .images__wrapper-full-height .images__video {
+@container (aspect-ratio > 16 / 9) {
+  .images__vision--video .images__video {
     width: 100%;
     height: auto;
+  }
+}
+
+@container (aspect-ratio <= 16 / 9) {
+  .images__vision--video .images__video {
+    width: auto;
+    height: 100%;
   }
 }
