@@ -514,6 +514,18 @@
       },
       {
         "type": "text",
+        "id": "cookie_notice_preferences_modal_description_heading",
+        "label": "Description heading",
+        "default": "Your Privacy Choices"
+      },
+      {
+        "type": "textarea",
+        "id": "cookie_notice_preferences_modal_description_body",
+        "label": "Description text",
+        "default": "In this panel you can express some preferences related to the processing of your personal information. If you allow Performance and Analytics cookies, your data may be used for personalization of ads across Google and other platforms. To deny your consent to the specific processing activities described below, switch the toggles to off and confirm you want to save your choices."
+      },
+      {
+        "type": "text",
         "id": "cookie_notice_preferences_modal_essential_cookies_title",
         "label": "Essential cookies title",
         "default": "Strictly Necessary cookies"
