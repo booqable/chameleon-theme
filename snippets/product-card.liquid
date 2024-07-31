@@ -49,7 +49,7 @@
   {%- assign id      = product.id -%}
   {%- assign url     = product.url -%}
   {%- assign name    = product.name -%}
-  {%- assign excerpt = product.description -%}
+  {%- assign excerpt = product.excerpt -%}
   {%- assign price   = product | product_price -%}
   {%- assign period  = product | product_price_label -%}
 
@@ -101,7 +101,7 @@
     </h3>
 
     {%- if excerpt != blank and show_excerpt -%}
-      <div class="product-card__description bq-content rx-content">{{- excerpt -}}</div>
+      <div class="product-card__description">{{- excerpt -}}</div>
     {%- endif -%}
 
     {%- if price != blank and period != blank -%}

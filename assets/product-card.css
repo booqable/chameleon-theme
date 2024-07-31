@@ -58,38 +58,10 @@
 .product-card__description {
   padding: 4px 0 8px;
   flex-grow: 0;
-  overflow: hidden;
-  max-height: 130px;
 }
 
 .product-card__description:last-child {
   padding-bottom: 0;
-}
-
-.product-card__description.truncated {
-  position: relative;
-  flex-grow: 1;
-}
-
-.product-card__description.truncated + .product-card__price-info {
-  flex-grow: 0;
-}
-
-.product-card__description.truncated:after {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 60px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-.product-card__meta .product-card__description dt,
-.product-card__meta .product-card__description dd,
-.product-card__meta .product-card__description li,
-.product-card__meta .product-card__description li li {
-  font-size: inherit;
 }
 
 .product-card__price-info {
@@ -147,10 +119,6 @@ bq-product-availability[visible="true"] {
   background: var(--color-image-placeholder, #0B1A2626);
 }
 
-.palette-one .product-card__description.truncated:after {
-  background: linear-gradient(to top, var(--background-primary, #FFFFFF) 0%, var(--background-primary, #FFFFFF) 30%, var(--background-primary-00, #FFFFFF00) 100%);
-}
-
 .palette-one .product-card__price-info {
   color: var(--color-primary, #0B1A26);
 }
@@ -174,10 +142,6 @@ bq-product-availability[visible="true"] {
   background: var(--color-image-placeholder-2, #FFFFFF47);
 }
 
-.palette-two .product-card__description.truncated:after {
-  background: linear-gradient(to top, var(--background-primary-2, #0B1A26) 0%, var(--background-primary-2, #0B1A26) 30%, var(--background-primary-2-00, #0B1A2600) 100%);
-}
-
 .palette-two .product-card__price-info {
   color: var(--color-primary-2, #FFFFFF);
 }
@@ -199,10 +163,6 @@ bq-product-availability[visible="true"] {
 
 .palette-three .product-card__vision.no-image {
   background: var(--color-image-placeholder-3, #0B1A2626);
-}
-
-.palette-three .product-card__description.truncated:after {
-  background: linear-gradient(to top, var(--background-primary-3, #F4B841) 0%, var(--background-primary-3, #F4B841) 30%, var(--background-primary-3-00, #F4B84100) 100%);
 }
 
 .palette-three .product-card__price-info {
