@@ -102,6 +102,10 @@ html {
   padding: env(safe-area-inset);
 }
 
+html:has(div[data-tid="Modal"][class*="Container-"]) {
+  overflow: hidden;
+}
+
 .touch {
   -webkit-text-size-adjust: 100%;
 }
@@ -592,6 +596,10 @@ img {
   overflow: hidden;
 }
 
+.fa, .far {
+  color: currentColor;
+}
+
 .palette-one .fa, .palette-one .far {
   color: var(--color-primary, #0B1A26);
 }
@@ -633,8 +641,28 @@ img {
   }
 }
 
-.tippy-box *:not(label),
-.bq-modal *:not(label) {
+div[data-tid="Modal"][class*="Container-"]:has([class*="DatePickerInput"] > div) [class*="DatePickerInput"] > div,
+div[data-tippy-root]:has([data-tid="Mini cart"] [class*="DetailContainer-"] > [class*="Quantity-"]) [class*="QuantityButton"]:first-child {
+  border-top-left-radius: var(--border-radius-rounded) !important;
+  border-bottom-left-radius: var(--border-radius-rounded) !important;
+}
+
+div[data-tid="Modal"][class*="Container-"]:has([class*="Select__control"]) [class*="Select__control"],
+div[data-tippy-root]:has([data-tid="Mini cart"] [class*="DetailContainer-"] > [class*="Quantity-"]) [class*="QuantityButton"]:last-child {
+  border-top-right-radius: var(--border-radius-rounded) !important;
+  border-bottom-right-radius: var(--border-radius-rounded) !important;
+}
+
+div[data-tippy-root]:has([class*="tippy-content"] [class*="DayPicker-wrapper"] [class*="DayPicker-NavBar"]) [class*="tippy-content"] > div > [class*="Content"] > [class*="Inner"] [class*="AvailabilityLegend"] {
+  border-bottom-right-radius: var(--border-radius-rounded) !important;
+  border-bottom-left-radius: var(--border-radius-rounded) !important;
+}
+
+div[data-tid="Modal"][class*="Container-"],
+div[data-tid="Modal"]:has(> div[class*="Body-"] form > div > div) div[class*="Body-"] form > div > div,
+div[data-tid="Modal"] div[data-tid="Start and stop location dropdown"][class*="Container-"] [class*="Select__control"],
+div[data-tippy-root]:has([data-tid="Mini cart"] [data-tid*="Select dates"] > [class*="DatesBase-"] > [class*="Dates"]) [class*="DatesBase-"] > [class*="Dates"],
+div[data-tippy-root]:has([class*="tippy-content"] [class*="DayPicker-wrapper"] [class*="DayPicker-NavBar"]) [class*="tippy-content"] > div > [class*="Content"] > [class*="Inner"] {
   border-radius: var(--border-radius-rounded) !important;
 }
 
