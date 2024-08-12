@@ -1,0 +1,24 @@
+{
+  "name": "Accept invitation",
+  "layout": "session",
+  "sections": {
+    "accept-invitation-form": {
+      "type": "accept-invitation-form",
+      "blocks": {},
+      "settings": {
+        "color_palette": "one",
+        "padding_bottom": "large",
+        "padding_bottom_mobile": "large",
+        "padding_top": "large",
+        "padding_top_mobile": "large",
+        "please_enter_password": "If you want to continue, please enter your password below.",
+        "success_link_label": "Continue to the store",
+        "you_are_invited": "You've been invited to create an account."
+      }
+    }
+  },
+  "order": ["accept-invitation-form"],
+  "editor_settings": {
+    "visible_only_when": ["user_authentication_enabled"]
+  }
+}

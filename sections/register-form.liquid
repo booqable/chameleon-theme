@@ -7,8 +7,8 @@
 {%- assign button_signup_label                      = section.settings.button_signup_label -%}
 {%- assign name_label                               = section.settings.name_label -%}
 {%- assign email_label                              = section.settings.email_label -%}
-{%- assign password_label                           = section.settings.password_label -%}
-{%- assign password_confirmation_label              = section.settings.password_confirmation_label -%}
+{%- assign password_label                           = section.settings.password_label | default: "Password" -%}
+{%- assign password_confirmation_label              = section.settings.password_confirmation_label | default: "Password confirmation" -%}
 {%- assign account_type_label                       = section.settings.account_type_label -%}
 {%- assign private_label                            = section.settings.private_label -%}
 {%- assign company_label                            = section.settings.company_label -%}
@@ -132,49 +132,13 @@
         </div>
       </div>
 
-      <div class="account-fieldset__block{% if form.errors.password %} account-fieldset--error{%- endif -%}">
-        <label for="user_password" class="account-fieldset__label">
-          {{- password_label | default: "Password" -}}
-
-          <span class="account-fieldset__label-backlight">
-            {{- password_label | default: "Password" -}}
-          </span>
-        </label>
-
-        <input
-          placeholder=" "
-          class="account-fieldset__input"
-          autocomplete="new-password"
-          type="password"
-          name="user[password]"
-          id="user_password">
-
-        <div class="account__error-message">
-          {{- form.errors.password -}}
-        </div>
-      </div>
-
-      <div class="account-fieldset__block{% if form.errors.password_confirmation %} account-fieldset--error{%- endif -%}">
-        <label for="user_password_confirmation" class="account-fieldset__label">
-          {{- password_confirmation_label | default: "Password confirmation" -}}
-
-          <span class="account-fieldset__label-backlight">
-            {{- password_confirmation_label | default: "Password confirmation" -}}
-          </span>
-        </label>
-
-        <input
-          placeholder=" "
-          class="account-fieldset__input"
-          autocomplete="new-password"
-          type="password"
-          name="user[password_confirmation]"
-          id="user_password_confirmation">
-
-        <div class="account__error-message">
-          {{- form.errors.password_confirmation -}}
-        </div>
-      </div>
+      {%- render 'form-password-session-pages',
+          form: form,
+          form_name: "register",
+          password_label: password_label,
+          password_confirmation_label: password_confirmation_label,
+          button_label: nil
+      -%}
 
       <div class="account__type account__divider{% if form.errors.customer %} account-fieldset--error{%- endif -%}">
         <span class="account-fieldset__static-label">
