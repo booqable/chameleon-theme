@@ -1,15 +1,16 @@
 {{ "account.css" | asset_url | stylesheet_tag }}
 
-{%- assign title                 = section.settings.title -%}
-{%- assign description           = section.settings.description -%}
-{%- assign password_label        = section.settings.password_label | default: 'New password' -%}
-{%- assign password_confirmation = section.settings.password_confirmation | default: 'Confirm new password' -%}
-{%- assign button_label          = section.settings.button_label | default: 'Change my password' -%}
+{%- assign button_label          = section.settings.button_label | default: "Accept invite" -%}
 {%- assign color_palette         = section.settings.color_palette -%}
-{%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
-{%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+{%- assign padding_top           = section.settings.padding_top -%}
+{%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
+{%- assign password_label        = section.settings.password_label | default: "New password" -%}
+{%- assign password_confirmation = section.settings.password_confirmation | default: "Confirm new password" -%}
+{%- assign please_enter_password = section.settings.please_enter_password -%}
+{%- assign success_link_label    = section.settings.success_link_label -%}
+{%- assign you_are_invited       = section.settings.you_are_invited -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -56,35 +57,51 @@
   style="{{- variables | escape -}}"
 >
   <div class="account__container container">
-    <h3 class="account__title text-center">
-      {{- title | default: 'Change your password' -}}
-    </h3>
-
-    {%- if description != blank -%}
-      <div class="account__divider">
-        {{- description -}}
-      </div>
+    {%- if alert -%}
+      <div class="account__alert account__alert--danger">{{ alert }}</div>
     {%- endif -%}
 
-    {%- form 'edit_password' -%}
-      {%- render 'form-password-session-pages',
-          form: form,
-          form_name: "edit_password",
-          password_label: password_label,
-          password_confirmation_label: password_confirmation,
-          button_label: button_label
-      -%}
-    {%- endform -%}
+    {%- if notice -%}
+      <div class="account__alert account__alert--info">{{ notice }}</div>
+    {%- endif -%}
+
+    {%- if success_link_url -%}
+      <a href="{{ success_link_url }}">{{ success_link_label }}</a>
+    {%- endif -%}
+
+    {%- unless hide_form -%}
+      {% if you_are_invited or please_enter_password %}
+        <div class="account__alert account__alert--info">
+          {% if you_are_invited %}
+            <p>{{ you_are_invited }}</p>
+          {% endif %}
+
+          {% if please_enter_password %}
+            <p>{{ please_enter_password }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {%- form 'accept_invitation' -%}
+        {%- render 'form-password-session-pages',
+            form: form,
+            form_name: "accept_invitation",
+            password_label: password_label,
+            password_confirmation_label: password_confirmation,
+            button_label: button_label
+        -%}
+      {%- endform -%}
+    {%- endunless -%}
   </div>
 </div>
 
 {% schema %}
   {
-    "name": "Edit password form",
+    "name": "Accept invitation form",
     "important": true,
     "unique": true,
     "tag": "section",
-    "templates": ["edit-password"],
+    "templates": ["accept-invitation"],
     "settings": [
       {
         "type": "header",
@@ -112,13 +129,13 @@
       },
       {
         "type": "text",
-        "id": "title",
-        "label": "Title"
+        "id": "you_are_invited",
+        "label": "Accept invitation title"
       },
       {
         "type": "text",
-        "id": "description",
-        "label": "Description"
+        "id": "please_enter_password",
+        "label": "Password instructions"
       },
       {
         "type": "text",
@@ -129,6 +146,11 @@
         "type": "text",
         "id": "password_confirmation",
         "label": "Password confirmation label"
+      },
+      {
+        "type": "text",
+        "id": "success_link_label",
+        "label": "Success link label"
       },
       {
         "type": "header",
