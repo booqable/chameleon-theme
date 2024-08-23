@@ -29,14 +29,15 @@
 {% else %}
   <meta property="og:type" content="product">
   <meta property="og:url" content="{{ product.url }}">
+{% endif %}
 
-  {% assign image = product.images.first %}
+{% if page_meta_image_url != blank %}
+  <meta property="og:image" content="{{ page_meta_image_url }}">
+  <meta property="og:image:secure_url" content="{{ page_meta_image_url }}">
+  <meta name="twitter:image" content="{{ page_meta_image_url }}">
 
-  {% if image.url != blank %}
-    <meta property="og:image" content="{{ image.url | image_url }}">
-    <meta property="og:image:secure_url" content="{{ image.url | image_url }}">
-    <meta property="og:image:alt" content="{{ product.name }}">
-    <meta name="twitter:image" content="{{ image.url | image_url }}">
-    <meta name="twitter:image:alt" content="{{ product.name }}">
+  {% if page_meta_image_alt != blank %}
+    <meta property="og:image:alt" content="{{ page_meta_image_alt }}">
+    <meta name="twitter:image:alt" content="{{ page_meta_image_alt }}">
   {% endif %}
 {% endif %}
