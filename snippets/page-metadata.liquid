@@ -1,12 +1,6 @@
-{% if page_title == blank %}
-  <title>{{ shop.name }}</title>
-  <meta property="og:title" content="{{ shop.name }}">
-  <meta name="twitter:title" content="{{ shop.name }}">
-{% else %}
-  <title>{{ page_title }}</title>
-  <meta property="og:title" content="{{ page_title }}">
-  <meta name="twitter:title" content="{{ page_title }}">
-{% endif %}
+<title>{{ page_title }}</title>
+<meta property="og:title" content="{{ page_title }}">
+<meta name="twitter:title" content="{{ page_title }}">
 
 <meta property="og:site_name" content="{{ shop.name }}">
 
@@ -28,7 +22,7 @@
   <meta property="og:url" content="{{ canonical_url }}">
 {% else %}
   <meta property="og:type" content="product">
-  <meta property="og:url" content="{{ product.url }}">
+  <meta property="og:url" content="{{ canonical_url | append: product.url }}">
 {% endif %}
 
 {% if page_meta_image_url != blank %}

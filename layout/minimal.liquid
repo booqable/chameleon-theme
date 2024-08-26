@@ -24,11 +24,19 @@
     {% render 'fonts', settings: settings %}
     {% render 'root-styles', settings: settings %}
 
-    {% render 'page-metadata',
-      page_title: page_title,
-      page_description: page_description,
-      shop: shop
-    %}
+    {%- unless section_preview -%}
+      {% render 'page-metadata',
+        canonical_url: canonical_url,
+        page_title: page_title,
+        page_description: page_description,
+        shop: shop
+        page_meta_image_url: page_meta_image_url,
+        page_meta_image_alt: page_meta_image_alt,
+        product: product,
+        shop: shop,
+        locale: locale
+      %}
+    {%- endunless -%}
   </head>
   <body {% if section_preview %} class="preview-app"{%- endif -%}>
     {% unless section_preview %}
