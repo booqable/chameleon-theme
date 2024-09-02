@@ -151,6 +151,11 @@ body > * {
   flex-grow: 1;
 }
 
+#main > section:only-child > [class*="__wrapper"],
+#main > section:only-child > [class^="__wrapper"] {
+  flex-grow: 1;
+}
+
 .preview-app #main:has(section:only-child) {
   display: block;
 }

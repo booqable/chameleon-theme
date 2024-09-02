@@ -1,3 +1,7 @@
+.product-main__holder {
+  flex-grow: 1;
+}
+
 .product-main__container--padding-top {
   padding-top: var(--padding-top-mobile, 24px);
 }
