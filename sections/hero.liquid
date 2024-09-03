@@ -10,7 +10,6 @@
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-{%- assign page_title            = page_title | split: " | " | first | remove: ":"-%}
 {%- assign show_datepicker       = section.settings.show_datepicker -%}
 
 {%- if show_datepicker -%}
@@ -63,7 +62,7 @@
   <div class="hero__container container{% if padding_top != blank or padding_top_mobile != blank %} hero__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} hero__container--padding-bottom{%- endif -%}">
     <div class="hero__content">
       <h1 class="hero__title">
-        {{- custom_title | default: collection.title | default: page_title -}}
+        {{- custom_title | default: collection.title -}}
       </h1>
 
       <div class="hero__description text-medium bq-content rx-content">
@@ -143,7 +142,8 @@
       {
         "type": "text",
         "id": "custom_title",
-        "label": "Custom title"
+        "label": "Custom title",
+        "default": "Title"
       },
       {
         "type": "contentEditor",
