@@ -1,5 +1,8 @@
-.hero:last-child {
-  margin-bottom: 50px;
+.hero:only-child:has(.hero__date-picker) .hero__date-picker {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
 
 .hero__wrapper {
