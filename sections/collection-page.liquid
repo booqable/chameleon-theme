@@ -6,6 +6,7 @@
 {%- assign show_excerpt          = section.settings.show_excerpt -%}
 {%- assign limit                 = section.settings.limit -%}
 {%- assign color_palette         = section.settings.color_palette -%}
+{%- assign menu                  = false -%}
 {%- assign mobile_toggler        = section.settings.mobile_toggler -%}
 {%- assign sticky_sidebar        = section.settings.sticky_sidebar -%}
 {%- assign padding_top           = section.settings.padding_top -%}
@@ -14,6 +15,15 @@
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign image_placeholder 	   = settings.image_placeholder -%}
 {%- assign is_focal              = settings.use_focal_images -%}
+
+{%- for block in section.blocks -%}
+  {%- assign menu = block.settings.menu -%}
+
+  {%- if menu != blank -%}
+    {%- assign menu = true -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -72,13 +82,14 @@
 
 <div class="collection-page__wrapper{% if color_palette != blank %} palette-{{ color_palette }}{% endif %}{% if padding_top != blank or padding_top_mobile != blank %} collection-page__wrapper--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} collection-page__wrapper--padding-bottom{%- endif -%}" style="{{- variables | escape -}}">
   <div class="collection-page__container container">
-    {%- if section.blocks.size > 0 -%}
+    {%- if menu -%}
       <div class="collection-page__grid">
         <div class="collection-page__sidebar">
           {%- render 'sidebar',
               items: section.blocks,
               toggler: mobile_toggler,
-              sticky: sticky_sidebar -%}
+              sticky: sticky_sidebar
+          -%}
         </div>
     {%- endif -%}
 
