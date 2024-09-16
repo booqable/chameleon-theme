@@ -2,90 +2,188 @@
 {%- assign cookies_color_palette = settings.cookie_notice_color_palette -%}
 
 {%- if cookies_activated or section_preview %}
-  {%- assign paragraph_text      = section.settings.paragraph_text -%}
-  {%- assign button_text         = section.settings.button_text -%}
-  {%- assign background          = section.settings.background_color -%}
+  {%- assign background            = section.settings.background_color -%}
+  {%- assign button_text           = section.settings.button_text -%}
+  {%- assign padding_bottom        = section.settings.padding_bottom -%}
+  {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+  {%- assign padding_top           = section.settings.padding_top -%}
+  {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
+  {%- assign paragraph_text        = section.settings.paragraph_text -%}
 
-  <style>
-    .cookie-notice-preferences {
-      max-width: calc(var(--max-width) + var(--horizontal-padding) * 2);
-      width: 100%;
+  {{ "cookie-notice-preferences.css" | asset_url | stylesheet_tag }}
 
-      margin: 0 auto;
-      padding: 0 var(--horizontal-padding);
-    }
+  {% comment %} CSS variables start {% endcomment %}
+  {%- capture variables -%}
+    --section-background-color: {{ background }};
 
-    .cookie-notice-preferences__inner {
-      background-color: {{ background }};
-      border-radius: 8px;
-      padding: 16px 24px;
+    {%- case padding_top -%}
+      {%- when 'small' -%}
+        --padding-top: 30px;
+      {%- when 'medium' -%}
+        --padding-top: 60px;
+      {%- when 'large' -%}
+        --padding-top: 100px;
+    {%- endcase -%}
 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    {%- case padding_bottom -%}
+      {%- when 'small' -%}
+        --padding-bottom: 30px;
+      {%- when 'medium' -%}
+        --padding-bottom: 60px;
+      {%- when 'large' -%}
+        --padding-bottom: 100px;
+    {%- endcase -%}
 
-    .cookie-notice-preferences__inner--preview {
-      margin-top: 16px;
-    }
+    {%- case padding_top_mobile -%}
+      {%- when 'small' -%}
+        --padding-top-mobile: 30px;
+      {%- when 'medium' -%}
+        --padding-top-mobile: 60px;
+      {%- when 'large' -%}
+        --padding-top-mobile: 100px;
+    {%- endcase -%}
 
-    .cookie-notice-preferences__inner--preview button {
-      margin: 0;
-    }
+    {%- case padding_bottom_mobile -%}
+      {%- when 'small' -%}
+        --padding-bottom-mobile: 30px;
+      {%- when 'medium' -%}
+        --padding-bottom-mobile: 60px;
+      {%- when 'large' -%}
+        --padding-bottom-mobile: 100px;
+    {%- endcase -%}
+  {%- endcapture -%}
+  {% comment %} CSS variables end {% endcomment %}
 
-    .cookie-notice-preferences__inner button {
-      {%- case cookies_color_palette -%}
-        {%- when 'one' -%}
-          background-color: var(--background-accent);
-          color: var(--color-accent);
-        {%- when 'two' -%}
-          background-color: var(--background-accent-2);
-          color: var(--color-accent-2);
-        {%- when 'three' -%}
-          background-color: var(--background-accent-3);
-          color: var(--color-accent-3);
-      {%- endcase -%}
-    }
-  </style>
-
-  <div class="cookie-notice-preferences__inner{% if section_preview %} cookie-notice-preferences__inner--preview{% endif %}">
-    <div class="cookie-notice-preferences__text bq-content rx-content text-{{- section.key -}}">
-      {{- paragraph_text -}}
+  <div class="cookie-notice-preferences__wrapper palette-{{ cookies_color_palette }}{% if padding_top != blank or padding_top_mobile != blank %} cookie-notice-preferences__wrapper--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} cookie-notice-preferences__wrapper--padding-bottom{%- endif -%}" style="{{- variables | escape -}}">
+    <div class="cookie-notice-preferences__container container">
+      <div class="cookie-notice-preferences__inner {% if section_preview %} cookie-notice-preferences__inner--preview{% endif %}">
+        <div class="cookie-notice-preferences__text bq-content rx-content text-{{- section.key -}}">
+          {{- paragraph_text -}}
+        </div>
+        <button type="button"
+          class="cookie-notice-preferences__button button button--primary button--large"
+          onclick="CookieNotice.showPreferencesModal()"
+        >
+          {{- button_text -}}
+        </button>
+      </div>
     </div>
-    <button type="button"
-      class="cookie-notice-preferences__button button button--primary button--large"
-      onclick="CookieNotice.showPreferencesModal()"
-    >
-      {{- button_text -}}
-    </button>
   </div>
 {%- endif %}
 
 {% schema %}
-{
-  "name": "Cookie notice preferences",
-  "description": "Display text in various styles.",
-  "tag": "div",
-  "class": "cookie-notice-preferences",
-  "settings": [
-    {
-      "type": "color",
-      "id": "background_color",
-      "label": "Background color",
-      "default": "#CECECE"
-    },
-    {
-      "type": "contentEditor",
-      "id": "paragraph_text",
-      "label": "Paragraph",
-      "default": "<p>View or change your cookie preferences.</p>"
-    },
-    {
-      "type": "text",
-      "id": "button_text",
-      "label": "Button text",
-      "default": "Cookie preferences"
-    }
-  ]
-}
+  {
+    "name": "Cookie notice preferences",
+    "description": "Display information about cookies notice",
+    "tag": "div",
+    "class": "cookie-notice-preferences",
+    "settings": [
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "Background color",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "contentEditor",
+        "id": "paragraph_text",
+        "label": "Paragraph",
+        "default": "<p>View or change your cookie preferences.</p>"
+      },
+      {
+        "type": "text",
+        "id": "button_text",
+        "label": "Button text",
+        "default": "Cookie preferences"
+      },
+      {
+        "type": "header",
+        "content": "Desktop settings"
+      },
+      {
+        "type": "select",
+        "id": "padding_top",
+        "label": "Padding top",
+        "options": [
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "medium"
+      },
+      {
+        "type": "select",
+        "id": "padding_bottom",
+        "label": "Padding bottom",
+        "options": [
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "medium"
+      },
+      {
+        "type": "header",
+        "content": "Mobile settings"
+      },
+      {
+        "type": "select",
+        "id": "padding_top_mobile",
+        "label": "Padding top",
+        "options": [
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "large"
+      },
+      {
+        "type": "select",
+        "id": "padding_bottom_mobile",
+        "label": "Padding bottom",
+        "options": [
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "small"
+      }
+    ]
+  }
 {% endschema %}
