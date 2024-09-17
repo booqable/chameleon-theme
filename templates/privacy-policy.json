@@ -1,12 +1,16 @@
 {
   "name": "Privacy policy",
   "sections": {
-    "text_1": {
+    "text_154637": {
       "type": "text",
       "blocks": {},
       "block_order": [],
       "settings": {
         "align": "left",
+        "padding_bottom": "small",
+        "padding_bottom_mobile": "small",
+        "padding_top": "medium",
+        "padding_top_mobile": "small",
         "text": "<p>Cookie policy by Booqable, 2024</p><p>Booqable collects cookies to deliver you the best possible user experience.</p>",
         "title": "Privacy policy"
       },
@@ -14,14 +18,26 @@
     },
     "cookie-notice-preferences": {
       "type": "cookie-notice-preferences",
-      "settings": {}
+      "settings": {
+        "background_color": "#FFFFFF",
+        "button_text": "Cookie preferences",
+        "padding_bottom": "medium",
+        "padding_bottom_mobile": "small",
+        "padding_top": "medium",
+        "padding_top_mobile": "small",
+        "paragraph_text": "<p>View or change your cookie preferences.</p>"
+      }
     },
-    "text_2": {
+    "text_154638": {
       "type": "text",
       "blocks": {},
       "block_order": [],
       "settings": {
         "align": "left",
+        "padding_bottom": "large",
+        "padding_bottom_mobile": "large",
+        "padding_top": "small",
+        "padding_top_mobile": "small",
         "text": "<p>Use this page to explain what data you collect, with which techniques and why you collect this data.</p>",
         "title": "How and why we use cookies"
       },
@@ -29,8 +45,8 @@
     }
   },
   "order": [
-    "text_1",
+    "text_154637",
     "cookie-notice-preferences",
-    "text_2"
+    "text_154638"
   ]
 }
