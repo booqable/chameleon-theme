@@ -134,25 +134,22 @@ body > * {
 
 #main {
   flex: 1 1 auto;
-}
-
-#main:has(section:only-child) {
   display: flex;
   flex-direction: column;
 }
 
-#main:has(section:only-child) > * {
+#main > * {
   width: 100%;
 }
 
-#main > section:only-child {
+#main > section:last-child {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
-#main > section:only-child > [class*="__wrapper"],
-#main > section:only-child > [class^="__wrapper"] {
+#main > section:last-child > [class*="__wrapper"],
+#main > section:last-child > [class^="__wrapper"] {
   flex-grow: 1;
 }
 
