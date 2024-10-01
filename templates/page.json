@@ -16,7 +16,22 @@
         "show_datepicker": true
       },
       "disabled": null
+    },
+    "spacer": {
+      "type": "spacer",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "color_scheme": "set-1",
+        "image": "",
+        "size": "small",
+        "size_mobile": "small"
+      },
+      "disabled": null
     }
   },
-  "order": ["hero"]
+  "order": [
+    "hero",
+    "spacer"
+  ]
 }
