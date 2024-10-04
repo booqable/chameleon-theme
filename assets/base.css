@@ -649,7 +649,6 @@ div[data-tippy-root]:has([data-tid="Mini cart"] [class*="DetailContainer-"] > [c
   border-bottom-left-radius: var(--border-radius-rounded) !important;
 }
 
-div[data-tid="Modal"][class*="Container-"]:has([class*="Select__control"]) [class*="Select__control"],
 div[data-tippy-root]:has([data-tid="Mini cart"] [class*="DetailContainer-"] > [class*="Quantity-"]) [class*="QuantityButton"]:last-child {
   border-top-right-radius: var(--border-radius-rounded) !important;
   border-bottom-right-radius: var(--border-radius-rounded) !important;
@@ -661,11 +660,16 @@ div[data-tippy-root]:has([class*="tippy-content"] [class*="DayPicker-wrapper"] [
 }
 
 div[data-tid="Modal"][class*="Container-"],
+div[data-tid="Modal"][class*="Container-"]:has([class*="Select__control"]) [class*="Select__control"],
 div[data-tid="Modal"]:has(> div[class*="Body-"] form > div > div) div[class*="Body-"] form > div > div,
 div[data-tid="Modal"] div[data-tid="Start and stop location dropdown"][class*="Container-"] [class*="Select__control"],
 div[data-tippy-root]:has([data-tid="Mini cart"] [data-tid*="Select dates"] > [class*="DatesBase-"] > [class*="Dates"]) [class*="DatesBase-"] > [class*="Dates"],
 div[data-tippy-root]:has([class*="tippy-content"] [class*="DayPicker-wrapper"] [class*="DayPicker-NavBar"]) [class*="tippy-content"] > div > [class*="Content"] > [class*="Inner"] {
   border-radius: var(--border-radius-rounded) !important;
+}
+
+div[data-tid="Modal actions"] button {
+  border-radius: var(--border-radius-dynamic) !important;
 }
 
 @media (min-width: 576px) {
