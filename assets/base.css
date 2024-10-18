@@ -171,7 +171,7 @@ body > * {
 }
 
 .preview-bar__container {
-  z-index: 1002 !important;
+  z-index: 10000000 !important;
 }
 
 h1,
@@ -674,21 +674,92 @@ div[data-tid="Modal actions"] button {
 
 @media (min-width: 576px) {
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    position: fixed !important;
     top: var(--header-height) !important;
     right: var(--horizontal-padding) !important;
     transform: translate(0, 0) !important;
     transition: top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
-  .scrolled-down div[data-tippy-root]:has([data-tid="Mini cart"]) {
+  div[data-tippy-root] div[data-tid="Mini cart"] {
+    height: auto;
+    max-height: calc(100vh - var(--header-height));
+  }
+
+  div[data-tid="Mini cart"] div[class*="Summary"] div[class*="Services"] {
+    max-height: 84px;
+  }
+
+  body:has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    position: fixed !important;
+  }
+
+  .scrolled-down:has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+  }
+
+  body:has(.preview-bar__container) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) + var(--preview-height, 0)) !important;
+  }
+
+  body:has(.preview-bar__container) div[data-tippy-root] [data-tid="Mini cart"] {
+    max-height: calc(100vh - var(--header-height) - var(--preview-height, 0) / 2);
+  }
+
+  body:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height)) !important;
+  }
+
+  .scrolled-down:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+  }
+}
+
+@media (min-width: 1100px) {
+  body:has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) - var(--menu-position)) !important;
+  }
+
+  body:has(.header-menu-bottom) div[data-tippy-root] div[data-tid="Mini cart"] {
+    max-height: calc(100vh - var(--header-height) + var(--menu-position));
+  }
+
+  .scrolled-down:has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) - var(--menu-position) + var(--header-transform, 0)) !important;
+  }
+
+  body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) - var(--menu-position) + var(--preview-height, 0)) !important;
+  }
+  body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root] [data-tid="Mini cart"] {
+    max-height: calc(100vh - var(--header-height) + var(--menu-position) - var(--preview-height, 0) / 2);
+  }
+
+  body:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height)) !important;
+  }
+
+  body:has(.preview-bar__container):has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) - var(--menu-position)) !important;
+  }
+
+  .scrolled-down:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+  }
+
+  .scrolled-down:has(.preview-bar__container):has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
+    top: calc(var(--header-height) - var(--menu-position) + var(--header-transform, 0)) !important;
   }
 }
 
 @media (min-width: 1280px) {
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
     right: calc(50% - var(--max-width) / 2 + var(--horizontal-padding)) !important;
+  }
+}
+
+@media (min-height: 964px) {
+  div[data-tid="Mini cart"] div[class*="Summary"] div[class*="Services"] {
+    max-height: none;
   }
 }
 

@@ -8,7 +8,7 @@ class Header {
       view: ".preview-bar__container",
       headerNav: ".header__nav-wrapper",
       menu: ".menu",
-      menuItem: ".menu__item",
+      menuItem: ".menu__list",
       menuDrop: ".has-dropdown",
       menuBottom: ".header-menu-bottom",
       menuOpener: "#mobile-menu-opener",
