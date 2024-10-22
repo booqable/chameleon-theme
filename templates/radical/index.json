@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Unlock your creative potential and seize every moment in<br>stunning detail with our extensive selection of camera rentals.</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-radical-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",

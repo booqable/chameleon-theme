@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Luxury furniture delivered to your door for days, </p>\n<p>weeks, or months. It's up to you to style your home.</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-chic-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",

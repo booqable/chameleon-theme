@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Rent your e-bike from EcoRide and prepare to start your adventure</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-charge-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",

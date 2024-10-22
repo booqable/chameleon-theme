@@ -128,6 +128,7 @@
             {%- assign tag                  = block.settings.tag -%}
             {%- assign title                = block.settings.title -%}
             {%- assign description          = block.settings.description -%}
+            {%- assign full_width_content   = block.settings.full_width_content -%}
             {%- assign button_1             = block.settings.button_1 -%}
             {%- assign button_url_1         = block.settings.button_url_1 -%}
             {%- assign button_2             = block.settings.button_2 -%}
@@ -326,7 +327,7 @@
                     class="images__container container{% if padding_top != blank or padding_top_mobile != blank %} images__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} images__container--padding-bottom{% endif %}"
                     style="{{- text_variables | escape -}}"
                   >
-                    <div class="images__text-area{% if show_overlay %} images__text-area--color{%- endif -%}">
+                    <div class="images__text-area{% if full_width_content %} images__text-area--full-width{% endif %}{% if show_overlay %} images__text-area--color{%- endif -%}">
                       <div class="images__content">
                         {%- if tag != blank -%}
                           <strong class="images__tag tagline">{{- tag -}}</strong>
@@ -526,6 +527,12 @@
             "id": "description",
             "label": "Description",
             "default": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique."
+          },
+          {
+            "type": "checkbox",
+            "id": "full_width_content",
+            "label": "Full-width text content",
+            "default": false
           },
           {
             "type": "header",

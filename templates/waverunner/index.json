@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Dive into the ultimate surf adventure with our diverse range <br>of high-quality surfboard rentals, offering the perfect boards </p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-waverunner-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",

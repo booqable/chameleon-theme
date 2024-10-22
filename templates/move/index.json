@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": null,
             "description": "",
+            "full_width_content": true,
             "image": "booqable://assets/image-move-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",

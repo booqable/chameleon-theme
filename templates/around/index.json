@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Take the stress out of traveling with your baby,<br>Rent a stroller for the duration of your vacation.</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-around-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",
