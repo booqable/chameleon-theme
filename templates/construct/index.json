@@ -12,6 +12,7 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "full_width_content": true,
             "image": "booqable://assets/image-tough-hero.jpg",
             "image_mobile": "booqable://assets/image-tough-hero-mobile.jpg",
             "overlay_background": "#0B1A26",

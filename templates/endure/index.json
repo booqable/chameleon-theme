@@ -12,6 +12,7 @@
             "button_url_1": "booqable://collections/mountain-bikes",
             "button_url_2": "booqable://root/",
             "description": "<p>Explore the trails </p>\n<p>with our selection of mountain bikes</p>\n<p>and accessories</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-endure-hero.jpg",
             "image_mobile": null,
             "overlay_background": "#131314",

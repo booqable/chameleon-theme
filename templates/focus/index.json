@@ -12,6 +12,7 @@
             "button_url_1": "booqable://collections/",
             "button_url_2": null,
             "description": "<p>Now available to rent!</p>",
+            "full_width_content": true,
             "image": "booqable://assets/image-focus-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#000000",
