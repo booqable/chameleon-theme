@@ -275,21 +275,6 @@ h6,
   line-height: 1.4;
 }
 
-.classic-design h1,
-.classic-design h2,
-.classic-design h3,
-.classic-design h4,
-.classic-design h5,
-.classic-design h6,
-.classic-design .h1,
-.classic-design .h2,
-.classic-design .h3,
-.classic-design .h4,
-.classic-design .h5,
-.classic-design .h6 {
-  font-weight: var(--font-weight-regular, 400);
-}
-
 a {
   display: inline-block;
   vertical-align: top;
@@ -438,10 +423,6 @@ img {
   cursor: pointer;
   margin-bottom: var(--button-margin-bottom, 16px);
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
-}
-
-.button.button--secondary {
-  font-weight: var(--font-weight-semibold, 600);
 }
 
 .button.button--secondary svg {
@@ -776,7 +757,6 @@ div[data-tid="Modal actions"] button {
 }
 
 .title__title {
-  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 16px;
 }
 

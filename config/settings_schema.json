@@ -319,7 +319,7 @@
             "label": "Extrabold"
           }
         ],
-        "default": "400"
+        "default": "700"
       },
       {
         "type": "select",
@@ -351,7 +351,7 @@
             "label": "Extrabold"
           }
         ],
-        "default": "400"
+        "default": "700"
       },
       {
         "type": "select",
@@ -383,7 +383,7 @@
             "label": "Extrabold"
           }
         ],
-        "default": "400"
+        "default": "700"
       },
       {
         "type": "select",
@@ -415,7 +415,7 @@
             "label": "Extrabold"
           }
         ],
-        "default": "400"
+        "default": "700"
       }
     ]
   },

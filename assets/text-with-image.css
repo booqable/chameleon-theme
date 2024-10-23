@@ -29,7 +29,6 @@
 }
 
 .text-image__title {
-  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 25px;
 }
 

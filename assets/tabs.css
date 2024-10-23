@@ -46,7 +46,7 @@
 
 .tabs__heading {
   font-size: 24px;
-  font-weight: var(--font-weight-semibold, 600);
+  font-weight: var(--font-weight-headers, 600);
   line-height: 1.4;
   display: inline-block;
   vertical-align: top;

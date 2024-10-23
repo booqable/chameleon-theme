@@ -9,7 +9,6 @@
 
 .form__title {
   font-size: var(--font-size-h2, 48px);
-  font-weight: var(--font-weight-bold, 700);
   line-height: var(--line-height-sm, 1.2);
   margin-bottom: 22px;
 }
