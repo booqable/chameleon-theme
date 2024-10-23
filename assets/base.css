@@ -188,6 +188,7 @@ h6,
 .h6 {
   font-family: var(--font-heading, sans-serif);
   margin-bottom: 1.5625rem;
+  font-weight: var(--font-weight-headers, 700);
 }
 
 .palette-one h1,
@@ -238,18 +239,21 @@ h6,
 h1,
 .h1 {
   font-size: var(--font-size-h1, 56px);
+  font-weight: var(--font-weight-h1, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
 h2,
 .h2 {
   font-size: var(--font-size-h2, 48px);
+  font-weight: var(--font-weight-h2, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
 h3,
 .h3 {
   font-size: var(--font-size-h3, 40px);
+  font-weight: var(--font-weight-h3, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
