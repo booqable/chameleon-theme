@@ -28,11 +28,6 @@
   align-items: var(--text-align-items-mobile, flex-start);
   text-align: var(--text-align-mobile, left);
   margin: 0 var(--margin-right-mobile) 0 var(--margin-left-mobile);
-  max-width: 600px;
-}
-
-.images__text-area.images__text-area--full-width {
-  max-width: none;
 }
 
 .images__text-area.images__text-area--color {
