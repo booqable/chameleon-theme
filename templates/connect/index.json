@@ -12,7 +12,6 @@
             "button_url_1": "booqable://products/",
             "button_url_2": "booqable://root/",
             "description": "<p>Superfast, low-latency internet anywhere</p>",
-            "full_width_content": true,
             "image": "booqable://assets/image-connect-hero.jpg",
             "image_mobile": "",
             "overlay_background": "#131314",
