@@ -1,22 +1,22 @@
 {% style %}
   bq-cart-totals {
-    --book-button-label-weight: 700;
+    --book-button-label-weight: var(--font-weight-semibold, 600);
     --book-button-button-border-radius: var(--border-radius-dynamic, 0);
     --book-button-control-height: 50px;
     --book-button-button-padding: 14px 24px;
     --book-button-button-width: 100%;
     --book-button-error-color: var(--color-red, #C23434);
     --totals-breakdown-font-size: 16px;
-    --totals-breakdown-font-weight: 400;
+    --totals-breakdown-font-weight: var(--font-weight-regular, 400);
     --totals-total-font-size: 20px;
-    --totals-total-font-weight: 700;
+    --totals-total-font-weight: var(--font-weight-h2, 700);
     --totals-error-padding: 8px 16px;
     --totals-error-border-radius: 0;
     --totals-error-background-color: var(--color-red-light, #F5CFCF);
     --totals-error-color: var(--color-red, #C23434);
     --totals-error-gap: 10px;
     --totals-error-font-size: 16px;
-    --totals-error-font-weight: 400;
+    --totals-error-font-weight: var(--font-weight-regular, 400);
 
     {% if color_palette == "one" %}
       {% if settings.primary_color != blank %}

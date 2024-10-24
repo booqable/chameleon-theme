@@ -192,6 +192,11 @@
       --font-size-tagline: {{- settings.tagline_size | append: "px" -}};
     {%- endif -%}
 
+    --font-weight-h1:      {{ settings.font_weight_h1 | default: "700" }};
+    --font-weight-h2:      {{ settings.font_weight_h2 | default: "700" }};
+    --font-weight-h3:      {{ settings.font_weight_h3 | default: "700" }};
+    --font-weight-headers: {{ settings.font_weight_headers | default: "700" }};
+
     {%- case settings.social_size -%}
       {%- when 'sm' -%}
         --social-size: 18px;

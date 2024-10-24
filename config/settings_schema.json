@@ -280,6 +280,142 @@
         "max": 50,
         "default": 14,
         "info": "Min: 14, max: 50"
+      },
+      {
+        "type": "header",
+        "content": "Font weights"
+      },
+      {
+        "type": "paragraph",
+        "content": "Some fonts don't use a full list of weight options"
+      },
+      {
+        "type": "select",
+        "id": "font_weight_h1",
+        "label": "Heading 1",
+        "options": [
+          {
+            "value": "300",
+            "label": "Light"
+          },
+          {
+            "value": "400",
+            "label": "Regular"
+          },
+          {
+            "value": "500",
+            "label": "Medium"
+          },
+          {
+            "value": "600",
+            "label": "Semibold"
+          },
+          {
+            "value": "700",
+            "label": "Bold"
+          },
+          {
+            "value": "800",
+            "label": "Extrabold"
+          }
+        ],
+        "default": "700"
+      },
+      {
+        "type": "select",
+        "id": "font_weight_h2",
+        "label": "Heading 2",
+        "options": [
+          {
+            "value": "300",
+            "label": "Light"
+          },
+          {
+            "value": "400",
+            "label": "Regular"
+          },
+          {
+            "value": "500",
+            "label": "Medium"
+          },
+          {
+            "value": "600",
+            "label": "Semibold"
+          },
+          {
+            "value": "700",
+            "label": "Bold"
+          },
+          {
+            "value": "800",
+            "label": "Extrabold"
+          }
+        ],
+        "default": "700"
+      },
+      {
+        "type": "select",
+        "id": "font_weight_h3",
+        "label": "Heading 3",
+        "options": [
+          {
+            "value": "300",
+            "label": "Light"
+          },
+          {
+            "value": "400",
+            "label": "Regular"
+          },
+          {
+            "value": "500",
+            "label": "Medium"
+          },
+          {
+            "value": "600",
+            "label": "Semibold"
+          },
+          {
+            "value": "700",
+            "label": "Bold"
+          },
+          {
+            "value": "800",
+            "label": "Extrabold"
+          }
+        ],
+        "default": "700"
+      },
+      {
+        "type": "select",
+        "id": "font_weight_headers",
+        "label": "Headings 4-6",
+        "options": [
+          {
+            "value": "300",
+            "label": "Light"
+          },
+          {
+            "value": "400",
+            "label": "Regular"
+          },
+          {
+            "value": "500",
+            "label": "Medium"
+          },
+          {
+            "value": "600",
+            "label": "Semibold"
+          },
+          {
+            "value": "700",
+            "label": "Bold"
+          },
+          {
+            "value": "800",
+            "label": "Extrabold"
+          }
+        ],
+        "default": "700"
       }
     ]
   },

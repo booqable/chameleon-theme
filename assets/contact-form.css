@@ -30,7 +30,6 @@
 
 .contact-form__heading {
   font-size: 48px;
-  font-weight: var(--font-weight-bold, 700);
   line-height: var(--line-height-sm, 1.2);
   margin-bottom: 22px;
   text-align: var(--text-align, left);

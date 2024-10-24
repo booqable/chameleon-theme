@@ -44,7 +44,6 @@
 }
 
 .mosaic__heading {
-  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 16px;
   max-width: 450px;
 }
@@ -191,7 +190,7 @@
 }
 
 .classic-design .mosaic__tag {
-  font-weight: var(--font-weight-regular, 400);
+  font-weight: var(--font-weight-headers, 400);
   padding: 4px 8px;
   border: 1px solid transparent;
 }

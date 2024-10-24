@@ -34,7 +34,7 @@
   font-size: 16px;
   display: block;
   padding: 0 0 18px;
-  font-weight: var(--font-weight-semibold, 600);
+  font-weight: var(--font-weight-headers, 600);
   text-align: var(--footer-menu-align, left);
 }
 
