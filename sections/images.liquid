@@ -138,6 +138,7 @@
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
             {%- assign image_placeholder    = settings.image_placeholder -%}
+            {%- assign limit_content_width  = block.settings.limit_content_width -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
             {%- assign overlay_opacity      = block.settings.overlay_opacity -%}
             {%- assign overlay_color        = block.settings.overlay_color -%}
@@ -326,7 +327,7 @@
                     class="images__container container{% if padding_top != blank or padding_top_mobile != blank %} images__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} images__container--padding-bottom{% endif %}"
                     style="{{- text_variables | escape -}}"
                   >
-                    <div class="images__text-area{% if show_overlay %} images__text-area--color{%- endif -%}">
+                    <div class="images__text-area{% if limit_content_width %} images__text-area--max-width{% endif %}{% if show_overlay %} images__text-area--color{%- endif -%}">
                       <div class="images__content">
                         {%- if tag != blank -%}
                           <strong class="images__tag tagline">{{- tag -}}</strong>
@@ -526,6 +527,12 @@
             "id": "description",
             "label": "Description",
             "default": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique."
+          },
+          {
+            "type": "checkbox",
+            "id": "limit_content_width",
+            "label": "Limit content by width",
+            "default": false
           },
           {
             "type": "header",
