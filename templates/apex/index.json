@@ -14,6 +14,7 @@
             "description": "",
             "image": "booqable://assets/image-apex-hero.jpg",
             "image_mobile": "",
+            "limit_content_width": false,
             "overlay_background": "#0B1A26",
             "overlay_color": "#FFFFFF",
             "overlay_opacity": 40,

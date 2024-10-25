@@ -14,6 +14,7 @@
             "description": "Transform your event into an unforgettable experience<br>with our extensive selection of high-quality decor rentals.",
             "image": "booqable://assets/image-romantic-hero.jpeg",
             "image_mobile": "",
+            "limit_content_width": false,
             "overlay_background": "#231905",
             "overlay_color": "#FFFFFF",
             "overlay_opacity": 40,

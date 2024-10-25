@@ -14,6 +14,7 @@
             "description": "",
             "image": "booqable://assets/image-coastal-hero.jpg",
             "image_mobile": "",
+            "limit_content_width": false,
             "overlay_background": "#131314",
             "overlay_color": "#FFFFFF",
             "overlay_opacity": "30",
