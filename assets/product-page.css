@@ -24,7 +24,6 @@
 .product-main__title {
   font-size: 40px;
   line-height: var(--line-height-sm, 1.2);
-  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 8px;
 }
 
@@ -91,45 +90,12 @@
   padding: 23px 0 32px;
 }
 
-.product-main__info .accordion {
-  border-top: 1px solid transparent;
-  font-size: inherit;
-}
-
-.product-main__info .accordion__label {
-  padding: 15px 0;
-  font-weight: var(--font-weight-semibold, 600);
-}
-
-.product-main__info .accordion__item {
-  margin: 0;
-}
-
-.product-main__info .accordion__heading svg {
-  flex: 0 0 8px;
-  margin: 9px;
-}
-
 .palette-one.product-main__holder {
   color: var(--color-primary, #0B1A26);
   background: var(--background-primary, #FFFFFF);
 }
 
-.palette-one .product-main__shipping-info,
-.palette-one .product-main__info .accordion__content {
-  color: var(--color-secondary, #4E5D78);
-}
-
-.palette-one .product-main__info .accordion {
-  border-top-color: var(--color-border, #0B1A2626);
-}
-
-.palette-one .product-main__info .accordion__item {
-  border: none;
-  border-bottom: 1px solid var(--color-border, #0B1A2626);
-}
-
-.palette-one .product-main__info .accordion__content {
+.palette-one .product-main__shipping-info {
   color: var(--color-secondary, #4E5D78);
 }
 
@@ -138,21 +104,7 @@
   background: var(--background-primary-2, #0B1A26);
 }
 
-.palette-two .product-main__shipping-info,
-.palette-two .product-main__info .accordion__content {
-  color: var(--color-secondary-2, #E1E4E8);
-}
-
-.palette-two .product-main__info .accordion {
-  border-top-color: var(--color-border-2, #FFFFFF47);
-}
-
-.palette-two .product-main__info .accordion__item {
-  border: none;
-  border-bottom: 1px solid var(--color-border-2, #FFFFFF47);
-}
-
-.palette-two .product-main__info .accordion__content {
+.palette-two .product-main__shipping-info {
   color: var(--color-secondary-2, #E1E4E8);
 }
 
@@ -161,21 +113,7 @@
   background: var(--background-primary-3, #F4B841);
 }
 
-.palette-three .product-main__shipping-info,
-.palette-three .product-main__info .accordion__content {
-  color: var(--color-secondary-3, #FFFFFF);
-}
-
-.palette-three .product-main__info .accordion {
-  border-top-color: var(--color-border-3, #0B1A2626);
-}
-
-.palette-three .product-main__info .accordion__item {
-  border: none;
-  border-bottom: 1px solid var(--color-border-3, #0B1A2626);
-}
-
-.palette-three .product-main__info .accordion__content {
+.palette-three .product-main__shipping-info {
   color: var(--color-secondary-3, #FFFFFF);
 }
 

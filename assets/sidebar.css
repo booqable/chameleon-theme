@@ -5,7 +5,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  font-weight: var(--font-weight-semibold, 600);
+  font-weight: var(--font-weight-headers, 600);
   border: 1px solid transparent;
 }
 

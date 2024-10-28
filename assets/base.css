@@ -188,6 +188,7 @@ h6,
 .h6 {
   font-family: var(--font-heading, sans-serif);
   margin-bottom: 1.5625rem;
+  font-weight: var(--font-weight-headers, 700);
 }
 
 .palette-one h1,
@@ -238,18 +239,21 @@ h6,
 h1,
 .h1 {
   font-size: var(--font-size-h1, 56px);
+  font-weight: var(--font-weight-h1, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
 h2,
 .h2 {
   font-size: var(--font-size-h2, 48px);
+  font-weight: var(--font-weight-h2, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
 h3,
 .h3 {
   font-size: var(--font-size-h3, 40px);
+  font-weight: var(--font-weight-h3, 700);
   line-height: var(--line-height-sm, 1.2);
 }
 
@@ -269,21 +273,6 @@ h6,
 .h6 {
   font-size: 20px;
   line-height: 1.4;
-}
-
-.classic-design h1,
-.classic-design h2,
-.classic-design h3,
-.classic-design h4,
-.classic-design h5,
-.classic-design h6,
-.classic-design .h1,
-.classic-design .h2,
-.classic-design .h3,
-.classic-design .h4,
-.classic-design .h5,
-.classic-design .h6 {
-  font-weight: var(--font-weight-regular, 400);
 }
 
 a {
@@ -434,10 +423,6 @@ img {
   cursor: pointer;
   margin-bottom: var(--button-margin-bottom, 16px);
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
-}
-
-.button.button--secondary {
-  font-weight: var(--font-weight-semibold, 600);
 }
 
 .button.button--secondary svg {
@@ -772,7 +757,6 @@ div[data-tid="Modal actions"] button {
 }
 
 .title__title {
-  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 16px;
 }
 
