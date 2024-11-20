@@ -217,6 +217,82 @@
     ]
   },
   {
+    "name": "Product card",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_color_palette",
+        "label": "Color palette",
+        "options": [
+          {
+            "value": "one",
+            "label": "Color set 1"
+          },
+          {
+            "value": "two",
+            "label": "Color set 2"
+          },
+          {
+            "value": "three",
+            "label": "Color set 3"
+          }
+        ],
+        "default": "one"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_card_color_palette",
+        "label": "Use color palette",
+        "default": false,
+        "info": "Use these colors instead of section ones"
+      },
+      {
+        "type": "header",
+        "content": "Image settings"
+      },
+      {
+        "type": "select",
+        "id": "card_image_fit",
+        "label": "Image fit",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Cover"
+          },
+          {
+            "value": "contain",
+            "label": "Contain"
+          }
+        ],
+        "default": "cover"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_focal_images",
+        "label": "Use focal images",
+        "default": true,
+        "info": "Display point focused image instead of full sized. Works with 'Cover' image fit option together"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_image_background",
+        "label": "Use transparent background",
+        "default": false,
+        "info": "Display gaps above and below image. Works with 'Contain' image fit option together"
+      },
+      {
+        "type": "header",
+        "content": "Text settings"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_card_excerpt",
+        "default": false,
+        "label": "Show description excerpt"
+      }
+    ]
+  },
+  {
     "name": "Typography",
     "settings": [
       {
@@ -422,13 +498,6 @@
   {
     "name": "Images",
     "settings": [
-      {
-        "type": "checkbox",
-        "id": "use_focal_images",
-        "label": "Use focal images",
-        "default": true,
-        "info": "Display point focused images for products instead of full sized"
-      },
       {
         "type": "image_picker",
         "id": "image_placeholder",
