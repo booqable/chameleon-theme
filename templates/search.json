@@ -43,7 +43,6 @@
         "padding_bottom_mobile": "small",
         "padding_top": "small",
         "padding_top_mobile": "small",
-        "show_excerpt": true,
         "sticky_sidebar": true
       },
       "disabled": null

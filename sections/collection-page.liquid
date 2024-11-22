@@ -3,7 +3,6 @@
 
 {%- assign grid                  = section.settings.grid -%}
 {%- assign message               = section.settings.message -%}
-{%- assign show_excerpt          = section.settings.show_excerpt -%}
 {%- assign limit                 = section.settings.limit -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign menu                  = false -%}
@@ -13,8 +12,6 @@
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
-{%- assign image_placeholder 	   = settings.image_placeholder -%}
-{%- assign is_focal              = settings.use_focal_images -%}
 
 {%- for block in section.blocks -%}
   {%- assign menu = block.settings.menu -%}
@@ -101,9 +98,7 @@
               {% for product in products %}
                 {%- render 'product-card',
                     product: product,
-                    placeholder: image_placeholder,
-                    focal: is_focal,
-                    show_excerpt: show_excerpt
+                    settings: settings
                 -%}
               {% endfor %}
             </div>
@@ -155,12 +150,6 @@
           }
         ],
         "default": "one"
-      },
-      {
-        "type": "checkbox",
-        "id": "show_excerpt",
-        "default": true,
-        "label": "Show product description excerpt"
       },
       {
         "type": "number",

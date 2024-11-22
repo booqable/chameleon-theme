@@ -171,7 +171,6 @@
         "padding_top": "small",
         "padding_top_mobile": "small",
         "show_carousel": false,
-        "show_excerpt": true,
         "show_navigation": true,
         "show_pagination": true,
         "timer": 5

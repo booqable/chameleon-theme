@@ -15,6 +15,9 @@
       "background_3": "#D8A016",
       "background_style": "none",
       "body_font": "roboto",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -141,8 +144,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "roboto-condensed",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "around": {
       "accent_background": "#131314",
@@ -159,6 +165,9 @@
       "background_3": "#FFFFFF",
       "background_style": "none",
       "body_font": "barlow",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -284,8 +293,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "barlow",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "celebrate": {
       "accent_background": "#0B1A26",
@@ -302,6 +314,9 @@
       "background_3": "#0B1A26",
       "background_style": "none",
       "body_font": "lato",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "classic",
       "font_weight_h1": "400",
       "font_weight_h2": "400",
@@ -428,8 +443,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "lato",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "charge": {
       "accent_background": "#9C8B73",
@@ -446,6 +464,9 @@
       "background_3": "#F4B841",
       "background_style": "none",
       "body_font": "raleway",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -572,8 +593,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "raleway",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "chic": {
       "accent_background": "#224C61",
@@ -590,6 +614,9 @@
       "background_3": "#226160",
       "background_style": "none",
       "body_font": "montserrat",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "classic",
       "font_weight_h1": "400",
       "font_weight_h2": "400",
@@ -716,8 +743,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "inter",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "coastal": {
       "accent_background": "#0B1A26",
@@ -734,6 +764,9 @@
       "background_3": "#FFFFFF",
       "background_style": "none",
       "body_font": "Helvetica",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -861,8 +894,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "Helvetica",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "connect": {
       "accent_background": "#FFFFFF",
@@ -879,6 +915,9 @@
       "background_3": "#1A1A1A",
       "background_style": "none",
       "body_font": "roboto",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1005,8 +1044,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "roboto",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "construct": {
       "accent_background": "#F4B841",
@@ -1023,6 +1065,9 @@
       "background_3": "#F4B841",
       "background_style": "cubes",
       "body_font": "barlow",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1143,8 +1188,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "barlow",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "endure": {
       "accent_background": "#131314",
@@ -1161,6 +1209,9 @@
       "background_3": "#82B828",
       "background_style": "none",
       "body_font": "barlow",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1287,8 +1338,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "barlow",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "focus": {
       "accent_background": "#EA580B",
@@ -1305,6 +1359,9 @@
       "background_3": "#EA580B",
       "background_style": "none",
       "body_font": "lato",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1431,8 +1488,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "lato",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "move": {
       "accent_background": "#D62A2A",
@@ -1445,6 +1505,9 @@
       "background_2": "#D62A2A",
       "background_style": "none",
       "body_font": "oswald",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1569,8 +1632,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "oswald",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "radical": {
       "accent_background": "#5944AD",
@@ -1587,6 +1653,9 @@
       "background_3": "#5944AD",
       "background_style": "none",
       "body_font": "bai-jamjuree",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1713,8 +1782,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "bai-jamjuree",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "romance": {
       "accent_background": "#BA975D",
@@ -1731,6 +1803,9 @@
       "background_3": "#BA975D",
       "background_style": "floral",
       "body_font": "poppins",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "classic",
       "font_weight_h1": "400",
       "font_weight_h2": "400",
@@ -1851,8 +1926,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": false,
       "tagline_font": "dancing-script",
-      "tagline_size": 47
+      "tagline_size": 47,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "stellar": {
       "accent_background": "#0B1A26",
@@ -1869,6 +1947,9 @@
       "background_3": "#F4B841",
       "background_style": "none",
       "body_font": "martel-sans",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -1995,8 +2076,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "martel-sans",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "utility": {
       "accent_background": "#1E3A8A",
@@ -2013,6 +2097,9 @@
       "background_3": "#1E3A8A",
       "background_style": "none",
       "body_font": "inter",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "modern",
       "font_weight_h1": "700",
       "font_weight_h2": "700",
@@ -2139,8 +2226,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "inter",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "vogue": {
       "accent_background": "#E0E0E0",
@@ -2157,6 +2247,9 @@
       "background_3": "#BBBBBB",
       "background_style": "none",
       "body_font": "poppins",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "classic",
       "font_weight_h1": "400",
       "font_weight_h2": "400",
@@ -2277,8 +2370,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "roboto",
-      "tagline_size": 47
+      "tagline_size": 47,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     },
     "waverunner": {
       "accent_background": "#08CAC1",
@@ -2295,6 +2391,9 @@
       "background_3": "#08CAC1",
       "background_style": "none",
       "body_font": "josefin-sans",
+      "card_color_palette": "one",
+      "card_image_background": false,
+      "card_image_fit": "cover",
       "element_design": "classic",
       "font_weight_h1": "400",
       "font_weight_h2": "400",
@@ -2421,8 +2520,11 @@
           "disabled": null
         }
       },
+      "show_card_excerpt": true,
       "tagline_font": "josefin-sans",
-      "tagline_size": 14
+      "tagline_size": 14,
+      "use_card_color_palette": false,
+      "use_focal_images": true
     }
   }
 }

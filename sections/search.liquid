@@ -9,13 +9,10 @@
   {%- assign menu                  = false -%}
   {%- assign mobile_toggler        = section.settings.mobile_toggler -%}
   {%- assign sticky_sidebar        = section.settings.sticky_sidebar -%}
-  {%- assign show_excerpt          = section.settings.show_excerpt -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
-  {%- assign image_placeholder 	   = settings.image_placeholder -%}
-  {%- assign is_focal              = settings.use_focal_images -%}
 
   {%- for block in section.blocks -%}
     {%- assign menu = block.settings.menu -%}
@@ -99,9 +96,7 @@
               {%- for result in results -%}
                 {%- render 'product-card',
                     product: result,
-                    placeholder: image_placeholder,
-                    focal: is_focal,
-                    show_excerpt: show_excerpt
+                    settings: settings
                 -%}
               {%- endfor -%}
             </div>
@@ -150,12 +145,6 @@
           }
         ],
         "default": "one"
-      },
-      {
-        "type": "checkbox",
-        "id": "show_excerpt",
-        "default": true,
-        "label": "Show product description excerpt"
       },
       {
         "type": "number",
