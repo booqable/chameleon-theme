@@ -309,6 +309,7 @@ header:has(.app-mobile) .header__app:has(.app-desktop) {
 }
 
 #section-header .app-mobile .weglot-widget__item {
+  white-space: nowrap;
   transition: all var(--animation-duration) var(--transition-function-ease-in-out);
 }
 
@@ -812,6 +813,7 @@ header:has(.app-mobile) .header__app:has(.app-desktop) {
   }
 
   #section-header .header__app .weglot-widget__item {
+    white-space: nowrap;
     transition: all var(--animation-duration) var(--transition-function-ease-in-out);
   }
 

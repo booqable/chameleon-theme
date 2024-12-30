@@ -147,6 +147,7 @@
 }
 
 #section-footer .footer__app .weglot-widget__item {
+  white-space: nowrap;
   transition: all var(--animation-duration) var(--transition-function-ease-in-out);
 }
 
