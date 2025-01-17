@@ -43,14 +43,14 @@
             {%- assign link_index = forloop.index -%}
 
             {%- if link != blank -%}
-              <li class="sidebar__menu-item">
+              <li class="sidebar__menu-item js-sidebar-menu-item">
                 <a href="{{ link.url }}" class="sidebar__menu-link">{{- link.title -}}</a>
 
                 {%- if link.items_count > 0 -%}
                   <input type="checkbox" id="side-menu-opener-{{- link_index -}}-{{ item.id }}" style="display: none;">
                   <label for="side-menu-opener-{{- link_index -}}-{{ item.id }}" class="sidebar__menu-opener"></label>
 
-                  <div class="sidebar__menu-wrapper" style="display: none;">
+                  <div class="sidebar__menu-wrapper js-sidebar-menu-dropdown" style="display: none;">
                     <ul class="sidebar__menu-list">
                       {%- for childlink in link.items -%}
                         {%- assign childlink_index = forloop.index -%}
