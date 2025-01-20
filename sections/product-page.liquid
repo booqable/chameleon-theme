@@ -16,6 +16,7 @@
 {%- assign show_thumbnails               = section.settings.show_thumbnails -%}
 {%- assign infinity_scroll               = section.settings.infinity_scroll -%}
 {%- assign color_palette                 = section.settings.color_palette -%}
+{%- assign description_placement         = section.settings.description_placement -%}
 {%- assign padding_top                   = section.settings.padding_top -%}
 {%- assign padding_bottom                = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile            = section.settings.padding_top_mobile -%}
@@ -108,7 +109,7 @@
             {%- endif -%}
           </div>
 
-          {%- if description != blank -%}
+          {%- if description != blank and description_placement == "top" -%}
             <div class="product-main__description bq-content rx-content">
               {{- description -}}
             </div>
@@ -134,6 +135,12 @@
           {%- if message_label != blank -%}
             <div class="product-main__shipping-info">
               <span class="product-main__shipping-label">{{- message_label -}}</span>
+            </div>
+          {%- endif -%}
+
+          {%- if description != blank and description_placement == "bottom" -%}
+            <div class="product-main__description bq-content rx-content">
+              {{- description -}}
             </div>
           {%- endif -%}
       </div>
@@ -183,6 +190,22 @@
           }
         ],
         "default": "one"
+      },
+      {
+        "type": "select",
+        "id": "description_placement",
+        "label": "Product description placement",
+        "options": [
+          {
+            "value": "top",
+            "label": "Top"
+          },
+          {
+            "value": "bottom",
+            "label": "Bottom"
+          }
+        ],
+        "default": "top"
       },
       {
         "type": "header",
