@@ -21,6 +21,7 @@
         "breadcrumbs_root_label": "",
         "breadcrumbs_root_url": "collections",
         "color_palette": "one",
+        "description_placement": "top",
         "infinity_scroll": true,
         "message_label": "Free shipping over $50",
         "padding_bottom": "small",
