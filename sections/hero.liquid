@@ -62,11 +62,11 @@
   <div class="hero__container container{% if padding_top != blank or padding_top_mobile != blank %} hero__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} hero__container--padding-bottom{%- endif -%}">
     <div class="hero__content">
       <h1 class="hero__title">
-        {{- custom_title | default: collection.title -}}
+        {{- custom_title | default: collection.title | default: page.title | default: cart.title -}}
       </h1>
 
       <div class="hero__description text-medium bq-content rx-content">
-        {{- custom_description | default: collection.description -}}
+        {{- custom_description | default: collection.description | default: page.content -}}
       </div>
     </div>
   </div>
