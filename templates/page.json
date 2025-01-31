@@ -7,7 +7,8 @@
       "block_order": [],
       "settings": {
         "color_palette": "two",
-        "custom_title": "Page",
+        "custom_description": "{{ page.content }}",
+        "custom_title": "{{ page.title }}",
         "overlay_opacity": 80,
         "padding_bottom": "medium",
         "padding_bottom_mobile": "medium",

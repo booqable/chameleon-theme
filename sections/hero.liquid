@@ -62,11 +62,21 @@
   <div class="hero__container container{% if padding_top != blank or padding_top_mobile != blank %} hero__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} hero__container--padding-bottom{%- endif -%}">
     <div class="hero__content">
       <h1 class="hero__title">
-        {{- custom_title | default: collection.title -}}
+        {%- if section_preview -%}
+          Title
+        {%- else -%}
+          {%- if custom_title == blank and collection.title == blank and page.title == blank and cart.title == blank -%}
+            {%- assign custom_title = "Title" -%}
+          {%- endif -%}
+
+          {{- custom_title | default: collection.title | default: page.title | default: cart.title -}}
+        {%- endif -%}
       </h1>
 
       <div class="hero__description text-medium bq-content rx-content">
-        {{- custom_description | default: collection.description -}}
+        {%- unless section_preview -%}
+          {{- custom_description | default: collection.description | default: page.content -}}
+        {%- endunless -%}
       </div>
     </div>
   </div>
@@ -142,8 +152,7 @@
       {
         "type": "text",
         "id": "custom_title",
-        "label": "Custom title",
-        "default": "Title"
+        "label": "Custom title"
       },
       {
         "type": "contentEditor",
