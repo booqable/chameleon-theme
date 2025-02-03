@@ -46,6 +46,10 @@
   padding: 0 0 25px;
 }
 
+.product-main__description:last-child {
+  padding: 40px 0 0;
+}
+
 .product-main__variation-label {
   margin-bottom: 6px;
 }
@@ -88,10 +92,6 @@
   justify-content: center;
   font-size: 12px;
   padding: 23px 0 32px;
-}
-
-.product-main__quantity:has(+ .product-main__description) {
-  padding: 0 0 40px;
 }
 
 .palette-one.product-main__holder {
