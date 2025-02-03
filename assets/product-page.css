@@ -90,6 +90,10 @@
   padding: 23px 0 32px;
 }
 
+.product-main__quantity:has(+ .product-main__description) {
+  padding: 0 0 40px;
+}
+
 .palette-one.product-main__holder {
   color: var(--color-primary, #0B1A26);
   background: var(--background-primary, #FFFFFF);
