@@ -92,7 +92,7 @@ class Header {
   }
 
   events() {
-    this.headerFixed();
+    // this.headerFixed();
     this.headerHeight();
     this.menuPosition();
     this.hoverClose();

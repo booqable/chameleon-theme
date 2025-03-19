@@ -113,7 +113,7 @@
   right: 0;
   bottom: -50px;
   z-index: 1;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .modern-design .collections__heading {

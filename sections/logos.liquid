@@ -110,14 +110,17 @@
         {%- if section.blocks.size >= 1 -%}
           <div class="logos__col logos__logos">
             {%- for block in section.blocks -%}
-              {%- assign image = block.settings.image -%}
+              {%- assign image     = block.settings.image -%}
+              {%- assign image_alt = block.settings.alt -%}
+              {%- assign image_id  = block.id -%}
 
               <div class="logos__image-wrapper" id="{{- block.id -}}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
-                    loading: 'lazy',
-                    class: 'logos__image',
+                    image_alt: image_alt,
+                    image_id: image_id,
+                    image_class: 'logos__image',
                     custom_width: '450',
                     custom_size: '450px'
                   -%}
@@ -325,6 +328,11 @@
             "id": "image",
             "label": "Image",
             "default": "booqable://assets/image-partner-logo-preview-black.png"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)"
           }
         ]
       }

@@ -118,7 +118,7 @@
 
   <div class="images__wrapper{% if full_width %} images__wrapper-full-width{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} section-with-date-picker{% endif %}{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}">
     {%- if carousel -%}
-      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-role="Gallery" data-dafault-color="{{- default_color -}}">
+      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-label="Gallery" data-dafault-color="{{- default_color -}}">
         <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
         <div class="carousel__wrapper">
     {%- endif -%}
@@ -137,7 +137,9 @@
             {%- assign video_url            = block.settings.video_url | strip -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
+            {%- assign image_alt            = block.settings.image_alt -%}
             {%- assign image_placeholder    = settings.image_placeholder -%}
+            {%- assign image_id             = block.id -%}
             {%- assign limit_content_width  = block.settings.limit_content_width -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
             {%- assign overlay_opacity      = block.settings.overlay_opacity -%}
@@ -407,23 +409,14 @@
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
-                        <div class="images__vision-wrapper{% if image_mobile != blank %} images__vision-wrapper--desktop{% endif %}{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
+                        <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
                           {%- render 'image',
                             image: image,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'xxl'
-                          -%}
-                        </div>
-                      {%- endif -%}
-
-                      {%- if image_mobile.url != blank -%}
-                        <div class="images__vision-wrapper images__vision-wrapper--mobile{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
-                          {%- render 'image',
-                            image: image_mobile,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'l'
+                            image_mobile: image_mobile,
+                            image_alt: image_alt,
+                            image_id: image_id,
+                            image_class: 'images__image',
+                            image_size: 'xxl'
                           -%}
                         </div>
                       {%- endif -%}
@@ -438,7 +431,7 @@
     {%- if carousel -%}
         </div>
 
-        <div class="carousel__navigation" aria-role="Carousel navigation">
+        <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
           <span class="carousel__btn prev" aria-label="Prev slide">
             Previous slide
             {%- render 'icon-arrow-right' -%}
@@ -449,7 +442,7 @@
           </span>
         </div>
 
-        <div class="carousel__pagination" aria-role="Carousel pagination">
+        <div class="carousel__pagination" role="pagination" aria-label="Carousel pagination">
           {%- for block in blocks -%}
             {%- assign first = forloop.first -%}
             {%- assign index = forloop.index -%}
@@ -502,6 +495,11 @@
             "type": "image_picker",
             "id": "image_mobile",
             "label": "Image mobile (optional)"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)"
           },
           {
             "type": "text",

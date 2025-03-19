@@ -5,6 +5,7 @@
 {%- assign custom_description    = section.settings.custom_description -%}
 {%- assign custom_title          = section.settings.custom_title -%}
 {%- assign image                 = section.settings.image -%}
+{%- assign image_id              = section.key -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
@@ -99,9 +100,9 @@
       <div class="hero__vision-wrapper">
           {%- render 'image',
             image: image,
-            loading: 'lazy',
-            class: 'hero__image',
-            size: 'xxl'
+            image_id: image_id,
+            image_class: 'hero__image',
+            image_size: 'xxl'
           -%}
       </div>
       <div class="hero__vision-wrapper-overlay container"></div>

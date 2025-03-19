@@ -52,7 +52,7 @@
   width: 24px;
   background-color: var(--color-white, #FFFFFF);
   border: 1px solid transparent;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   pointer-events: all !important;
   cursor: pointer;
 }

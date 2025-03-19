@@ -7,6 +7,7 @@
 {%- assign button_2              = section.settings.button_2 -%}
 {%- assign button_url_2          = section.settings.button_url_2 -%}
 {%- assign image                 = section.settings.image -%}
+{%- assign image_id              = section.key -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
 {%- assign padding_top           = section.settings.padding_top -%}
@@ -99,9 +100,9 @@
     <div class="cta__image-wrapper">
       {%- render 'image',
         image: image,
-        loading: 'lazy',
-        class: 'cta__image',
-        size: 'xxl'
+        image_id: image_id,
+        image_class: 'cta__image',
+        image_size: 'xxl'
       -%}
     </div>
   {%- else -%}

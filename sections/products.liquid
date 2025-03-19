@@ -101,7 +101,7 @@
     style="{{- variables | escape -}}"
   >
     <div class="products__container container">
-      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %} aria-role="Gallery"{% endif %}>
+      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %} aria-label="Gallery"{% endif %}>
         {%- if carousel -%}
           <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
           <div class="carousel__wrapper">
@@ -133,7 +133,7 @@
           </div>
 
           {%- if show_navigation -%}
-            <div class="carousel__navigation hidden" aria-role="Carousel navigation">
+            <div class="carousel__navigation hidden" role="navigation" aria-label="Carousel navigation">
               <span class="carousel__btn prev" aria-label="Prev slide">
                 Previous slide
                 {%- render 'icon-arrow-right-full' -%}
@@ -146,7 +146,7 @@
           {%- endif -%}
 
           {%- if show_pagination -%}
-            <div class="carousel__pagination hidden" aria-role="Carousel pagination">
+            <div class="carousel__pagination hidden" role="pagination" aria-label="Carousel pagination">
               {%- for item in items limit: items_limit -%}
                 {%- assign first = forloop.first -%}
                 {%- assign index = forloop.index -%}

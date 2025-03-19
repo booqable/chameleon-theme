@@ -1,47 +1,42 @@
 {% comment %}
 
-  This snippet is used for rendering the list of collections
+  This snippet is used for rendering the images
 
-  image - image *required
+  image - image *required,
+  image_mobile - image_mobile optional,
+  image_alt - "string" optional,
+  image_id - "string" *required,
+  image_class - "string" optional,
+  image_size - "string" *required,
+  focal - image.coordinates optional,
   loading - "string" optional,
-  class - "string" optional,
-  focal - image.coordinates optional
-  size - "string" optional,
-  custom_width: "string" optional,
-  custom_size: "string" optional,
-  custom_alt: "string" optional
-  keep_type: boolean optional
+  custom_width - "string" optional,
+  custom_size - "string" optional,
+  keep_type - boolean optional
 
   Usage:
 
   {%- render 'image',
       image: image,
-      loading: 'lazy',
-      class: 'your_class',
+      image_mobile: image_mobile,
+      image_alt: 'image_alt',
+      image_class: 'your_class',
+      image_id: id,
+      image_size: 'm',  <-------- use only this ONE property
+      custom_width: '170',  <---- or these TWO
+      custom_size: '170px', <---- instead of 'image_size' property
       focal: points,
-      size: 'm',              - use only this one property
-      custom_width: '170',    - or these two
-      custom_size: '170px',     instead of 'size' property
-      custom_alt: your_id,
-      keep_type: true         - image type will be kept (only png and jpeg)
+      loading: 'eager',
+      keep_type: true           - image type will be kept (only png and jpeg)
   -%}
 
-{% endcomment %}
-
-{%- assign size = size | default: "m" -%}
-{%- assign alt = image.alt -%}
-
-{%- if custom_alt != blank -%}
-  {%- assign alt = custom_alt -%}
-{%- endif -%}
-
-{% comment %}
-  This code ensures we load the correct image size based on its width on the screen.
+  Explanation how to use image_size property.
+  Image_size ensures we load the correct image size based on its width on the screen.
   Media queries are built relative to the viewport width, so we define image size depending on expected width relative to the viewport.
 
   For example:
-  A hero image would be approximately as wide as the whole viewport, so we would use the xxl size.
-  A testimonial image would be approximately as wide as half of the viewport (as it is show on the side), so we would use the l size.
+  A hero image would be approximately as wide as the whole viewport, so we would use the 'xxl' size.
+  A testimonial image would be approximately as wide as half of the viewport (as it is show on the side), so we would use the 'l' size.
 
   xs - Image is wide as 1/16 of the viewport
   s - Image is wide as 1/8 of the viewport
@@ -51,48 +46,181 @@
   xxl - Image is as wide as the whole viewport
   flexible - Image is wide as the viewport on small screens but is smaller relative to the screen on larger screens.
   logo - Image has the same size and quality on all resolutions
+
 {% endcomment %}
 
-{%- case size -%}
-  {%- when 'xs' -%}
-    {%- assign image_width = '20, 30, 48, 75, 105, 160' -%}
-    {%- assign image_sizes = '(max-width: 320px) 20px, (max-width: 480px) 30px, (max-width: 768px) 48px, (max-width: 1200px) 75px, (max-width: 1680px) 105px, 160px' -%}
-  {%- when 's' -%}
-    {%- assign image_width = '40, 60, 96, 150, 210, 320' -%}
-    {%- assign image_sizes = '(max-width: 320px) 40px, (max-width: 480px) 60px, (max-width: 768px) 96px, (max-width: 1200px) 150px, (max-width: 1680px) 210px, 320px' -%}
-  {%- when 'm' -%}
-    {%- assign image_width = '80, 120, 192, 300, 420, 640' -%}
-    {%- assign image_sizes = '(max-width: 320px) 80px, (max-width: 480px) 120px, (max-width: 768px) 192px, (max-width: 1200px) 300px, (max-width: 1680px) 420px, 640px' -%}
-  {%- when 'l' -%}
-    {%- assign image_width = '160, 240, 384, 600, 840, 1280' -%}
-    {%- assign image_sizes = '(max-width: 320px) 160px, (max-width: 480px) 240px, (max-width: 768px) 384px, (max-width: 1200px) 600px, (max-width: 1680px) 840px, 1280px' -%}
-  {%- when 'xl' -%}
-    {%- assign image_width = '240, 360, 576, 900, 1260, 1920' -%}
-    {%- assign image_sizes = '(max-width: 320px) 240px, (max-width: 480px) 360px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 1260px, 1920px' -%}
-  {%- when 'xxl' -%}
-    {%- assign image_width = '320, 480, 768, 1200, 1680, 2560' -%}
-    {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 768px, (max-width: 1200px) 1200px, (max-width: 1680px) 1680px, 2560px' -%}
-  {%- when 'flexible' -%}
-      {%- assign image_width = '320, 480, 576, 900, 840, 1280' -%}
-      {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 840px, 1280px' -%}
-  {%- when 'logo' -%}
-    {%- assign image_width = '420, 640' -%}
-    {%- assign image_sizes = '(max-width: 360px) 420px, 640px' -%}
-{%- endcase -%}
-
-{%- if custom_width != blank and custom_size != blank -%}
-  {%- assign image_width = custom_width -%}
-  {%- assign image_sizes = custom_size -%}
-{%- endif -%}
-
 {%- if image.url != blank -%}
-  {{- image.url | image_tag:
-    loading: loading,
-    class: class,
-    widths: image_width,
-    sizes: image_sizes,
-    focal: focal,
-    alt: alt,
-    keep_type: keep_type
-  -}}
+  {%- assign image_alt               = image_alt | default: image.alt | default: "" -%}
+  {%- assign image_main_class        = image_class | append: ' image-main' -%}
+  {%- assign image_size              = image_size | default: "m" -%}
+  {%- assign loading_strategy        = loading | default: "lazy" -%}
+  {%- assign featured_types          = "webp, jpg, jpeg, png" | split: ", " -%}
+  {%- assign featured_type           = "" -%}
+  {%- assign media_query             = "768" -%}
+
+  {%- if loading_strategy == "lazy" -%}
+    {%- assign image_placeholder_width = "25" -%}
+  {%- endif -%}
+
+  {%- case image_size -%}
+    {%- when 'xs' -%}
+      {%- assign image_widths = '20, 30, 48, 75, 105, 160' -%}
+      {%- assign image_sizes = '(max-width: 320px) 20px, (max-width: 480px) 30px, (max-width: 768px) 48px, (max-width: 1200px) 75px, (max-width: 1680px) 105px, 160px' -%}
+    {%- when 's' -%}
+      {%- assign image_widths = '40, 60, 96, 150, 210, 320' -%}
+      {%- assign image_sizes = '(max-width: 320px) 40px, (max-width: 480px) 60px, (max-width: 768px) 96px, (max-width: 1200px) 150px, (max-width: 1680px) 210px, 320px' -%}
+    {%- when 'm' -%}
+      {%- assign image_widths = '80, 120, 192, 300, 420, 640' -%}
+      {%- assign image_sizes = '(max-width: 320px) 80px, (max-width: 480px) 120px, (max-width: 768px) 192px, (max-width: 1200px) 300px, (max-width: 1680px) 420px, 640px' -%}
+    {%- when 'l' -%}
+      {%- assign image_widths = '160, 240, 384, 600, 840, 1280' -%}
+      {%- assign image_sizes = '(max-width: 320px) 160px, (max-width: 480px) 240px, (max-width: 768px) 384px, (max-width: 1200px) 600px, (max-width: 1680px) 840px, 1280px' -%}
+    {%- when 'xl' -%}
+      {%- assign image_widths = '240, 360, 576, 900, 1260, 1920' -%}
+      {%- assign image_sizes = '(max-width: 320px) 240px, (max-width: 480px) 360px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 1260px, 1920px' -%}
+    {%- when 'xxl' -%}
+      {%- assign image_widths = '320, 480, 768, 1200, 1680, 2560' -%}
+      {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 768px, (max-width: 1200px) 1200px, (max-width: 1680px) 1680px, 2560px' -%}
+    {%- when 'flexible' -%}
+      {%- assign image_widths = '320, 480, 576, 900, 840, 1280' -%}
+      {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 840px, 1280px' -%}
+    {%- when 'logo' -%}
+      {%- assign image_widths = '420, 640' -%}
+      {%- assign image_sizes = '(max-width: 360px) 420px, 640px' -%}
+  {%- endcase -%}
+
+  {% comment %} override image_widths and image_sizes with custom values that usually have only one width/size {% endcomment %}
+  {%- if custom_width != blank and custom_size != blank -%}
+    {%- assign image_widths = custom_width -%}
+    {%- assign image_sizes  = custom_size -%}
+  {%- endif -%}
+
+  {% comment %} set falback image {% endcomment %}
+  {%- assign image_fallback_width  = "" -%}
+  {%- assign image_fallback_widths = image_widths | split: ", " -%}
+  {%- assign image_fallback_url    = image.url -%}
+
+  {%- if image_mobile.url != blank -%}
+    {%- assign image_fallback_url = image_mobile.url -%}
+  {%- endif -%}
+
+  {%- for width in image_fallback_widths -%}
+    {%- assign image_fallback = image_fallback_url | image_url: width: width | append: " " | append: width | append: "w"  -%}
+
+    {%- if forloop.first == false -%}
+      {%- assign image_fallback_width = image_fallback_width | append: ', ' -%}
+    {%- endif -%}
+
+    {%- assign image_fallback_width   = image_fallback_width | append: image_fallback -%}
+  {%- endfor -%}
+
+  {% comment %} get initial image type and ensure we support it {% endcomment %}
+  {%- for type in featured_types -%}
+    {%- assign image_type = "." | append: type -%}
+
+    {%- if featured_type == "" and image.url contains image_type -%}
+      {%- assign featured_type = image_type -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {% comment %} convert images to the most in-demand formats {% endcomment %}
+  {%- if featured_type != blank and image.url contains featured_type -%}
+    {%- assign image_jpg_sizes  = "" -%}
+    {%- assign image_png_sizes  = "" -%}
+    {%- assign image_webp_sizes = "" -%}
+    {%- assign image_widths     = image_widths | split: ", " -%}
+
+    {%- if featured_type != ".jpg" and featured_type != ".jpeg" -%}
+      {%- assign jpg = "jpg" -%}
+    {%- endif -%}
+    {%- if featured_type != ".png" -%}
+      {%- assign png = "png" -%}
+    {%- endif -%}
+    {%- if featured_type != ".webp" -%}
+      {%- assign webp = "webp" -%}
+    {%- endif -%}
+
+    {%- for width in image_widths -%}
+      {%- assign image_jpg  = image.url | image_url: width: width, format: jpg | append: " " | append: width | append: "w" -%}
+      {%- assign image_png  = image.url | image_url: width: width, format: png | append: " " | append: width | append: "w" -%}
+      {%- assign image_webp = image.url | image_url: width: width, format: webp | append: " " | append: width | append: "w" -%}
+
+      {%- if forloop.first == false -%}
+        {%- assign image_jpg_sizes  = image_jpg_sizes | append: ', ' -%}
+        {%- assign image_png_sizes  = image_png_sizes | append: ', ' -%}
+        {%- assign image_webp_sizes = image_webp_sizes | append: ', ' -%}
+      {%- endif -%}
+
+      {%- assign image_jpg_sizes    = image_jpg_sizes | append: image_jpg -%}
+      {%- assign image_png_sizes    = image_png_sizes | append: image_png -%}
+      {%- assign image_webp_sizes   = image_webp_sizes | append: image_webp -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- if keep_type and featured_type == ".png" or keep_type and featured_type == ".jpg" or keep_type and featured_type == ".jpeg" -%}
+    {%- assign keep_type = true -%}
+  {%- endif -%}
+
+  <div class="image-wrapper {{ image_class }}-wrapper">
+    {% comment %} load low quality image placeholder {% endcomment %}
+    {%- if loading_strategy == "lazy" -%}
+      <img
+        class="image-placeholder {{ image_class }}-placeholder"
+        src="{{ image.url | image_url: width: image_placeholder_width }}"
+        alt=""
+        width="100%"
+        height="100%"
+        aria-hidden="true"
+      >
+    {%- endif -%}
+
+    {% comment %} load high quality multiformat images {% endcomment %}
+    <picture>
+      {% unless keep_type %}
+        {%- if featured_type == ".webp" or featured_type == ".jpg" or featured_type == ".jpeg" or featured_type == ".png" -%}
+          <source
+            type="image/webp"
+            data-srcset="{{ image_webp_sizes }}"
+            {%- if image_mobile.url != blank -%}
+              media="(min-width: {{ media_query }}px)"
+            {%- endif -%}
+            sizes="{{ image_sizes }}"
+          >
+        {%- endif -%}
+      {% endunless %}
+
+      {%- if featured_type == ".jpg" or featured_type == ".jpeg" -%}
+        <source
+          type="image/jpeg"
+          data-srcset="{{ image_jpg_sizes }}"
+          {%- if image_mobile.url != blank -%}
+            media="(min-width: {{ media_query }}px)"
+          {%- endif -%}
+          sizes="{{ image_sizes }}"
+        >
+      {%- endif -%}
+
+      {%- if featured_type == ".png" -%}
+        <source
+          type="image/png"
+          data-srcset="{{ image_png_sizes }}"
+          {%- if image_mobile.url != blank -%}
+            media="(min-width: {{ media_query }}px)"
+          {%- endif -%}
+          sizes="{{ image_sizes }}"
+        >
+      {%- endif -%}
+
+      <img
+        loading="{{- loading_strategy -}}"
+        class="{{ image_main_class }}{% if loading_strategy == "lazy" %} lazyload{%- endif -%}"
+        src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
+        data-fallback-srcset="{{- image_fallback_width -}}"
+        height="100%"
+        width="100%"
+        alt="{{- image_alt -}}"
+      >
+    </picture>
+  </div>
 {%- endif -%}
