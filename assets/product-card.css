@@ -4,12 +4,14 @@
   position: relative;
   min-width: 298px;
   overflow: clip;
+  contain: content;
 }
 
 .product-card__vision {
   width: 100%;
   overflow: hidden;
   position: relative;
+  contain: paint layout;
 }
 
 .product-card__vision--white {
@@ -31,6 +33,10 @@
   aspect-ratio: 1 / 0.97;
 }
 
+.product-card__image-wrapper:has(.image-placeholder) {
+  position: static;
+}
+
 .product-card__image {
   display: block;
   position: absolute;
@@ -49,6 +55,7 @@
   font-size: 14px;
   display: flex;
   flex-direction: column;
+  contain: style layout;
 }
 
 .product-card__title {
@@ -293,9 +300,20 @@ bq-product-availability[visible="true"] {
 @media (min-width: 992px) {
   .product-card {
     min-width: 285px;
+    container: product-card / inline-size;
   }
 
   .product-card__vision:after {
     aspect-ratio: 1 / 1.02;
+  }
+}
+
+@container product-card (min-width: 350px) {
+  .product-card__meta {
+    padding: 20px 18px;
+  }
+  
+  .product-card__title {
+    font-size: 20px;
   }
 }

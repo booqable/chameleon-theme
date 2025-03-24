@@ -1,63 +1,60 @@
 <!DOCTYPE html>
 <html lang="{{ locale }}" class="{{- settings.element_design -}}-design">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="{%- if settings.accent_background != blank -%}{{- settings.accent_background -}}{%- else -%}{{- branding_color -}}{%- endif -%}">
+    {% comment %} Base metadata {% endcomment %}
+    {%- render 'page-base-meta',
+        brand_color: branding_color,
+        canonical_url: canonical_url,
+        page_description: page_description,
+        page_title: page_title,
+        settings: settings,
+        shop: shop
+    -%}
 
     {% comment %} Resource hints for performance {% endcomment %}
-    <link rel="preconnect" href="https://cdn2.booqable.com" crossorigin>
-    <link rel="preconnect" href="https://cdn3.booqable.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn2.booqable.com">
-    <link rel="dns-prefetch" href="https://cdn3.booqable.com">
+    {%- render 'page-resource-hints' -%}
 
-    {% comment %} Preload critical fonts {% endcomment %}
-    <link rel="preload" href="https://kit.fontawesome.com/ff3b3de2b5.js" as="script" crossorigin="anonymous">
-    <script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous" async></script>
+    {% comment %} Preload fonts {% endcomment %}
+    {%- render 'fonts', settings: settings -%}
 
-    {% comment %} Critical CSS {% endcomment %}
-    {% render 'critical-css' %}
+    {% comment %} Load root styles {% endcomment %}
+    {%- render 'root-styles', settings: settings -%}
 
-    {% comment %} Async CSS loading {% endcomment %}
-    {% assign base_url = 'base.css' | asset_url %}
-    {% assign rx_url = 'rx.css' | asset_url %}
+    {% comment %} Load critical above-the-fold styles {% endcomment %}
+    {%- render 'critical-css' -%}
 
-    <link rel="preload" href="{{ base_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="{{ rx_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    {% comment %} Async CSS loading with resource hints {% endcomment %}
+    {%- assign base_url = 'base.css' | asset_url -%}
+    {%- assign rx_url = 'rx.css' | asset_url -%}
+
+    <link rel="preload" href="{{ base_url }}" as="style">
+    <link rel="preload" href="{{ rx_url }}" as="style">
+    <link rel="stylesheet" href="{{ base_url }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ rx_url }}" media="print" onload="this.media='all'">
 
     <noscript>
       <link rel="stylesheet" href="{{ base_url }}">
       <link rel="stylesheet" href="{{ rx_url }}">
     </noscript>
 
-    {% render 'fonts', settings: settings %}
-    {% render 'root-styles', settings: settings %}
+    {% comment %} Preload critical assets including above-the-fold images {% endcomment %}
+    {%- render 'preload-critical-assets' -%}
 
     {{ content_for_header }}
 
-    {% render 'page-metadata',
-      canonical_url: canonical_url,
-      page_title: page_title,
-      page_description: page_description,
-      page_meta_image_url: page_meta_image_url,
-      page_meta_image_alt: page_meta_image_alt,
-      product: product,
-      shop: shop,
-      locale: locale
-    %}
+    {%- render 'page-social-share-meta',
+        canonical_url: canonical_url,
+        locale: locale,
+        image_url: page_meta_image_url,
+        image_alt: page_meta_image_alt,
+        page_description: page_description,
+        page_title: page_title,
+        product: product,
+        shop: shop
+    -%}
 
-    {% comment %} Performance monitoring {% endcomment %}
-    <script>
-      window.performance.mark('start');
-      // Core Web Vitals RUM data collection
-      window.addEventListener('DOMContentLoaded', () => {
-        window.performance.mark('DOMContentLoaded');
-      })
-      window.addEventListener('load', () => {
-        window.performance.mark('loaded');
-      })
-    </script>
+    {% comment %} Enhanced performance monitoring {% endcomment %}
+    {% render 'page-performance-monitoring' %}
   </head>
   <body>
     <header class="header" id="header">
@@ -71,36 +68,7 @@
 
     {% section 'footer' %}
 
-    {% comment %} scripts loading {% endcomment %}
-    <script>
-      // list of critical scripts that supposed to be loaded first
-      const criticalScripts = [
-        "{{ 'js-images.js' | asset_url }}",
-        "{{ 'js-header.js' | asset_url }}",
-        "{{ 'js-main.js' | asset_url }}"
-      ]
-
-      // non-critical scripts
-      const nonCriticalScripts = [
-        "{{ 'lazysizes.min.js' | asset_url }}",
-        "{{ 'js-carousel.js' | asset_url }}",
-        "{{ 'js-text-with-image.js' | asset_url }}",
-        "{{ 'js-touch-device-notch.js' | asset_url }}",
-        "{{ 'js-sidebar.js' | asset_url }}"
-      ]
-
-      // create scripts function
-      const createScript = (src) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.defer = true;
-        document.body.appendChild(script);
-      }
-
-      criticalScripts.forEach(createScript)
-
-      window.addEventListener('load', () => nonCriticalScripts.forEach(createScript))
-    </script>
+    {%- render 'scripts-base-layout' -%}
 
     {%- if show_mini_cart -%}
       {%- render 'variables-mini-cart', settings: settings, color_palette: "one" -%}

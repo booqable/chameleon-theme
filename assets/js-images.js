@@ -5,13 +5,15 @@ const handleImageLoading = () => {
       srcsetFallback: 'data-fallback-srcset'
     },
     classes: {
+      hidden: 'hidden',
+      loaded: 'loaded',
       main: 'image-main',
       placeholder: 'image-placeholder',
       wrapper: 'image-wrapper'
     },
-    root: null,         // viewport
-    rootMargin: '0px',  // no extra margin
-    threshold: 0.01     // trigger as soon as 1% of the image is visible
+    root: null,          // viewport
+    rootMargin: '100px', // preload images slightly before they enter viewport
+    threshold: 0.01      // trigger as soon as 1% of the image is visible
   }
 
   const wrappers = document.querySelectorAll(`.${observerOptions.classes.wrapper}`);
@@ -53,7 +55,7 @@ const handleImageLoading = () => {
   const imageFadeIn = (mainImage, placeholder) => {
     sourcesDataLoad(mainImage);
 
-    mainImage.style.opacity = '1';
+    mainImage.classList.replace(observerOptions.classes.hidden, observerOptions.classes.loaded);
 
     if (placeholder) {
       placeholder.style.opacity = '0'
@@ -63,6 +65,9 @@ const handleImageLoading = () => {
 
   const loadMainImage = (mainImage) => {
     if (!mainImage.classList.contains(`${observerOptions.classes.main}`)) return;
+
+    // Skip if the image doesn't have the hidden class (already loaded or eager)
+    if (!mainImage.classList.contains(observerOptions.classes.hidden)) return;
 
     const wrapper = mainImage.closest(`.${observerOptions.classes.wrapper}`),
           placeholder = wrapper && wrapper.querySelector(`.${observerOptions.classes.placeholder}`);
@@ -91,13 +96,36 @@ const handleImageLoading = () => {
 
     if (!mainImage || !placeholder) return;
 
+    // Skip if the image doesn't have the hidden class (means it's eager loaded)
+    if (!mainImage.classList.contains(observerOptions.classes.hidden)) return;
+
     (isInViewport(mainImage))
       ? loadMainImage(mainImage)
       : observer.observe(mainImage)
   })
 
+  // Add a function to prioritize visible images
+  const prioritizeVisibleImages = () => {
+    // Only select images with the hidden class (lazy-loaded images)
+    const notLoadedImages = document.querySelectorAll(`.${observerOptions.classes.main}.${observerOptions.classes.hidden}`);
+
+    notLoadedImages.forEach(img => {
+      if (isInViewport(img)) {
+        loadMainImage(img);
+        observer.unobserve(img);
+      }
+    })
+  }
+
+  // Call on DOMContentLoaded for early loading of visible images
+  (document.readyState === 'loading')
+    ? document.addEventListener('DOMContentLoaded', prioritizeVisibleImages)
+    : prioritizeVisibleImages()
+
+  // Also handle any remaining images on full load
   window.addEventListener('load', () => {
-    const notLoadedImages = document.querySelectorAll(`.${observerOptions.classes.main}`);
+    // Only select images with the hidden class (lazy-loaded images)
+    const notLoadedImages = document.querySelectorAll(`.${observerOptions.classes.main}.${observerOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
       loadMainImage(img);

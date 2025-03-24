@@ -1,7 +1,10 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {{ "images.css" | asset_url | stylesheet_tag }}
+  {% comment %} Load images.css asynchronously for better performance {% endcomment %}
+  <link rel="preload" href="{{ "images.css" | asset_url }}" as="style">
+  <link rel="stylesheet" href="{{ "images.css" | asset_url }}" media="print" onload="this.media='all'">
+  <noscript>{{ "images.css" | asset_url | stylesheet_tag }}</noscript>
 
   {%- assign color_palette            = section.settings.color_palette -%}
   {%- assign full_width               = section.settings.full_width -%}
@@ -409,6 +412,12 @@
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
+                        {%- assign fetch_priority = "" -%}
+
+                        {%- if forloop.index == 1 -%}
+                          {%- assign fetch_priority = "high" -%}
+                        {%- endif -%}
+
                         <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
                           {%- render 'image',
                             image: image,
@@ -416,7 +425,8 @@
                             image_alt: image_alt,
                             image_id: image_id,
                             image_class: 'images__image',
-                            image_size: 'xxl'
+                            image_size: 'xxl',
+                            fetchpriority: fetch_priority
                           -%}
                         </div>
                       {%- endif -%}
@@ -442,7 +452,7 @@
           </span>
         </div>
 
-        <div class="carousel__pagination" role="pagination" aria-label="Carousel pagination">
+        <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
           {%- for block in blocks -%}
             {%- assign first = forloop.first -%}
             {%- assign index = forloop.index -%}

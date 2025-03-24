@@ -1,6 +1,6 @@
 {% comment %}
 
-  This snippet is used for rendering the images
+  This snippet is used for rendering the images with optimal performance
 
   image - image *required,
   image_mobile - image_mobile optional,
@@ -9,10 +9,11 @@
   image_class - "string" optional,
   image_size - "string" *required,
   focal - image.coordinates optional,
-  loading - "string" optional,
+  loading - "string" optional, (defaults to "lazy", use "eager" for above-the-fold content)
   custom_width - "string" optional,
   custom_size - "string" optional,
-  keep_type - boolean optional
+  keep_type - boolean optional,
+  fetchpriority - "string" optional, (use "high" for important above-the-fold images)
 
   Usage:
 
@@ -27,6 +28,7 @@
       custom_size: '170px', <---- instead of 'image_size' property
       focal: points,
       loading: 'eager',
+      fetchpriority: 'high',    - use for hero images or important visible content
       keep_type: true           - image type will be kept (only png and jpeg)
   -%}
 
@@ -50,13 +52,14 @@
 {% endcomment %}
 
 {%- if image.url != blank -%}
-  {%- assign image_alt               = image_alt | default: image.alt | default: "" -%}
-  {%- assign image_main_class        = image_class | append: ' image-main' -%}
-  {%- assign image_size              = image_size | default: "m" -%}
-  {%- assign loading_strategy        = loading | default: "lazy" -%}
-  {%- assign featured_types          = "webp, jpg, jpeg, png" | split: ", " -%}
-  {%- assign featured_type           = "" -%}
-  {%- assign media_query             = "768" -%}
+  {%- assign image_alt        = image_alt | default: image.alt | default: "" -%}
+  {%- assign image_main_class = image_class | append: ' image-main' -%}
+  {%- assign image_size       = image_size | default: "m" -%}
+  {%- assign loading_strategy = loading | default: "lazy" -%}
+  {%- assign fetch_priority   = fetchpriority | default: "auto" -%}
+  {%- assign featured_types   = "webp, jpg, jpeg, png" | split: ", " -%}
+  {%- assign featured_type    = "" -%}
+  {%- assign media_query      = "768" -%}
 
   {%- if loading_strategy == "lazy" -%}
     {%- assign image_placeholder_width = "25" -%}
@@ -162,7 +165,7 @@
     {%- assign keep_type = true -%}
   {%- endif -%}
 
-  <div class="image-wrapper {{ image_class }}-wrapper">
+  <span class="image-wrapper {{ image_class }}-wrapper">
     {% comment %} load low quality image placeholder {% endcomment %}
     {%- if loading_strategy == "lazy" -%}
       <img
@@ -213,14 +216,16 @@
       {%- endif -%}
 
       <img
-        loading="{{- loading_strategy -}}"
-        class="{{ image_main_class }}{% if loading_strategy == "lazy" %} lazyload{%- endif -%}"
-        src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
+        class="{{ image_main_class }}{% if loading_strategy == "lazy" %} hidden lazyload{%- endif -%}"
         data-fallback-srcset="{{- image_fallback_width -}}"
+        decoding="{%- if loading_strategy == 'eager' -%}sync{%- else -%}async{%- endif -%}"
+        fetchpriority="{{- fetch_priority -}}"
+        loading="{{- loading_strategy -}}"
+        src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
         height="100%"
         width="100%"
         alt="{{- image_alt -}}"
       >
     </picture>
-  </div>
+  </span>
 {%- endif -%}

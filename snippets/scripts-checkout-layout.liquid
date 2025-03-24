@@ -1,0 +1,11 @@
+{%- capture non_critical_scripts -%}
+  [
+    "{{ 'js-cookie-styles-loading.js' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- if critical_scripts and critical_scripts != blank or non_critical_scripts and non_critical_scripts != blank -%}
+  {%- render 'scripts-loading'
+      non_criticals: non_critical_scripts
+  -%}
+{%- endif -%}

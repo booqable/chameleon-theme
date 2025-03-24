@@ -1,40 +1,63 @@
 <!DOCTYPE html>
 <html lang="{{ locale }}">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="{%- if settings.accent_background != blank -%}{{- settings.accent_background -}}{%- else -%}{{- branding_color -}}{%- endif -%}">
-    {% comment %} Base stylesheets {% endcomment %}
-    {{ "base.css" | asset_url | stylesheet_tag }}
+    {% comment %} Base metadata {% endcomment %}
+    {%- render 'page-base-meta',
+        brand_color: branding_color,
+        canonical_url: canonical_url,
+        page_description: page_description,
+        page_title: page_title,
+        settings: settings,
+        shop: shop
+    -%}
 
-    {% unless section_preview %}
-      {{ "header.css" | asset_url | stylesheet_tag }}
-    {% endunless %}
-    {% comment %} Fonts {% endcomment %}
-    <script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous"></script>
+    {% comment %} Resource hints for performance {% endcomment %}
+    {%- render 'page-resource-hints' -%}
 
-    {% if section_preview %}
+    {% comment %} Preload fonts {% endcomment %}
+    {%- render 'fonts', settings: settings -%}
+
+    {% comment %} Load root styles {% endcomment %}
+    {%- render 'root-styles', settings: settings -%}
+
+    {% comment %} Async CSS loading with resource hints {% endcomment %}
+    {%- assign base_url = 'base.css' | asset_url -%}
+    {%- unless section_preview -%}
+      {%- assign header_url = 'header.css' | asset_url -%}
+    {%- endunless -%}
+
+    <link rel="preload" href="{{ base_url }}" as="style">
+    <link rel="stylesheet" href="{{ base_url }}" media="print" onload="this.media='all'">
+    {%- unless section_preview -%}
+      <link rel="preload" href="{{ header_url }}" as="style">
+      <link rel="stylesheet" href="{{ header_url }}" media="print" onload="this.media='all'">
+    {%- endunless -%}
+
+    <noscript>
+      <link rel="stylesheet" href="{{ base_url }}">
+      {%- unless section_preview -%}
+        <link rel="stylesheet" href="{{ header_url }}">
+      {%- endunless -%}
+    </noscript>
+
+    {%- if section_preview -%}
       {{ options_and_scripts }}
       {{ content_for_styles }}
-    {% else %}
+    {%- else -%}
       {{ content_for_header }}
-    {% endif %}
-
-    {% render 'fonts', settings: settings %}
-    {% render 'root-styles', settings: settings %}
+    {%- endif -%}
 
     {%- unless section_preview -%}
-      {% render 'page-metadata',
-        canonical_url: canonical_url,
-        page_title: page_title,
-        page_description: page_description,
-        page_meta_image_url: page_meta_image_url,
-        page_meta_image_alt: page_meta_image_alt,
-        product: product,
-        shop: shop,
-        locale: locale
-      %}
+      {%- render 'page-social-share-meta',
+          canonical_url: canonical_url,
+          locale: locale,
+          image_url: page_meta_image_url,
+          image_alt: page_meta_image_alt,
+          page_description: page_description,
+          page_title: page_title,
+          product: product,
+          shop: shop
+      -%}
     {%- endunless -%}
   </head>
   <body {% if section_preview %} class="preview-app"{%- endif -%}>
@@ -60,7 +83,6 @@
 
     {{ content_for_body }}
 
-    <script src="{{ "lazysizes.min.js" | asset_url }}" defer></script>
-
+    {%- render 'scripts-minimal-layout' -%}
   </body>
 </html>
