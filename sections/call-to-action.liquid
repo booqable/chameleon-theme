@@ -1,4 +1,10 @@
-{{ "call-to-action.css" | asset_url | stylesheet_tag }}
+{%- capture css_urls -%}
+  [
+    "{{ 'call-to-action.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls -%}
 
 {%- assign title                 = section.settings.title -%}
 {%- assign description           = section.settings.description -%}

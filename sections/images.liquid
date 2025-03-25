@@ -2,9 +2,17 @@
 
 {%- if blocks.size > 0 -%}
   {% comment %} Load images.css asynchronously for better performance {% endcomment %}
-  <link rel="preload" href="{{ "images.css" | asset_url }}" as="style">
-  <link rel="stylesheet" href="{{ "images.css" | asset_url }}" media="print" onload="this.media='all'">
-  <noscript>{{ "images.css" | asset_url | stylesheet_tag }}</noscript>
+
+  {%- capture css_urls -%}
+    [
+      "{{ 'images.css' | asset_url }}"
+      {%- if blocks.size > 1 -%}
+        , "{{ 'carousel.css' | asset_url }}"
+      {%- endif -%}
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
   {%- assign color_palette            = section.settings.color_palette -%}
   {%- assign full_width               = section.settings.full_width -%}
@@ -23,8 +31,6 @@
   {%- assign carousel = false -%}
 
   {%- if blocks.size > 1 -%}
-    {{ "carousel.css" | asset_url | stylesheet_tag }}
-
     {%- assign carousel = true -%}
   {%- else -%}
     {%- assign overlay_color = nil -%}

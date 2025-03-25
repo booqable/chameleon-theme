@@ -1,4 +1,10 @@
-{{ "date-picker.css" | asset_url | stylesheet_tag }}
+{%- capture css_urls -%}
+  [
+    "{{ 'date-picker.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls -%}
 
 {%- assign title                 = section.settings.title -%}
 {%- assign color_palette         = section.settings.color_palette -%}
