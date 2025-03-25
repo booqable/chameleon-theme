@@ -3,7 +3,6 @@
   // Set up theme global object for settings access
   window.theme = window.theme || {};
   window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
-  window.theme.cookiePalette = "{{ settings.cookie_notice_color_palette }}";
 
   const criticalScripts = {{ criticals | default: "[]" | json }},
         nonCriticalScripts = {{ non_criticals | default: "[]" | json }};

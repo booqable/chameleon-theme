@@ -37,6 +37,8 @@
 
     {{ content_for_body }}
 
+    {%- render 'cookie-notice-variables', settings: settings -%}
+
     {%- render 'scripts-checkout-layout' -%}
   </body>
 </html>

@@ -68,6 +68,8 @@
 
     {% section 'footer' %}
 
+    {%- render 'cookie-notice-variables', settings: settings -%}
+
     {%- render 'scripts-session-layout' -%}
 
     {%- if show_mini_cart -%}
