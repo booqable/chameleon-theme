@@ -1,8 +1,14 @@
 const handleImageLoading = () => {
   const observerOptions = {
+    root: null,          // viewport
+    rootMargin: '100px', // preload images slightly before they enter viewport
+    threshold: 0.01      // trigger as soon as 1% of the image is visible
+  }
+
+  const imageOptions = {
     attributes: {
-      srcset: 'data-srcset',
-      srcsetFallback: 'data-fallback-srcset'
+      sourceSrcset: 'data-source-srcset',
+      mainSrcset: 'data-srcset'
     },
     classes: {
       hidden: 'hidden',
@@ -10,13 +16,10 @@ const handleImageLoading = () => {
       main: 'image-main',
       placeholder: 'image-placeholder',
       wrapper: 'image-wrapper'
-    },
-    root: null,          // viewport
-    rootMargin: '100px', // preload images slightly before they enter viewport
-    threshold: 0.01      // trigger as soon as 1% of the image is visible
+    }
   }
 
-  const wrappers = document.querySelectorAll(`.${observerOptions.classes.wrapper}`);
+  const wrappers = document.querySelectorAll(`.${imageOptions.classes.wrapper}`);
   if (!wrappers.length) return false;
 
   const isInViewport = (el) => {
@@ -30,32 +33,32 @@ const handleImageLoading = () => {
   }
 
   const sourcesDataLoad = (mainImage) => {
-    const wrapper = mainImage.closest(`.${observerOptions.classes.wrapper}`),
-          sources = wrapper.querySelectorAll(`source[${observerOptions.attributes.srcset}]`);
+    const wrapper = mainImage.closest(`.${imageOptions.classes.wrapper}`),
+          sources = wrapper.querySelectorAll(`source[${imageOptions.attributes.sourceSrcset}]`);
 
-    if (!sources.length) return;
+    if (sources.length) {
+      sources.forEach(source => {
+        const dataSrc = source.getAttribute(`${imageOptions.attributes.sourceSrcset}`);
 
-    sources.forEach(source => {
-      const dataSrc = source.getAttribute(`${observerOptions.attributes.srcset}`);
+        if (dataSrc) {
+          source.setAttribute('srcset', dataSrc);
+          source.removeAttribute(`${imageOptions.attributes.sourceSrcset}`);
+        }
+      })
+    }
 
-      if (dataSrc) {
-        source.setAttribute('srcset', dataSrc);
-        source.removeAttribute(`${observerOptions.attributes.srcset}`);
-      }
-    })
+    const mainSrcset = mainImage.getAttribute(`${imageOptions.attributes.mainSrcset}`);
 
-    const fallbackSrcset = mainImage.getAttribute(`${observerOptions.attributes.srcsetFallback}`);
-
-    if (fallbackSrcset) {
-      mainImage.setAttribute('srcset', fallbackSrcset);
-      mainImage.removeAttribute(`${observerOptions.attributes.srcsetFallback}`);
+    if (mainSrcset) {
+      mainImage.setAttribute('srcset', mainSrcset);
+      mainImage.removeAttribute(`${imageOptions.attributes.mainSrcset}`);
     }
   }
 
   const imageFadeIn = (mainImage, placeholder) => {
     sourcesDataLoad(mainImage);
 
-    mainImage.classList.replace(observerOptions.classes.hidden, observerOptions.classes.loaded);
+    mainImage.classList.replace(imageOptions.classes.hidden, imageOptions.classes.loaded);
 
     if (placeholder) {
       placeholder.style.opacity = '0'
@@ -64,13 +67,13 @@ const handleImageLoading = () => {
   }
 
   const loadMainImage = (mainImage) => {
-    if (!mainImage.classList.contains(`${observerOptions.classes.main}`)) return;
+    if (!mainImage.classList.contains(`${imageOptions.classes.main}`)) return;
 
     // Skip if the image doesn't have the hidden class (already loaded or eager)
-    if (!mainImage.classList.contains(observerOptions.classes.hidden)) return;
+    if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
-    const wrapper = mainImage.closest(`.${observerOptions.classes.wrapper}`),
-          placeholder = wrapper && wrapper.querySelector(`.${observerOptions.classes.placeholder}`);
+    const wrapper = mainImage.closest(`.${imageOptions.classes.wrapper}`),
+          placeholder = wrapper && wrapper.querySelector(`.${imageOptions.classes.placeholder}`);
 
     // Listen for when mainImage is really loaded (from network)
     (mainImage.complete)
@@ -91,13 +94,13 @@ const handleImageLoading = () => {
   const observer = new IntersectionObserver(handleIntersection, observerOptions);
 
   wrappers.forEach(wrapper => {
-    const mainImage = wrapper.querySelector(`.${observerOptions.classes.main}`),
-          placeholder = wrapper.querySelector(`.${observerOptions.classes.placeholder}`);
+    const mainImage = wrapper.querySelector(`.${imageOptions.classes.main}`),
+          placeholder = wrapper.querySelector(`.${imageOptions.classes.placeholder}`);
 
     if (!mainImage || !placeholder) return;
 
     // Skip if the image doesn't have the hidden class (means it's eager loaded)
-    if (!mainImage.classList.contains(observerOptions.classes.hidden)) return;
+    if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
     (isInViewport(mainImage))
       ? loadMainImage(mainImage)
@@ -107,7 +110,7 @@ const handleImageLoading = () => {
   // Add a function to prioritize visible images
   const prioritizeVisibleImages = () => {
     // Only select images with the hidden class (lazy-loaded images)
-    const notLoadedImages = document.querySelectorAll(`.${observerOptions.classes.main}.${observerOptions.classes.hidden}`);
+    const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
       if (isInViewport(img)) {
@@ -125,7 +128,7 @@ const handleImageLoading = () => {
   // Also handle any remaining images on full load
   window.addEventListener('load', () => {
     // Only select images with the hidden class (lazy-loaded images)
-    const notLoadedImages = document.querySelectorAll(`.${observerOptions.classes.main}.${observerOptions.classes.hidden}`);
+    const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
       loadMainImage(img);
