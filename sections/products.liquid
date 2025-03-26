@@ -30,7 +30,7 @@
       "{{ 'products.css' | asset_url }}",
       "{{ 'product-card.css' | asset_url }}"
       {%- if size > 1 and show_carousel -%}
-        , {{ "carousel.css" | asset_url }}
+        , "{{ "carousel.css" | asset_url }}"
       {%- endif -%}
     ]
   {%- endcapture -%}
