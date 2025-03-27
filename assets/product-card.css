@@ -33,6 +33,10 @@
   aspect-ratio: 1 / 0.97;
 }
 
+.product-card__image-wrapper:has(.focal-image) picture {
+  position: static !important;
+}
+
 .product-card__image-wrapper:has(.image-placeholder) {
   position: static;
 }
@@ -41,6 +45,10 @@
   display: block;
   position: absolute;
   max-width: none;
+}
+
+.product-card__image.focal-image {
+  width: auto;
 }
 
 .preview-app .product-card__image,
@@ -312,7 +320,7 @@ bq-product-availability[visible="true"] {
   .product-card__meta {
     padding: 20px 18px;
   }
-  
+
   .product-card__title {
     font-size: 20px;
   }

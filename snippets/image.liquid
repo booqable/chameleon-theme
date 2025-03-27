@@ -14,6 +14,7 @@
   custom_size - "string" optional,
   keep_type - boolean optional,
   fetchpriority - "string" optional, (use "high" for important above-the-fold images)
+  settings - settings optional
 
   Usage:
 
@@ -29,7 +30,8 @@
       focal: points,
       loading: 'eager',
       fetchpriority: 'high',    - use for hero images or important visible content
-      keep_type: true           - image type will be kept (only png and jpeg)
+      keep_type: true,          - image type will be kept (only png and jpeg)
+      settings: settings
   -%}
 
   Explanation how to use image_size property.
@@ -54,6 +56,8 @@
 {%- if image.url != blank -%}
   {%- assign image_alt        = image_alt | default: image.alt | default: "" -%}
   {%- assign image_main_class = image_class | append: ' image-main' -%}
+  {%- assign image_fit        = settings.card_image_fit -%}
+  {%- assign image_use_focal  = settings.use_focal_images -%}
   {%- assign image_size       = image_size | default: "m" -%}
   {%- assign loading_strategy = loading | default: "lazy" -%}
   {%- assign fetch_priority   = fetchpriority | default: "auto" -%}
@@ -165,6 +169,16 @@
     {%- assign keep_type = true -%}
   {%- endif -%}
 
+  {%- if image_use_focal and image_fit == "cover" -%}
+    {%- assign image_focal_points = focal | remove: "[" | remove: "]" | strip | split: "," -%}
+    {%- assign image_focal_x = image_focal_points[0] -%}
+    {%- assign image_focal_y = image_focal_points[1] -%}
+
+    {%- if image_focal_x contains "." or image_focal_y contains "." -%}
+      {%- assign image_points = true -%}
+    {%- endif -%}
+  {%- endif -%}
+
   <span class="image-wrapper {{ image_class }}-wrapper">
     {% comment %} load low quality image placeholder {% endcomment %}
     {%- if loading_strategy == "lazy" -%}
@@ -184,7 +198,7 @@
         {%- if featured_type == ".webp" or featured_type == ".jpg" or featured_type == ".jpeg" or featured_type == ".png" -%}
           <source
             type="image/webp"
-            data-srcset="{{ image_webp_sizes }}"
+            data-source-srcset="{{ image_webp_sizes }}"
             {%- if image_mobile.url != blank -%}
               media="(min-width: {{ media_query }}px)"
             {%- endif -%}
@@ -196,7 +210,7 @@
       {%- if featured_type == ".jpg" or featured_type == ".jpeg" -%}
         <source
           type="image/jpeg"
-          data-srcset="{{ image_jpg_sizes }}"
+          data-source-srcset="{{ image_jpg_sizes }}"
           {%- if image_mobile.url != blank -%}
             media="(min-width: {{ media_query }}px)"
           {%- endif -%}
@@ -207,7 +221,7 @@
       {%- if featured_type == ".png" -%}
         <source
           type="image/png"
-          data-srcset="{{ image_png_sizes }}"
+          data-source-srcset="{{ image_png_sizes }}"
           {%- if image_mobile.url != blank -%}
             media="(min-width: {{ media_query }}px)"
           {%- endif -%}
@@ -216,9 +230,13 @@
       {%- endif -%}
 
       <img
-        class="{{ image_main_class }}{% if loading_strategy == "lazy" %} hidden lazyload{%- endif -%}"
-        data-fallback-srcset="{{- image_fallback_width -}}"
-        decoding="{%- if loading_strategy == 'eager' -%}sync{%- else -%}async{%- endif -%}"
+        class="{{ image_main_class }}{% if image_points %} focal-image{% endif %}{% if loading_strategy == "lazy" %} hidden lazyload{%- endif -%}"
+        data-srcset="{{- image_fallback_width -}}"
+        {%- if image_points -%}
+          data-focal-x="{{- image_focal_x -}}"
+          data-focal-y="{{- image_focal_y -}}"
+        {%- endif -%}
+        decoding="{%- if loading_strategy == 'lazy' -%}a{%- endif -%}sync"
         fetchpriority="{{- fetch_priority -}}"
         loading="{{- loading_strategy -}}"
         src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
