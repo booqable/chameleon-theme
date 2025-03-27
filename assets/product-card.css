@@ -33,10 +33,6 @@
   aspect-ratio: 1 / 0.97;
 }
 
-.product-card__image-wrapper:has(.focal-image) picture {
-  position: static !important;
-}
-
 .product-card__image-wrapper:has(.image-placeholder) {
   position: static;
 }
