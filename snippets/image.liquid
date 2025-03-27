@@ -182,14 +182,17 @@
   <span class="image-wrapper {{ image_class }}-wrapper">
     {% comment %} load low quality image placeholder {% endcomment %}
     {%- if loading_strategy == "lazy" -%}
-      <img
-        class="image-placeholder {{ image_class }}-placeholder"
-        src="{{ image.url | image_url: width: image_placeholder_width }}"
-        alt=""
-        width="100%"
-        height="100%"
-        aria-hidden="true"
-      >
+      {%- unless image_points -%}
+        <img
+          class="image-placeholder {{ image_class }}-placeholder"
+          src="{{ image.url | image_url: width: image_placeholder_width }}"
+          alt=""
+          width="100%"
+          height="100%"
+          aria-hidden="true"
+        >
+      {%- endunless -%}
+
     {%- endif -%}
 
     {% comment %} load high quality multiformat images {% endcomment %}
@@ -243,6 +246,7 @@
         height="100%"
         width="100%"
         alt="{{- image_alt -}}"
+        {%- if image_points -%}style="opacity: 0;"{%- endif -%}
       >
     </picture>
   </span>
