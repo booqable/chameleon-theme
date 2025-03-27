@@ -47,10 +47,6 @@
   max-width: none;
 }
 
-.product-card__image.focal-image {
-  width: auto;
-}
-
 .preview-app .product-card__image,
 .product-card__image:not(.focal-image) {
   width: 100%;
