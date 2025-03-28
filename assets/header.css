@@ -1,12 +1,3 @@
-.header--menu-opened {
-  position: sticky;
-  top: var(--header-transform, 0px);
-  left: 0;
-  right: 0;
-  margin-top: 0px !important;
-  transition: top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
-}
-
 .header__content--padding-top {
   padding-top: var(--padding-top-mobile, 0px);
 }
@@ -56,6 +47,14 @@
 .header__logo-image {
   max-height: 64px;
   max-width: 200px;
+}
+
+.header--menu-opened {
+  position: sticky;
+  top: var(--header-transform, 0px);
+  left: 0;
+  right: 0;
+  transition: top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .header__nav-wrapper {
