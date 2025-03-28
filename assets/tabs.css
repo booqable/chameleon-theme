@@ -67,6 +67,8 @@
 .tabs__content {
   display: none;
   height: 100%;
+  max-height: 800px;
+  overflow: hidden;
 }
 
 .tabs__content.active {
@@ -204,7 +206,9 @@
 @media (min-width: 768px) {
   .tabs {
     grid-template-columns: 1.5fr 2fr;
-    direction : var(--direction, ltr);
+    direction: var(--direction, ltr);
+    align-items: start;
+    max-height: 800px;
   }
 
   .tabs__select-opener {
