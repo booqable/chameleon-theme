@@ -47,7 +47,7 @@
   position: relative;
   min-width: var(--slide-width-mobile);
   max-width: var(--slide-width-mobile);
-  transition: all calc(var(--animation-duration, 200ms) + 200ms) var(--transition-function-ease);
+  transition: all calc(var(--animation-duration, 200ms) + 200ms) var(--transition-function-ease-in-out);
   padding: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -93,7 +93,7 @@
   content: "";
   width: 8px;
   height: 8px;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -126,7 +126,7 @@
   justify-content: center;
   cursor: pointer;
   text-indent: -9999px;
-  transition: border var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: border var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__btn svg {
@@ -140,7 +140,7 @@
 }
 
 .carousel__btn path {
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel .product-card {
@@ -176,8 +176,8 @@
   position: static;
   opacity: 1;
   visibility: visible;
-  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-out),
-        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-out);
+  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out),
+        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__edges .carousel__item.hide {
@@ -185,8 +185,8 @@
   z-index: -1;
   visibility: hidden;
   opacity: 0;
-  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in),
-        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in);
+  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out),
+        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__edges .images__text-area {
