@@ -79,7 +79,7 @@
   font-weight: var(--font-weight-semibold, 600);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   line-height: var(--line-height-sm, 1.2);
   margin: 0;
 }
