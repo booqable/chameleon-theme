@@ -53,13 +53,13 @@
 }
 
 .pagination .prev {
-  border-top-left-radius: var(--border-radius-dynamic, 0);
-  border-bottom-left-radius: var(--border-radius-dynamic, 0);
+  border-top-left-radius: var(--border-radius-dynamic);
+  border-bottom-left-radius: var(--border-radius-dynamic);
 }
 
 .pagination .next {
-  border-top-right-radius: var(--border-radius-dynamic, 0);
-  border-bottom-right-radius: var(--border-radius-dynamic, 0);
+  border-top-right-radius: var(--border-radius-dynamic);
+  border-bottom-right-radius: var(--border-radius-dynamic);
 }
 
 .palette-one .pagination span {

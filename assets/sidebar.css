@@ -7,6 +7,7 @@
   padding: 16px;
   font-weight: var(--font-weight-headers, 600);
   border: 1px solid transparent;
+  border-radius: var(--border-radius-rounded);
 }
 
 .sidebar__nav-opener svg {

@@ -88,7 +88,7 @@
 }
 
 #section-footer .footer__app .weglot-widget__wrapper {
-  border-radius: var(--border-radius-dynamic, 0);
+  border-radius: var(--border-radius-dynamic);
   transition: all var(--animation-duration) var(--transition-function-ease-in-out);
 }
 
@@ -100,7 +100,7 @@
   left: 50%;
   transform: translate(-50%, 0);
   border: 1px solid var(--color-border, #0B1A2626);
-  border-radius: var(--border-radius-rounded, 0);
+  border-radius: var(--border-radius-rounded);
   transition: all var(--animation-duration) var(--transition-function-ease-in-out);
 }
 
