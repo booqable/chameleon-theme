@@ -310,7 +310,7 @@
 .bq-content.rx-content samp,
 .bq-content.rx-content kbd,
 .bq-content.rx-content code {
-  border-radius: var(--border-radius-rounded, 0);
+  border-radius: var(--border-radius-rounded);
 }
 
 .bq-content.rx-content kbd {

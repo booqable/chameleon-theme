@@ -296,7 +296,7 @@ ul{
 input,
 textarea {
   font-family: var(--font-body, sans-serif);
-  border-radius: var(--border-radius-rounded, 0);
+  border-radius: var(--border-radius-rounded);
 }
 
 input:-webkit-autofill,
@@ -418,7 +418,7 @@ img {
   line-height: var(--line-height-sm, 1.2);
   color: currentColor;
   border: 1px solid transparent;
-  border-radius: var(--border-radius-dynamic, 0);
+  border-radius: var(--border-radius-dynamic);
   background: none;
   cursor: pointer;
   margin-bottom: var(--button-margin-bottom, 16px);

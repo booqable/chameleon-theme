@@ -64,7 +64,7 @@
       },
       {
         "type": "paragraph",
-        "content": "Make rounded corners of the Date picker, buttons, input fields, etc."
+        "content": "Make rounded corners of the Date picker, buttons, form fields (input, textarea, select, error message)"
       },
       {
         "type": "select",
@@ -89,6 +89,33 @@
           {
             "value": "max",
             "label": "Max"
+          }
+        ],
+        "default": "none"
+      },
+      {
+        "type": "paragraph",
+        "content": "Make rounded corners of the images and small blocks"
+      },
+      {
+        "type": "select",
+        "id": "rounded_corners_blocks",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "sm",
+            "label": "Small"
+          },
+          {
+            "value": "md",
+            "label": "Medium"
+          },
+          {
+            "value": "lg",
+            "label": "Large"
           }
         ],
         "default": "none"

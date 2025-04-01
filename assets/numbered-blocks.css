@@ -30,6 +30,7 @@
   padding: 0;
   border: 1px solid transparent;
   border-top: none;
+  border-radius: var(--border-radius-block-rounded);
   overflow: hidden;
 }
 
@@ -45,7 +46,7 @@
   font-size: 46px;
   line-height: var(--line-height-xs, 1);
   font-weight: var(--font-weight-medium, 500);
-  border-radius: var(--border-radius-circle, 0);
+  border-radius: var(--border-radius-circle);
   display: inline-flex;
   align-items: center;
   justify-content: center;

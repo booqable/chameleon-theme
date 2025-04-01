@@ -11,7 +11,7 @@
   padding: 0;
   position: relative;
   border: 1px solid transparent;
-  border-radius: var(--border-radius-rounded, 0);
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .accordion-block__heading {
