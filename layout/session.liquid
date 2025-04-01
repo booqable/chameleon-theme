@@ -42,8 +42,7 @@
 
     {% section 'footer' %}
 
-    <script src="{{ "touch-device-notch.js" | asset_url }}" defer></script>
-    <script src="{{ "header.js" | asset_url }}" defer></script>
+    {%- render 'scripts-session-layout' -%}
 
     {%- if show_mini_cart -%}
       {%- render 'variables-mini-cart', settings: settings, color_palette: "one" -%}

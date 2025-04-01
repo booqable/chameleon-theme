@@ -60,7 +60,6 @@
 
     {{ content_for_body }}
 
-    <script src="{{ "lazysizes.min.js" | asset_url }}" defer></script>
-
+    {%- render 'scripts-minimal-layout' -%}
   </body>
 </html>
