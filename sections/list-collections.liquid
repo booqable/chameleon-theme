@@ -1,4 +1,10 @@
-{{ "collections.css" | asset_url | stylesheet_tag }}
+{%- capture css_urls -%}
+  [
+    "{{ 'collections.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls -%}
 
 {%- assign limit                 = section.settings.limit -%}
 {%- assign color_palette         = section.settings.color_palette -%}

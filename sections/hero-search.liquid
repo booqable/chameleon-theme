@@ -1,4 +1,10 @@
-{{ "hero.css" | asset_url | stylesheet_tag }}
+{%- capture css_urls -%}
+  [
+    "{{ 'hero.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
 {%- assign background_style      = settings.background_style -%}
 {%- assign button_label          = section.settings.button_label -%}
