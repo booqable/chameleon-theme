@@ -78,6 +78,10 @@
   bottom: 0;
 }
 
+.collections__image-wrapper:has(.image-placeholder) {
+  position: static;
+}
+
 .palette-one.collections__wrapper {
   background: var(--background-primary, #FFFFFF);
 }
