@@ -8,6 +8,7 @@
 // Store current state to prevent unnecessary reapplication
 let ccCurrentPalette = '';
 let ccAppliedStyles = false;
+const ccStylesName = 'cookie-notice-styles.css';
 
 // Apply the styles to the cookie container
 const applyCookieStyles = (ccMain) => {
@@ -48,13 +49,13 @@ const applyCookieStyles = (ccMain) => {
 
 // Load the cookie CSS file with high priority
 const loadCookieStyles = () => {
-  if (document.querySelector('link[href*="cookie-styles.css"]')) return;
+  if (document.querySelector(`link[href*="${ccStylesName}"]`)) return;
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = window.theme?.assets_url
-    ? `${window.theme.assets_url}cookie-styles.css`
-    : '/assets/cookie-styles.css';
+    ? `${window.theme.assets_url}${ccStylesName}`
+    : `/assets/${ccStylesName}`;
   link.setAttribute('priority', 'high');
 
   document.head.appendChild(link);
@@ -122,4 +123,3 @@ document.addEventListener('DOMContentLoaded', () => applyCookieStyles());
 
 // Apply when cookie consent UI is initialized
 window.addEventListener('cookie-consent-ui-initialized', () => applyCookieStyles());
-
