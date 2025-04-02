@@ -1,0 +1,24 @@
+{%- capture critical_scripts -%}
+  [
+    "{{ 'js-header.js' | asset_url }}",
+    "{{ 'js-main.js' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- capture non_critical_scripts -%}
+  [
+    "{{ 'lazysizes.min.js' | asset_url }}",
+    "{{ 'js-carousel.js' | asset_url }}",
+    "{{ 'js-text-with-image.js' | asset_url }}",
+    "{{ 'js-touch-device-notch.js' | asset_url }}",
+    "{{ 'js-sidebar.js' | asset_url }}",
+    "{{ 'js-cookie-notice-styles-loading.js' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- if critical_scripts and critical_scripts != blank or non_critical_scripts and non_critical_scripts != blank -%}
+  {%- render 'scripts-loading'
+      criticals: critical_scripts,
+      non_criticals: non_critical_scripts
+  -%}
+{%- endif -%}
