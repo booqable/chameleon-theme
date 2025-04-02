@@ -1,4 +1,10 @@
-{{ "product-page.css" | asset_url | stylesheet_tag }}
+{%- capture css_urls -%}
+  [
+    "{{ 'product-page.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
 {%- assign title                         = product.name -%}
 {%- assign description                   = product.description -%}

@@ -1,6 +1,12 @@
 {%- if section.blocks.size > 0 -%}
 
-  {{ "collections.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'collections.css' | asset_url }}"
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign show_overlay          = section.settings.show_overlay -%}
