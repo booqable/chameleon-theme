@@ -37,5 +37,9 @@
 
     {{ content_for_body }}
 
+    {%- render 'cookie-notice-variables', settings: settings -%}
+
+    <script src="{{ 'js-cookie-notice-styles-loading.js' | asset_url }}" defer></script>
+
   </body>
 </html>
