@@ -1,3 +1,11 @@
+{%- capture css_urls -%}
+  [
+    "{{ 'title.css' | asset_url }}"
+  ]
+{%- endcapture -%}
+
+{%- render 'section-styles-loading', css_urls: css_urls -%}
+
 {%- assign tag                   = section.settings.tag -%}
 {%- assign title                 = section.settings.title -%}
 {%- assign description           = section.settings.description -%}

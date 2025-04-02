@@ -15,11 +15,19 @@
 {%- endfor -%}
 
 {%- if section.blocks.size > 0 -%}
-  {{ "locations.css" | asset_url | stylesheet_tag }}
-  {{ "tabs.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'locations.css' | asset_url }}",
+      "{{ 'tabs.css' | asset_url }}"
+      {%- if locations_array.size > 0 -%}
+        , "{{ 'map.css' | asset_url }}"
+      {%- endif -%}
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- if locations_array.size > 0 -%}
-    {{ "map.css" | asset_url | stylesheet_tag }}
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.4.0/dist/ol.js"></script>
   {%- endif -%}
 
@@ -198,10 +206,10 @@
     </div>
   </div>
 
-  <script src="{{ "tabs.js" | asset_url }}" defer></script>
+  <script src="{{ "js-tabs.js" | asset_url }}" defer></script>
 
   {%- if locations_array.size > 0 -%}
-    <script src="{{ "maps.js" | asset_url }}" defer></script>
+    <script src="{{ "js-maps.js" | asset_url }}" defer></script>
   {%- endif -%}
 {%- endif -%}
 

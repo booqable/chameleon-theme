@@ -1,6 +1,12 @@
 {%- unless section.blocks.size == 0 -%}
 
-  {{ "logos.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'logos.css' | asset_url }}"
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign title                 = section.settings.title -%}
   {%- assign text_position         = section.settings.text_position -%}
