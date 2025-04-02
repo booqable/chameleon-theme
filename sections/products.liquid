@@ -23,8 +23,19 @@
 {%- endif -%}
 
 {%- if size > 0 -%}
-  {{ "products.css" | asset_url | stylesheet_tag }}
-  {{ "product-card.css" | asset_url | stylesheet_tag }}
+  {%- assign show_carousel = section.settings.show_carousel -%}
+
+  {%- capture css_urls -%}
+    [
+      "{{ 'products.css' | asset_url }}",
+      "{{ 'product-card.css' | asset_url }}"
+      {%- if size > 1 and show_carousel -%}
+        , "{{ "carousel.css" | asset_url }}"
+      {%- endif -%}
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign carousel              = false -%}
   {%- assign color_palette         = section.settings.color_palette -%}
@@ -33,14 +44,11 @@
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-  {%- assign show_carousel         = section.settings.show_carousel -%}
   {%- assign show_navigation       = section.settings.show_navigation -%}
   {%- assign show_pagination       = section.settings.show_pagination -%}
   {%- assign timer                 = section.settings.timer -%}
 
   {%- if size > 1 and show_carousel -%}
-    {{ "carousel.css" | asset_url | stylesheet_tag }}
-
     {%- assign carousel = true -%}
   {%- endif -%}
 

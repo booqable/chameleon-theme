@@ -1,7 +1,13 @@
 {%- assign show_datepicker = section.settings.show_datepicker -%}
 
 {%- if show_datepicker -%}
-  {{ "hero.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'hero.css' | asset_url }}"
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
   {%- assign color_palette      = section.settings.color_palette -%}
   {%- assign padding_top        = section.settings.padding_top -%}

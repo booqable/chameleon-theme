@@ -1,0 +1,53 @@
+{% comment %}
+  Efficient section CSS loading to prevent duplicate loading of stylesheets if there are a few the same sections on the page.
+  Uses modern JavaScript and includes optional preloading for better performance.
+  Supports loading multiple CSS files at once.
+  Usage:
+  {%- capture css_urls -%}
+    [
+      "{{ 'name.css' | asset_url }}",
+      "{{ 'name2.css' | asset_url }}"
+    ]
+  {%- endcapture -%}
+  {%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
+{% endcomment %}
+
+<script>
+  (() => {
+    const css_urls = {{ css_urls | default: "[]" | json }};
+    css_urls.forEach(url => {
+      // Skip if this stylesheet is already loaded
+      if (document.querySelector(`link[href*="${url}"]`)) return;
+      {%- if preload -%}
+        // First preload the CSS for better performance
+        const preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.as = 'style';
+        preloadLink.href = url;
+        document.head.appendChild(preloadLink);
+        // Add the stylesheet with non-blocking technique
+        const styleLink = document.createElement('link');
+        styleLink.rel = 'stylesheet';
+        styleLink.href = url;
+        styleLink.media = 'print';
+        styleLink.onload = () => styleLink.media = 'all';
+        document.head.appendChild(styleLink);
+      {%- else -%}
+        // Add the stylesheet directly (normal blocking load)
+        const styleLink = document.createElement('link');
+        styleLink.rel = 'stylesheet';
+        styleLink.href = url;
+        document.head.appendChild(styleLink);
+      {%- endif -%}
+    })
+  })()
+</script>
+
+{%- if preload -%}
+  {% comment %}Fallback for no JavaScript when using preload strategy{% endcomment %}
+  <noscript>
+    {%- for url in css_urls -%}
+      <link rel="stylesheet" href="{{ url | strip }}">
+    {%- endfor -%}
+  </noscript>
+{%- endif -%}

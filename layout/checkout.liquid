@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html lang="{{ locale }}">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% comment %} Base metadata {% endcomment %}
+    {%- render 'page-base-meta',
+        brand_color: branding_color,
+        canonical_url: canonical_url,
+        page_description: page_description,
+        page_title: page_title,
+        settings: settings,
+        shop: shop
+    -%}
 
-    {% comment %} Fonts {% endcomment %}
-    <script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous"></script>
+    {% comment %} Resource hints for performance {% endcomment %}
+    {%- render 'page-resource-hints' -%}
+
+    {% comment %} Preload fonts {% endcomment %}
+    {%- render 'fonts', settings: settings -%}
+
     {{ content_for_checkout_header }}
 
-    {% render 'fonts', settings: settings %}
-
-    {% render 'page-metadata',
-      canonical_url: canonical_url,
-      page_title: page_title,
-      page_description: page_description,
-      page_meta_image_url: page_meta_image_url,
-      page_meta_image_alt: page_meta_image_alt,
-      product: product,
-      shop: shop,
-      locale: locale
-    %}
+    {%- render 'page-social-share-meta',
+        canonical_url: canonical_url,
+        locale: locale,
+        image_url: page_meta_image_url,
+        image_alt: page_meta_image_alt,
+        page_description: page_description,
+        page_title: page_title,
+        product: product,
+        shop: shop
+    -%}
   </head>
   <body>
-
     <main id="main">
       {{ content_for_layout }}
     </main>
 
     {{ content_for_body }}
+
+    {%- render 'cookie-notice-variables', settings: settings -%}
 
     {%- render 'scripts-checkout-layout' -%}
   </body>

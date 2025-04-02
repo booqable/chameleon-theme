@@ -1,7 +1,13 @@
 {%- if results_count > 0 -%}
 
-  {{ "search.css" | asset_url | stylesheet_tag }}
-  {{ "product-card.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'search.css' | asset_url }}",
+      "{{ 'product-card.css' | asset_url }}"
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign grid                  = section.settings.grid -%}
   {%- assign limit                 = section.settings.limit -%}

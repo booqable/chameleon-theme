@@ -2,7 +2,16 @@
 
 {%- if blocks.size > 0 -%}
 
-  {{ "testimonials.css" | asset_url | stylesheet_tag }}
+  {%- capture css_urls -%}
+    [
+      "{{ 'testimonials.css' | asset_url }}"
+      {%- if blocks.size > 1 -%}
+        , "{{ 'carousel.css' | asset_url }}"
+      {%- endif -%}
+    ]
+  {%- endcapture -%}
+
+  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign show_navigation       = section.settings.show_navigation -%}
   {%- assign show_pagination       = section.settings.show_pagination -%}
@@ -17,8 +26,6 @@
   {%- assign carousel = false -%}
 
   {%- if blocks.size > 1 -%}
-    {{ "carousel.css" | asset_url | stylesheet_tag }}
-
     {%- assign carousel = true -%}
   {%- endif -%}
 
