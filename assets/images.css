@@ -14,10 +14,6 @@
   color: var(--color-overlay, #FFFFFF);
 }
 
-.images__vision-wrapper--desktop {
-  display: none;
-}
-
 .images__vision-wrapper--overlay:after {
   content: "";
   position: absolute;
@@ -120,16 +116,6 @@
   color: currentColor;
 }
 
-@media (min-width: 768px) {
-  .images__vision-wrapper--desktop {
-    display: block;
-  }
-
-  .images__vision-wrapper--mobile {
-    display: none;
-  }
-}
-
 @media (min-width: 992px) {
   .images__container--padding-top {
     padding-top: var(--padding-top, 0);
@@ -137,10 +123,6 @@
 
   .images__container--padding-bottom {
     padding-bottom: var(--padding-bottom, 0);
-  }
-
-  .images__vision-wrapper--mobile {
-    display: none;
   }
 
   .images__wrapper .date-picker__instance {

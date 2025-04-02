@@ -103,6 +103,8 @@
 
             {%- for block in blocks -%}
               {%- assign image       = block.settings.image -%}
+              {%- assign image_alt   = block.settings.image_alt -%}
+              {%- assign image_id    = block.id -%}
               {%- assign title       = block.settings.title -%}
               {%- assign description = block.settings.description -%}
               {%- assign name        = block.settings.name -%}
@@ -168,9 +170,10 @@
                           <div class="testimonials__image-wrapper">
                             {%- render 'image',
                                 image: image,
-                                loading: 'lazy',
-                                class: 'testimonials__image',
-                                size: 'l'
+                                image_alt: image_alt,
+                                image_id: image_id,
+                                image_class: 'testimonials__image',
+                                image_size: 'l'
                             -%}
                           </div>
                         </div>
@@ -404,6 +407,12 @@
             "id": "image",
             "label": "Image (optional)",
             "default": "booqable://assets/image-placeholder.png"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "text",

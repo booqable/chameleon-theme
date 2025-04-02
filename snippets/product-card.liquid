@@ -85,10 +85,12 @@
     {%- if image.url != blank -%}
       {%- render 'image',
         image: image,
-        loading: 'lazy',
-        class: 'product-card__image',
+        image_id: id,
+        image_alt: name,
+        image_class: 'product-card__image',
+        image_size: img_size,
         focal: points,
-        size: img_size
+        settings: settings
       -%}
     {%- endif -%}
 

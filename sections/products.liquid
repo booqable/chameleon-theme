@@ -25,6 +25,7 @@
 {%- if size > 0 -%}
   {{ "products.css" | asset_url | stylesheet_tag }}
   {{ "product-card.css" | asset_url | stylesheet_tag }}
+  {{ "focal-image.css" | asset_url | stylesheet_tag }}
 
   {%- assign carousel              = false -%}
   {%- assign color_palette         = section.settings.color_palette -%}
