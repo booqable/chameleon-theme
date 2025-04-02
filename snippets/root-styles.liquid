@@ -242,12 +242,6 @@
         --border-radius-circle: 50%;
         --border-radius-checkbox: 4px;
     {%- endcase -%}
-
-    {%- if settings.background_3 != blank -%}
-      --branding-color: {{- settings.background_3 -}};
-    {%- else -%}
-      --branding-color: {{- branding_color -}};
-    {%- endif -%}
   }
 
   #cc-main {
