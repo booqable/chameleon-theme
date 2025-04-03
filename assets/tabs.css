@@ -67,8 +67,6 @@
 .tabs__content {
   display: none;
   height: 100%;
-  max-height: 800px;
-  overflow: hidden;
 }
 
 .tabs__content.active {
@@ -126,6 +124,10 @@
 
 .tabs__select #tabs-select-opener:checked ~ .tabs__select-opener svg {
   transform: rotate(270deg);
+}
+
+.tabs__contents {
+  height: 100%;
 }
 
 .palette-one .tabs {
@@ -207,8 +209,6 @@
   .tabs {
     grid-template-columns: 1.5fr 2fr;
     direction: var(--direction, ltr);
-    align-items: start;
-    max-height: 800px;
   }
 
   .tabs__select-opener {

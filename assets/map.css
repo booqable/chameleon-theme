@@ -1,6 +1,5 @@
 .map {
-  aspect-ratio: 16 / 9;
-  height: 100%;
+  height: 350px;
   width: 100%;
   overflow: hidden;
 }
@@ -83,4 +82,10 @@
 
 .palette-three .map .ol-control button:active {
   border-color: var(--background-accent-3-active, #0B1A26BA);
+}
+
+@media (min-width: 768px) {
+  .map {
+    height: 100%;
+  }
 }
