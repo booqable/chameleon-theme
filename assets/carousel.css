@@ -185,8 +185,8 @@
   z-index: -1;
   visibility: hidden;
   opacity: 0;
-  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in),
-        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in);
+  transition: visibility calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out),
+        opacity calc(var(--animation-duration, 400ms) + 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__edges .images__text-area {
