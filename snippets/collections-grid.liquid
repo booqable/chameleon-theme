@@ -36,8 +36,10 @@
     {%- assign url = "" -%}
     {%- assign name = "" -%}
     {%- assign image = "" -%}
+    {%- assign image_id = "" -%}
 
     {%- if collection != blank -%}
+      {%- assign image_id = collection.id -%}
       {%- assign url = collection.url -%}
       {%- assign name = collection.name -%}
       {%- assign first_product = collection.products | first -%}
@@ -49,6 +51,7 @@
       {%- endif -%}
     {%- else -%}
       {%- assign image = placeholder -%}
+      {%- assign image_id = item.id -%}
     {%- endif -%}
 
     <li class="collections__item" id="{{- id -}}">
@@ -58,9 +61,9 @@
           <span class="collections__image-item">
             {%- render 'image',
               image: image,
-              loading: 'lazy',
-              class: 'collections__image',
-              size: 'm'
+              image_id: image_id,
+              image_class: 'collections__image',
+              image_size: 'm'
             -%}
           </span>
       {%- if collection != blank -%}
