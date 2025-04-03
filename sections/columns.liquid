@@ -76,8 +76,6 @@
       <div class="columns__grid">
         {%- for block in blocks -%}
           {%- assign image        = block.settings.image -%}
-          {%- assign image_alt    = block.settings.image_alt -%}
-          {%- assign image_id     = block.id -%}
           {%- assign icon         = block.settings.icon -%}
           {%- assign title        = block.settings.title -%}
           {%- assign text         = block.settings.text -%}
@@ -90,10 +88,9 @@
               <div class="columns__image-wrapper">
                 {%- render 'image',
                   image: image,
-                  image_id: image_id,
-                  image_alt: image_alt,
-                  image_class: 'columns__image',
-                  image_size: 'm'
+                  loading: 'lazy',
+                  class: 'columns__image',
+                  size: 'm'
                 -%}
               </div>
             {%- elsif icon != "empty" -%}
@@ -202,12 +199,6 @@
             "type": "image_picker",
             "id": "image",
             "label": "Image (optional)"
-          },
-          {
-            "type": "text",
-            "id": "image_alt",
-            "label": "Alternative text (optional)",
-            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "header",
