@@ -103,15 +103,13 @@
   >
     <div class="testimonials__container container">
       {%- if carousel -%}
-        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}" aria-label="Gallery">
+        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}" aria-role="Gallery">
           <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
           <div class="carousel__wrapper">
       {%- endif -%}
 
             {%- for block in blocks -%}
               {%- assign image       = block.settings.image -%}
-              {%- assign image_alt   = block.settings.image_alt -%}
-              {%- assign image_id    = block.id -%}
               {%- assign title       = block.settings.title -%}
               {%- assign description = block.settings.description -%}
               {%- assign name        = block.settings.name -%}
@@ -177,10 +175,9 @@
                           <div class="testimonials__image-wrapper">
                             {%- render 'image',
                                 image: image,
-                                image_alt: image_alt,
-                                image_id: image_id,
-                                image_class: 'testimonials__image',
-                                image_size: 'l'
+                                loading: 'lazy',
+                                class: 'testimonials__image',
+                                size: 'l'
                             -%}
                           </div>
                         </div>
@@ -196,7 +193,7 @@
           </div>
 
           {%- if show_navigation -%}
-            <div class="carousel__navigation hidden" role="navigation" aria-label="Carousel navigation">
+            <div class="carousel__navigation hidden" aria-role="Carousel navigation">
               <span class="carousel__btn prev" aria-label="Prev slide">
                 Previous slide
                 {%- render 'icon-arrow-right-full' -%}
@@ -209,7 +206,7 @@
           {%- endif -%}
 
           {%- if show_pagination -%}
-            <div class="carousel__pagination hidden" role="navigation" aria-label="Carousel pagination">
+            <div class="carousel__pagination hidden" aria-role="Carousel pagination">
               {%- for block in blocks -%}
                 {%- assign first = forloop.first -%}
                 {%- assign index = forloop.index -%}
@@ -414,12 +411,6 @@
             "id": "image",
             "label": "Image (optional)",
             "default": "booqable://assets/image-placeholder.png"
-          },
-          {
-            "type": "text",
-            "id": "image_alt",
-            "label": "Alternative text (optional)",
-            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "text",

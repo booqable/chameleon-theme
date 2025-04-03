@@ -96,6 +96,21 @@
   line-height: var(--line-height-lg, 1.5);
 }
 
+.bq-content.rx-content.text-regular {
+  font-size: 16px;
+  line-height: var(--line-height-lg, 1.5);
+}
+
+.bq-content.rx-content.text-small {
+  font-size: 14px;
+  line-height: var(--line-height-lg, 1.5);
+}
+
+.bq-content.rx-content.text-tiny {
+  font-size: 12px;
+  line-height: var(--line-height-lg, 1.5);
+}
+
 .bq-content.rx-content a {
   cursor: pointer;
 }

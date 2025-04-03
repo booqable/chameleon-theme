@@ -8,7 +8,6 @@
 
 .mosaic__list {
   position: relative;
-  contain: layout;
 }
 
 .mosaic__item {
@@ -16,7 +15,6 @@
   border: 1px solid transparent;
   overflow: hidden;
   margin: 0 0 30px;
-  contain: layout;
 }
 
 .mosaic__item-col {
@@ -64,11 +62,6 @@
   width: 100%;
 }
 
-.mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child .mosaic__image-wrapper:has(.mosaic__image-placeholder),
-.mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child .mosaic__image-wrapper:has(.mosaic__image-placeholder) {
-  width: 100%;
-}
-
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child.no-image,
 .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child.no-image,
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col--image,
@@ -97,10 +90,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.mosaic__list-small .mosaic__image-wrapper:has(.mosaic__image-placeholder) {
-  width: 100%;
 }
 
 .mosaic__list-small .mosaic__item-col.no-image,
@@ -246,7 +235,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-flow: var(--grid-auto-flow);
     margin: 0 -16px;
-    container: mosaic-list / inline-size;
   }
 
   .mosaic__list-two-rows {

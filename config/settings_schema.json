@@ -565,28 +565,28 @@
         "type": "text",
         "id": "social_facebook_link",
         "label": "Facebook",
-        "default": "https://facebook.com",
+        "default": "https://",
         "info": "Example: https://facebook.com/booqable"
       },
       {
         "type": "text",
         "id": "social_instagram_link",
         "label": "Instagram",
-        "default": "https://instagram.com",
+        "default": "https://",
         "info": "Example: https://instagram.com/booqable"
       },
       {
         "type": "text",
         "id": "social_twitter_link",
         "label": "Twitter",
-        "default": "https://x.com",
+        "default": "https://",
         "info": "Example: https://twitter.com/booqable"
       },
       {
         "type": "text",
         "id": "social_linkedin_link",
         "label": "Linkedin",
-        "default": "https://www.linkedin.com",
+        "default": "https://",
         "info": "Example: https://www.linkedin.com/company/booqable"
       },
       {
