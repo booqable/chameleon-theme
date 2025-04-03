@@ -81,7 +81,6 @@
           {%- assign article_btn     = block.settings.article_btn -%}
           {%- assign article_btn_url = block.settings.article_btn_url -%}
           {%- assign image           = block.settings.image -%}
-          {%- assign image_id        = block.id -%}
 
           {%- if image != blank -%}
             {%- assign image = image -%}
@@ -96,9 +95,9 @@
               {%- if image.url != blank -%}
                 {%- render 'image',
                   image: image,
-                  image_id: image_id,
-                  image_class: 'mosaic__image',
-                  image_size: 'm'
+                  loading: 'lazy',
+                  class: 'mosaic__image',
+                  size: 'm'
                 -%}
               {%- endif -%}
             </div>

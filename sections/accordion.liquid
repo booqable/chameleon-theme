@@ -1,12 +1,6 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {%- capture css_urls -%}
-    [
-      "{{ 'accordion.css' | asset_url }}",
-      "{{ 'accordion-block.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
 
   {%- capture css_urls -%}
     [
