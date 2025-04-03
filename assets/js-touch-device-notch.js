@@ -1,78 +1,83 @@
-class TouchDevice {
-  constructor(block) {
-    this.block = block;
+/**
+ * Touch Device Notch Detection
+ *
+ * Detects touch devices and safe area insets (notches),
+ * then applies appropriate CSS classes and data attributes.
+ */
+const handleTouchDevice = () => {
+  const config = {
+    attributes: {
+      orientation: 'data-orientation'
+    },
+    cssVars: {
+      areaTop: '--safe-area-top',
+      areaRight: '--safe-area-right',
+      areaBottom: '--safe-area-bottom',
+      areaLeft: '--safe-area-left'
+    },
+    modifiers: {
+      touch: 'touch'
+    },
+    orientations: {
+      portrait: 'portrait',
+      landscape: 'landscape'
+    }
+  }
 
-    this.modifier = {
-      touch: "touch"
+  const elements = {
+    doc: document.documentElement
+  }
+
+  const isTouchDevice = () => {
+    return (
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0) ||
+      (navigator.msMaxTouchPoints > 0)
+    )
+  }
+
+  const detectNotch = () => {
+    if (!isTouchDevice()) return;
+
+    const styles = window.getComputedStyle(elements.doc);
+    const safeAreas = {
+      top: parseInt(styles.getPropertyValue(config.cssVars.areaTop)) || 0,
+      right: parseInt(styles.getPropertyValue(config.cssVars.areaRight)) || 0,
+      bottom: parseInt(styles.getPropertyValue(config.cssVars.areaBottom)) || 0,
+      left: parseInt(styles.getPropertyValue(config.cssVars.areaLeft)) || 0
     }
 
-    this.props = {
-      portrait: "portrait",
-      landscape: "landscape"
+    // Check if any safe area value is greater than 0
+    const hasNotch = Object.values(safeAreas).some(value => value > 0);
+
+    const screen = {
+      width: window.innerWidth,
+      height: window.innerHeight
     }
 
-    this.cssVars = {
-      areaTop: "--safe-area-top",
-      areaRight: "--safe-area-right",
-      areaBottom: "--safe-area-bottom",
-      areaLeft: "--safe-area-left"
-    }
+    elements.doc.classList.add(config.modifiers.touch);
 
-    this.data = {
-      orientation: "data-orientation"
-    }
+    const orientation = (hasNotch && screen.width > screen.height)
+      ? config.orientations.landscape
+      : config.orientations.portrait;
+
+    elements.doc.setAttribute(config.attributes.orientation, orientation);
   }
 
-  init() {
-    if (!this.block) return false;
+  const initialize = () => {
+    detectNotch();
 
-    this.elements();
-    this.events();
+    window.addEventListener('resize', detectNotch);
   }
 
-  elements() {
-    this.doc = document.documentElement;
-  }
-
-  events() {
-    this.notchDetection();
-
-    window.addEventListener("resize", this.notchDetection.bind(this));
-  }
-
-  isTouchDevice() {
-    return (('ontouchstart' in window) ||
-       (navigator.maxTouchPoints > 0) ||
-       (navigator.msMaxTouchPoints > 0));
-  }
-
-  notchDetection() {
-    const isTouch = this.isTouchDevice();
-
-    if (!isTouch) return false;
-
-    const styles = window.getComputedStyle(this.doc),
-          paddingTop = parseInt(styles.getPropertyValue(this.cssVars.areaTop)),
-          paddingRight = parseInt(styles.getPropertyValue(this.cssVars.areaRight)),
-          paddingBottom = parseInt(styles.getPropertyValue(this.cssVars.areaBottom)),
-          paddingLeft = parseInt(styles.getPropertyValue(this.cssVars.areaLeft)),
-          paddings = [paddingTop, paddingRight, paddingBottom, paddingLeft],
-          hasPositive = paddings.some(value => value > 0),
-          screen = {
-            width : window.innerWidth,
-            height : window.innerHeight
-          };
-
-    this.doc.classList.add(this.modifier.touch);
-
-    hasPositive && screen.width > screen.height
-      ? this.doc.setAttribute(this.data.orientation, this.props.landscape)
-      : this.doc.setAttribute(this.data.orientation, this.props.portrait)
+  return {
+    initialize
   }
 }
 
-const touchDevice = new TouchDevice(document.querySelector('html'));
+const initTouchDevice = () => {
+  const touchDevice = handleTouchDevice();
+  if (touchDevice) touchDevice.initialize();
+}
 
-document.addEventListener("readystatechange", (event) => {
-  if (event.target.readyState === "complete") touchDevice.init();
-})
+initTouchDevice();
