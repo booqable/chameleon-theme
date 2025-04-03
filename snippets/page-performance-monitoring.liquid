@@ -11,15 +11,15 @@
   const lcpObserver = new PerformanceObserver((entryList) => {
     const entries = entryList.getEntries();
     const lastEntry = entries[entries.length - 1];
-    
+
     // Mark LCP and log it
     window.performance.mark('LCP');
     window.performance.measure('LCP-measure', 'start', 'LCP');
-    
+
     // Optional: Log LCP details for debugging
     console.log('LCP:', lastEntry.startTime, 'Element:', lastEntry.element);
-  });
-  
+  })
+
   // Start observing LCP
   lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
 
@@ -31,11 +31,11 @@
         clsValue += entry.value;
       }
     }
-    
+
     // Optional: Log CLS for debugging
     console.log('CLS:', clsValue);
-  });
-  
+  })
+
   // Start observing CLS
   clsObserver.observe({ type: 'layout-shift', buffered: true });
 
@@ -43,12 +43,12 @@
   const fidObserver = new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
       const delay = entry.processingStart - entry.startTime;
-      
+
       // Optional: Log FID for debugging
       console.log('FID:', delay, 'ms');
     }
-  });
-  
+  })
+
   // Start observing FID
   fidObserver.observe({ type: 'first-input', buffered: true });
 
@@ -56,10 +56,10 @@
   window.addEventListener('DOMContentLoaded', () => {
     window.performance.mark('DOMContentLoaded');
     window.performance.measure('DOMContentLoaded-measure', 'start', 'DOMContentLoaded');
-  });
-  
+  })
+
   window.addEventListener('load', () => {
     window.performance.mark('loaded');
     window.performance.measure('load-measure', 'start', 'loaded');
-  });
+  })
 </script>
