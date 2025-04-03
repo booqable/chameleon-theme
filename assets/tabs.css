@@ -115,7 +115,7 @@
   border-top-width: 0;
   border-bottom-width: 0;
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
-      max-height var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+      max-height var(--animation-duration, 200ms) var(--transition-function-ease-in-out);;
 }
 
 .tabs__select #tabs-select-opener:checked ~ .tabs__select-drop {

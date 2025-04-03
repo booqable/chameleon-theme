@@ -41,10 +41,6 @@ class Header {
       transform: '--header-transform'
     }
 
-    this.props = {
-      fixed: 'fixed'
-    }
-
     this.event = {
       mouseenter: 'mouseenter',
       mouseleave: 'mouseleave'
@@ -92,7 +88,6 @@ class Header {
   }
 
   events() {
-    // this.headerFixed();
     this.headerHeight();
     this.menuPosition();
     this.hoverClose();
@@ -108,12 +103,6 @@ class Header {
     window.addEventListener("resize", this.headerHeight.bind(this));
     window.addEventListener("resize", this.menuPosition.bind(this));
     window.addEventListener("resize", this.closeMenuResize.bind(this));
-  }
-
-  headerFixed() {
-    if (!this.sticky) return false;
-
-    this.block.style.position = this.props.fixed;
   }
 
   // getting height of header and set css variables

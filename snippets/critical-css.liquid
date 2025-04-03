@@ -27,7 +27,6 @@
     /* Transitions */
     --animation-duration: 200ms;
     --transition-function-linear: linear;
-    --transition-function-ease-in: ease-in;
     --transition-function-ease-in-out: ease-in-out;
   }
 
@@ -165,39 +164,6 @@
     max-width: 100%;
   }
 
-  .image-wrapper {
-    display: block;
-    contain: style;
-  }
-
-  .image-wrapper:has(.image-placeholder) {
-    position: relative;
-  }
-
-  .image-wrapper:has(.image-placeholder) .image-main {
-    transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
-  }
-
-  .image-wrapper:has(.image-placeholder) .image-main.hidden {
-    opacity: 0;
-  }
-
-  .image-wrapper:has(.image-placeholder) .image-main.loaded {
-    opacity: 1;
-  }
-
-  .image-placeholder {
-    filter: blur(10px);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    max-width: none;
-    transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
-  }
-
   /* Header styles */
   .header {
     position: relative;
@@ -277,7 +243,6 @@
     position: relative;
     display: flex;
     align-items: stretch;
-    contain: content;
   }
 
   .images__container {
@@ -285,7 +250,6 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    contain: layout size;
   }
 
   .images__text-area {
@@ -295,7 +259,6 @@
     align-items: var(--text-align-items-mobile, flex-start);
     text-align: var(--text-align-mobile, left);
     margin: 0 var(--margin-right-mobile) 0 var(--margin-left-mobile);
-    contain: style layout;
   }
 
   .images__title {
@@ -331,7 +294,6 @@
     bottom: 0;
     overflow: hidden;
     z-index: -1;
-    contain: paint size layout;
   }
 
   .images__vision-wrapper {
@@ -343,14 +305,6 @@
     position: relative;
     max-width: calc(var(--max-width) - var(--horizontal-padding) * 2);
     margin: 0 auto;
-  }
-
-  .images__image-wrapper .image-placeholder {
-    z-index: -1;
-  }
-
-  .images__image-wrapper:has(.image-placeholder) {
-    position: static;
   }
 
   .images__image {
