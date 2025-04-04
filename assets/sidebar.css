@@ -38,18 +38,23 @@
   margin: 0;
 }
 
-.sidebar__menu > .sidebar__menu-list > .sidebar__menu-item:after {
-  content: "";
-  visibility: hidden;
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  height: 60px;
+/* Auto-gradient effect for overflowing content - CSS-only solution */
+.sidebar__menu-wrapper {
+  /* position: relative; */
 }
 
-.sidebar__menu > .sidebar__menu-list > .sidebar__menu-item--expanded:after {
-  visibility: visible;
+/* Gradient overlay that's always present but only visible when content overflows */
+.sidebar__menu-item--gradient::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+  z-index: 1;
 }
 
 .sidebar__menu-opener {
@@ -156,17 +161,22 @@
   transform: translate(0, 0);
 }
 
-.sidebar__menu-item--expanded:has([id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child {
+/* Show gradient when content is likely to overflow (height near max) */
+.sidebar__menu-item--gradient[style*="max-height: 300px"]:has(> [id^="side-menu-opener-"]:checked):after {
+  opacity: 1;
+}
+
+/* .sidebar__menu-item--gradient[style*="max-height: 300px"]:has(> [id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child {
   margin-bottom: 50px;
-}
+} */
 
-.sidebar__menu-item--expanded:has([id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child .sidebar__menu-item:last-child {
+/* .sidebar__menu-item--gradient[style*="max-height: 300px"]:has(> [id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child .sidebar__menu-item:last-child {
   margin-bottom: 0;
-}
+} */
 
-.sidebar__menu-item--expanded:has([id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child .sidebar__menu-list {
+/* .sidebar__menu-item--gradient[style*="max-height: 300px"]:has(> [id^="side-menu-opener-"]:checked) > .sidebar__menu-wrapper > .sidebar__menu-list > .sidebar__menu-item:last-child .sidebar__menu-list {
   padding-bottom: 0;
-}
+} */
 
 .palette-one .sidebar__nav-opener {
   border-color: var(--color-border, #0B1A2626);
@@ -203,7 +213,7 @@
   background: var(--color-outline-active, #F4B841BA);
 }
 
-.palette-one .sidebar__menu > .sidebar__menu-list > .sidebar__menu-item:after {
+.palette-one .sidebar__menu-item--gradient::after {
   background: linear-gradient(180deg, var(--background-primary-00) 0%, var(--background-primary) 100%);
 }
 
@@ -242,7 +252,7 @@
   background: var(--color-outline-2-active, #F4B841BA);
 }
 
-.palette-two .sidebar__menu > .sidebar__menu-list > .sidebar__menu-item:after {
+.palette-two .sidebar__menu-item--gradient::after {
   background: linear-gradient(180deg, var(--background-primary-2-00) 0%, var(--background-primary-2) 100%);
 }
 
@@ -281,7 +291,7 @@
   background: var(--color-outline-3-active, #0B1A26BA);
 }
 
-.palette-three .sidebar__menu > .sidebar__menu-list > .sidebar__menu-item:after {
+.palette-three .sidebar__menu-item--gradient::after {
   background: linear-gradient(180deg, var(--background-primary-3-00) 0%, var(--background-primary-3) 100%);
 }
 
