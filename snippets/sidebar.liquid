@@ -43,7 +43,7 @@
             {%- assign link_index = forloop.index -%}
 
             {%- if link != blank -%}
-              <li class="sidebar__menu-item sidebar__menu-item--gradient">
+              <li class="sidebar__menu-item">
                 <a href="{{ link.url }}" class="sidebar__menu-link">{{- link.title -}}</a>
 
                 {%- if link.items_count > 0 -%}
