@@ -86,6 +86,7 @@
 
 @media (min-width: 768px) {
   .map {
+    min-height: 600px;
     height: 100%;
   }
 }
