@@ -146,7 +146,9 @@
             {%- assign video_url            = block.settings.video_url | strip -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
+            {%- assign image_alt            = block.settings.image_alt -%}
             {%- assign image_placeholder    = settings.image_placeholder -%}
+            {%- assign image_id             = block.id -%}
             {%- assign limit_content_width  = block.settings.limit_content_width -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
             {%- assign overlay_opacity      = block.settings.overlay_opacity -%}
@@ -416,23 +418,21 @@
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
-                        <div class="images__vision-wrapper{% if image_mobile != blank %} images__vision-wrapper--desktop{% endif %}{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
-                          {%- render 'image',
-                            image: image,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'xxl'
-                          -%}
-                        </div>
-                      {%- endif -%}
+                        {%- assign fetch_priority = "" -%}
 
-                      {%- if image_mobile.url != blank -%}
-                        <div class="images__vision-wrapper images__vision-wrapper--mobile{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
+                        {%- if forloop.index == 1 -%}
+                          {%- assign fetch_priority = "high" -%}
+                        {%- endif -%}
+
+                        <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
                           {%- render 'image',
-                            image: image_mobile,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'l'
+                              image: image,
+                              image_mobile: image_mobile,
+                              image_alt: image_alt,
+                              image_id: image_id,
+                              image_class: 'images__image',
+                              image_size: 'xxl',
+                              fetchpriority: fetch_priority
                           -%}
                         </div>
                       {%- endif -%}
@@ -511,6 +511,12 @@
             "type": "image_picker",
             "id": "image_mobile",
             "label": "Image mobile (optional)"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "text",

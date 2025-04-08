@@ -79,6 +79,8 @@
           {%- assign button_url_1   = block.settings.button_url_1 -%}
           {%- assign button_url_2   = block.settings.button_url_2 -%}
           {%- assign image          = block.settings.image -%}
+          {%- assign image_alt      = block.settings.image_alt -%}
+          {%- assign image_id       = block.id -%}
           {%- assign image_position = block.settings.image_position -%}
 
           {%- if image != blank -%}
@@ -149,9 +151,10 @@
               <div class="numbered-blocks__item-col">
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'numbered-blocks__image',
-                  size: 'm'
+                  image_alt: image_alt,
+                  image_id: image_id,
+                  image_class: 'numbered-blocks__image',
+                  image_size: 'm'
                 -%}
               </div>
             {%- endif -%}
@@ -325,6 +328,12 @@
             "id": "image",
             "label": "Image",
             "info": "Square images are recommended"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "header",

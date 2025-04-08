@@ -28,7 +28,8 @@
   {%- capture css_urls -%}
     [
       "{{ 'products.css' | asset_url }}",
-      "{{ 'product-card.css' | asset_url }}"
+      "{{ 'product-card.css' | asset_url }}",
+      "{{ 'focal-image.css' | asset_url }}"
       {%- if size > 1 and show_carousel -%}
         , "{{ "carousel.css" | asset_url }}"
       {%- endif -%}
