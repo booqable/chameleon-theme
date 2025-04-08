@@ -3,8 +3,10 @@
   // Set up theme global object for settings access
   window.theme = window.theme || {};
   window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
+
   const criticalScripts = {{ criticals | default: "[]" | json }},
         nonCriticalScripts = {{ non_criticals | default: "[]" | json }};
+
   if (criticalScripts.length && nonCriticalScripts.length) {
     // Create script elements with optimal loading strategy
     const createScript = (src, isDeferred = true) => {
@@ -13,17 +15,20 @@
       link.as = 'script';
       link.href = src;
       document.head.appendChild(link);
+
       const script = document.createElement('script');
       script.src = src;
       script.defer = isDeferred;
       return script;
     }
+
     // Load critical scripts immediately but deferred
     if (criticalScripts.length) {
       criticalScripts.forEach(src => {
         document.body.appendChild(createScript(src))
       })
     }
+
     // Load non-critical scripts after everything else
     if (nonCriticalScripts.length) {
       if ('requestIdleCallback' in window) {

@@ -1,112 +1,106 @@
-class Tabs {
-  constructor(block) {
-    this.block = block;
+/**
+ * Tabs Component
+ *
+ * Handles tab switching functionality, including active states
+ * for both tabs and their associated content panels.
+ */
+const handleTabs = (tabsContainer) => {
+  if (!tabsContainer) return null;
 
-    this.selector = {
-      tab: ".tabs__trigger",
-      content: ".tabs__content",
-      opener: "#tabs-select-opener"
-    }
-
-    this.classes = {
-      tab: "tabs__trigger"
-    }
-
-    this.modifiers = {
-      active: "active"
-    }
-
-    this.data = {
-      content: "data-content",
-      trigger: "data-trigger"
+  const config = {
+    attributes: {
+      content: 'data-content',
+      trigger: 'data-trigger'
+    },
+    classes: {
+      tab: 'tabs__trigger'
+    },
+    modifiers: {
+      active: 'active'
+    },
+    selectors: {
+      tab: '.tabs__trigger',
+      content: '.tabs__content',
+      opener: '#tabs-select-opener'
     }
   }
 
-  init() {
-    if (!this.block) return false;
-
-    this.elements();
-    this.events();
+  const elements = {
+    tabs: tabsContainer.querySelectorAll(config.selectors.tab),
+    content: tabsContainer.querySelectorAll(config.selectors.content),
+    opener: tabsContainer.querySelector(config.selectors.opener)
   }
 
-  elements() {
-    this.tabs = this.block.querySelectorAll(this.selector.tab);
-    this.content = this.block.querySelectorAll(this.selector.content);
-    this.opener = this.block.querySelector(this.selector.opener);
-  }
-
-  events() {
-    document.addEventListener("click", this.closeDrop.bind(this));
-    document.addEventListener("click", this.tabsTrigger.bind(this));
-  }
-
-  tabsTrigger(e) {
-    let target = e.target,
-        isEl = target.classList.contains(this.classes.tab),
-        isParent = target.parentElement.classList.contains(this.classes.tab);
-
-    if (!isEl && !isParent) return false;
-
-    if (isParent) target = target.parentElement;
-
-    const attr = target.getAttribute(this.data.trigger);
-
-    let options = {
-      arr: this.tabs,
-      attr: this.data.trigger,
-      val: attr,
-      mod: this.modifiers.active
-    }
-
-    this.tabsClass(options);
-
-    if (!this.content.length) return false;
-
-    options = {
-      arr: this.content,
-      attr: this.data.content,
-      val: attr,
-      mod: this.modifiers.active
-    }
-
-    this.tabsClass(options);
-  }
-
-  tabsClass(options) {
+  const updateActiveClasses = (options) => {
     const { arr, attr, val, mod } = options;
 
-    arr?.forEach(el => {
-      const id = el?.getAttribute(attr);
+    if (!arr) return;
 
-      el?.classList.remove(mod);
+    arr.forEach(el => {
+      if (!el) return;
 
-      if (val === id) el?.classList.add(mod);
+      const id = el.getAttribute(attr);
+
+      el.classList.remove(mod);
+
+      if (val === id) el.classList.add(mod);
     })
   }
 
-  // closing dropdown on click the location
-  closeDrop(e) {
-    if (!this.tabs.length) return false;
+  const handleTabClick = (event) => {
+    const target = event.target,
+          isDirectTab = target.classList.contains(config.classes.tab),
+          isChildOfTab = target.parentElement?.classList.contains(config.classes.tab);
 
-    const target = e.target;
+    if (!isDirectTab && !isChildOfTab) return;
 
-    if (!target.classList.contains(this.classes.tab)) return false;
+    // Get the actual tab element (could be parent if click was on child)
+    const tabElement = isDirectTab ? target : target.parentElement;
 
-    this.opener.checked = false;
+    const tabId = tabElement.getAttribute(config.attributes.trigger);
+
+    updateActiveClasses({
+      arr: elements.tabs,
+      attr: config.attributes.trigger,
+      val: tabId,
+      mod: config.modifiers.active
+    })
+
+    // Update active content if it exists
+    if (elements.content.length) {
+      updateActiveClasses({
+        arr: elements.content,
+        attr: config.attributes.content,
+        val: tabId,
+        mod: config.modifiers.active
+      })
+    }
+
+    if (elements.opener && target.classList.contains(config.classes.tab)) {
+      elements.opener.checked = false;
+    }
+  }
+
+  const initialize = () => {
+    if (!elements.tabs.length) return;
+
+    document.addEventListener('click', handleTabClick);
+  }
+
+  return {
+    initialize
   }
 }
 
-const initTabs = (el = ".tabs") => {
-  const nodes = document.querySelectorAll(el);
+const initTabs = (selector = '.tabs') => {
+  const tabsContainers = document.querySelectorAll(selector);
 
-  if (!nodes.length) return false;
+  if (!tabsContainers.length) return;
 
-  nodes.forEach(node => {
-    const tabs = new Tabs(node);
-    tabs.init();
+  tabsContainers.forEach(container => {
+    const tabs = handleTabs(container);
+    if (tabs) tabs.initialize();
   })
 }
 
-document.addEventListener("readystatechange", (e) => {
-  if (e.target.readyState === "complete") initTabs();
-})
+initTabs();
