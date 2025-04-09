@@ -75,8 +75,8 @@ const handleImageLoading = () => {
     })
   }
 
-  // Create observer using Utils function
-  const observer = Utils.createIntersectionObserver(handleIntersection);
+  // Create observer using Utils directly
+  const observer = Utils.createObserver(handleIntersection);
 
   wrappers.forEach(wrapper => {
     const mainImage = wrapper.querySelector(`.${imageOptions.classes.main}`),
@@ -87,8 +87,8 @@ const handleImageLoading = () => {
     // Skip if the image doesn't have the hidden class (means it's eager loaded)
     if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
-    // Use Utils.isInViewport instead of local function
-    Utils.isInViewport(mainImage)
+    // Use Utils.inViewport directly
+    Utils.inViewport(mainImage)
       ? loadMainImage(mainImage)
       : observer && observer.observe(mainImage)
   })
@@ -99,7 +99,7 @@ const handleImageLoading = () => {
     const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
-      if (Utils.isInViewport(img)) {
+      if (Utils.inViewport(img)) {
         loadMainImage(img);
         observer && observer.unobserve(img);
       }

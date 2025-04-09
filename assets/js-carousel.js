@@ -382,8 +382,8 @@ const handleCarousel = (carousel) => {
       if (left >= 0 && left <= scroll - client) {
         infinite = false;
 
-        if (leftSwipe) Utils.triggerEvent(next, config.event.click);
-        if (rightSwipe) Utils.triggerEvent(prev, config.event.click);
+        if (leftSwipe) LazyUtils.triggerEvent(next, config.event.click);
+        if (rightSwipe) LazyUtils.triggerEvent(prev, config.event.click);
 
         infinite = true;
       }
@@ -505,10 +505,10 @@ const handleCarousel = (carousel) => {
   }
 
   const setupListeners = () => {
-    // Button and dot click handlers using Utils from js-utils.js
-    Utils.addEventListenerToNodes(elements.dots, 'click', handlePagination);
-    Utils.addEventListenerToNodes(elements.dots, 'click', handleNavigation);
-    Utils.addEventListenerToNodes(elements.btns, 'click', handleNavigation);
+    // Button and dot click handlers using LazyUtils from js-lazy-utils.js
+    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handlePagination);
+    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handleNavigation);
+    LazyUtils.addEventListenerToNodes(elements.btns, 'click', handleNavigation);
 
     // Touch and wheel events attached to the carousel element only (not document)
     // for better performance - use passive listeners where possible
@@ -517,7 +517,7 @@ const handleCarousel = (carousel) => {
     carousel.addEventListener('touchend', handleTouchscreenMovement, { passive: true });
 
     // Optimized resize handler - only update when width actually changes
-    const debouncedResize = Utils.debounce(() => {
+    const debouncedResize = LazyUtils.debounce(() => {
       const currentWidth = window.innerWidth;
 
       // Only process resize if width actually changed (skip height-only changes)
@@ -600,8 +600,8 @@ const initCarousel = (selector = ".carousel") => {
     })
   }
 
-  // Create observer using the utility function
-  const observer = Utils.createIntersectionObserver(handleCarouselIntersection);
+  // Create observer using Utils directly
+  const observer = Utils.createObserver(handleCarouselIntersection);
 
   nodes.forEach(node => {
     observer
