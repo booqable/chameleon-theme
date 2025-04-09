@@ -34,6 +34,7 @@
   {%- assign opener                = section.settings.opener -%}
   {%- assign placement             = section.settings.placement -%}
   {%- assign icon                  = section.settings.icon -%}
+  {%- assign icon_id               = section.key -%}
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
@@ -148,7 +149,7 @@
   {%- endcapture -%}
 
   {%- capture tabs_content -%}
-    <div class=“tabs__contents”>
+    <div class="tabs__contents">
       {%- for block in section.blocks -%}
         {%- assign first    = forloop.first -%}
         {%- assign index    = forloop.index -%}
@@ -166,7 +167,8 @@
                 <div class="map-icon" style="transform: translate(0, -100%); position: relative; z-index: -1;">
                   {%- render 'image',
                     image: icon,
-                    class: 'map-icon__image',
+                    image_id: icon_id,
+                    image_class: 'map-icon__image',
                     custom_width: '40',
                     custom_size: '40px'
                   -%}

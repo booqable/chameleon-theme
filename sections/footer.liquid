@@ -1,6 +1,8 @@
 {{ "footer.css" | asset_url | stylesheet_tag }}
 
 {%- assign logo	                  = section.settings.logo -%}
+{%- assign logo_alt               = section.settings.logo_alt -%}
+{%- assign logo_id	              = section.key -%}
 {%- assign custom_title	          = section.settings.custom_title -%}
 {%- assign bottom_text            = section.settings.bottom_text -%}
 {%- assign bottom_menu            = section.settings.bottom_menu -%}
@@ -65,11 +67,14 @@
 {% comment %} Logo component {% endcomment %}
 {%- capture footer_logo -%}
   {%- if logo.url != blank -%}
+    {%- assign logo_alt = logo_alt | default: shop.name -%}
+
     {%- render 'image',
         image: logo,
-        class: 'footer__logo-image',
-        size: 'logo',
-        custom_alt: shop.name,
+        image_id: logo_id,
+        image_alt: logo_alt,
+        image_class: 'footer__logo-image',
+        image_size: 'logo',
         keep_type: true
     -%}
   {%- elsif custom_title != blank -%}
@@ -239,6 +244,12 @@
         "type": "image_picker",
         "id": "logo",
         "label": "Logo"
+      },
+      {
+        "type": "text",
+        "id": "logo_alt",
+        "label": "Alternative text (optional)",
+        "info": "For SEO and Accessibility purposes"
       },
       {
         "type": "text",

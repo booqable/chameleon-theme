@@ -9,6 +9,7 @@
 
 {%- assign search_placeholder    = section.settings.search_placeholder -%}
 {%- assign logo                  = section.settings.logo -%}
+{%- assign logo_id               = section.key -%}
 {%- assign custom_title          = section.settings.custom_title -%}
 {%- assign menu_opener_mobile    = section.settings.menu_opener_mobile -%}
 {%- assign menu                  = section.settings.menu -%}
@@ -121,9 +122,11 @@
   {%- if logo.url != blank -%}
     {%- render 'image',
         image: logo,
-        class: 'header__logo-image',
-        size: 'logo',
-        custom_alt: shop.name,
+        image_id: logo_id,
+        image_alt: shop.name,
+        image_class: 'header__logo-image',
+        image_size: 'logo',
+        loading: 'eager',
         keep_type: true
     -%}
   {%- elsif custom_title != blank -%}

@@ -6,6 +6,7 @@
 <script>
   // Basic performance marks
   window.performance.mark('start');
+
   // Create a PerformanceObserver to monitor LCP
   const lcpObserver = new PerformanceObserver((entryList) => {
     const entries = entryList.getEntries();
@@ -21,6 +22,7 @@
 
   // Start observing LCP
   lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+
   // Create a PerformanceObserver to monitor CLS
   const clsObserver = new PerformanceObserver((entryList) => {
     let clsValue = 0;
@@ -36,6 +38,7 @@
 
   // Start observing CLS
   clsObserver.observe({ type: 'layout-shift', buffered: true });
+
   // Create a PerformanceObserver to monitor FID
   const fidObserver = new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
@@ -48,6 +51,7 @@
 
   // Start observing FID
   fidObserver.observe({ type: 'first-input', buffered: true });
+
   // Standard DOM event listeners
   window.addEventListener('DOMContentLoaded', () => {
     window.performance.mark('DOMContentLoaded');
