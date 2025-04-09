@@ -127,7 +127,9 @@
 
   <div class="images__wrapper{% if full_width %} images__wrapper-full-width{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} section-with-date-picker{% endif %}{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}">
     {%- if carousel -%}
-    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-dafault-color="{{- default_color -}}"{% if timer > 0 %} data-carousel-timer="{{- timer -}}"{% endif %} aria-label="Gallery">
+    {%- assign timer_val = timer | plus: 0 -%}
+
+    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-dafault-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} aria-label="Gallery">
         <div class="carousel__wrapper">
     {%- endif -%}
 

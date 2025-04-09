@@ -110,7 +110,11 @@
     style="{{- variables | escape -}}"
   >
     <div class="products__container container">
-      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer > 0 %} data-carousel-timer="{{- timer -}}"{% endif %} aria-label="Gallery"{%- endif -%}>
+      {%- if carousel -%}
+        {%- assign timer_val = timer | plus: 0 -%}
+      {%- endif -%}
+
+      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} aria-label="Gallery"{%- endif -%}>
         {%- if carousel -%}
           <div class="carousel__wrapper">
         {%- endif -%}

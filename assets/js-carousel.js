@@ -85,7 +85,7 @@ const handleCarousel = (carousel) => {
 
     const time = parseInt(timerValue, 10) * 1000;
 
-    if (!isNaN(time) && time > 0) autoRotate(time);
+    autoRotate(time);
   }
 
   const autoRotate = (time) => {
@@ -121,14 +121,11 @@ const handleCarousel = (carousel) => {
     if (!isPrev && !isNext && !isDot && !time) return;
 
     const isFade = carousel.classList.contains(config.class.fade),
-          isFull = carousel.classList.contains(config.class.full);
+          isFull = carousel.classList.contains(config.class.full),
+          index = parseInt(target?.getAttribute(config.attr.index)),
+          width = slideWidth || elements.item.getBoundingClientRect().width; // Use cached slideWidth instead of recalculating width if available
 
-    // Use cached slideWidth instead of recalculating width if available
-    const width = slideWidth || elements.item.getBoundingClientRect().width;
-    // Update cache if not set
-    if (!slideWidth) slideWidth = width;
-
-    const index = parseInt(target?.getAttribute(config.attr.index));
+    if (!slideWidth) slideWidth = width; // Update cache if not set
 
     let element, valueLeft = 0;
 
@@ -215,8 +212,8 @@ const handleCarousel = (carousel) => {
 
     for (const [itemIndex, item] of items.entries()) {
       if (item.classList.contains(config.class.show)) {
-        const condition = itemIndex + nextNumber;
-        const next = itemIndex + nextIndex;
+        const condition = itemIndex + nextNumber,
+              next = itemIndex + nextIndex;
         i = condition === index ? last : next;
         break;
       }
@@ -238,8 +235,8 @@ const handleCarousel = (carousel) => {
   }
 
   const handlePagination = (event, index) => {
-    const target = event?.target;
-    const isDot = target?.classList.contains(config.class.dot);
+    const target = event?.target,
+          isDot = target?.classList.contains(config.class.dot);
 
     if (!isDot && typeof index === 'undefined') return;
     if (!elements.dots.length) return;
@@ -271,10 +268,8 @@ const handleCarousel = (carousel) => {
     if (!elements.dots.length || !elements.wrap) return;
 
     const client = elements.wrap.clientWidth,
-          scroll = elements.wrap.scrollWidth;
-
-    // Use cached slideWidth to avoid recalculation
-    const width = slideWidth || elements.item.getBoundingClientRect().width;
+          scroll = elements.wrap.scrollWidth,
+          width = slideWidth || elements.item.getBoundingClientRect().width; // Use cached slideWidth to avoid recalculation
 
     // Update cache if needed
     if (!slideWidth) slideWidth = width;
@@ -292,9 +287,8 @@ const handleCarousel = (carousel) => {
             dotsToShow = [];
 
       elements.dots.forEach(dot => {
-        const index = parseInt(dot.getAttribute(config.attr.index));
-
-        const isCurrentlyHidden = dot.classList.contains(config.modifier.hidden);
+        const index = parseInt(dot.getAttribute(config.attr.index)),
+              isCurrentlyHidden = dot.classList.contains(config.modifier.hidden);
 
         if (index <= visibleDots && isCurrentlyHidden) {
           dotsToShow.push(dot);
@@ -434,8 +428,8 @@ const handleCarousel = (carousel) => {
 
     // Use a more efficient approach to filter and find active dot
     const visibleDots = [];
-    let activeIndex = 1;
-    let foundActive = false;
+    let activeIndex = 1,
+        foundActive = false;
 
     // Only loop through dots once
     for (const dot of elements.dots) {
@@ -452,34 +446,90 @@ const handleCarousel = (carousel) => {
     return { index: activeIndex, dots: visibleDots };
   }
 
+  // Helper function to get animation duration in milliseconds
+  const getAnimationDuration = () => {
+    const transitionStyle = getComputedStyle(carousel);
+    const animationDuration = transitionStyle.getPropertyValue('--animation-duration') || '200ms';
+
+    // Parse duration to milliseconds - remove 'ms' suffix and convert to number
+    let durationMs = parseInt(animationDuration.replace('ms', ''));
+    if (isNaN(durationMs)) durationMs = 200; // Fallback to 200ms if parsing fails
+
+    // Add 200ms to the duration as specified in the CSS (transition: ... + 200ms)
+    return durationMs + 200;
+  }
+
+  // Track the last overlay timer to clear it if needed
+  let overlayTimer = null;
+
   const setOverlay = (index) => {
     if (!carousel.classList.contains(config.class.edges) ||
         !index ||
         index > elements.items.length) return;
 
-    const defaultColor = carousel.getAttribute(config.attr.defaultColor);
-
-    // Direct access to the specific item by index (more efficient)
-    const itemIndex = index - 1;
+    const defaultColor = carousel.getAttribute(config.attr.defaultColor),
+          itemIndex = index - 1; // Direct access to the specific item by index (more efficient)
 
     if (itemIndex >= 0 && itemIndex < elements.items.length) {
       const item = elements.items[itemIndex],
             overlayColor = item.getAttribute(config.attr.overlayColor) || defaultColor;
 
-      // Set all CSS variables at once
-      const parentStyle = carousel.parentElement.style;
-      parentStyle.setProperty(config.var.overlay, overlayColor);
-      parentStyle.setProperty(config.var.overlay08, `${overlayColor}24`);
-      parentStyle.setProperty(config.var.overlay45, `${overlayColor}73`);
+      // Get animation duration and calculate midpoint
+      const durationMs = getAnimationDuration(),
+            halfDuration = Math.max(durationMs / 2, 100); // At least 100ms delay
+
+      // Clear any existing timer to avoid race conditions
+      if (overlayTimer) clearTimeout(overlayTimer);
+
+      // Delay setting the overlay color until halfway through the transition
+      overlayTimer = setTimeout(() => {
+        // Set all CSS variables at once for better performance
+        const parentStyle = carousel.parentElement.style;
+        parentStyle.setProperty(config.var.overlay, overlayColor);
+        parentStyle.setProperty(config.var.overlay08, `${overlayColor}24`);
+        parentStyle.setProperty(config.var.overlay45, `${overlayColor}73`);
+
+        // Clear the timer reference once executed
+        overlayTimer = null;
+      }, halfDuration);
     }
   }
 
+  // Track when a scroll transition is occurring
+  let isScrolling = false;
+  let currentScrollTarget = null;
+
+  // Enhanced scroll with transition tracking
   const smoothScrollTo = (element, left, top) => {
+    // Mark that we're starting a scroll transition
+    isScrolling = true;
+    currentScrollTarget = left;
+
+    // Perform the smooth scroll
     element.scrollTo({
       left,
       top,
-      behavior: "smooth",
+      behavior: "smooth"
     })
+
+    // Add a one-time scroll event listener to detect when scrolling ends
+    const handleScrollEnd = () => {
+      // Reset scrolling state when the transition is complete
+      isScrolling = false;
+      currentScrollTarget = null;
+
+      // Remove the listener once fired
+      element.removeEventListener('scrollend', handleScrollEnd);
+    }
+
+    // Use scrollend event if supported, otherwise fallback to timeout
+    if ('onscrollend' in window) {
+      element.addEventListener('scrollend', handleScrollEnd, { once: true });
+    } else {
+      // Get animation duration and add buffer time to ensure transition completes
+      const durationMs = getAnimationDuration();
+      setTimeout(handleScrollEnd, durationMs + 50);
+    }
   }
 
   const getSiblingElement = (element, selector, direction) => {
@@ -549,14 +599,8 @@ const handleCarousel = (carousel) => {
 
     // Check if auto-rotation is needed - only run this code if necessary
     if (carousel.hasAttribute(config.attr.timer)) {
-      const timerValue = parseInt(carousel.getAttribute(config.attr.timer), 10);
-      if (timerValue > 0) {
         startTimer();
-
-        if (carousel.classList.contains(config.class.pause)) {
-          autoRotatePause();
-        }
-      }
+        if (carousel.classList.contains(config.class.pause)) autoRotatePause();
     }
 
     // Run these functions in order - they depend on each other
