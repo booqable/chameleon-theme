@@ -610,4 +610,4 @@ const initCarousel = (selector = ".carousel") => {
   })
 }
 
-initCarousel();
+initCarousel()

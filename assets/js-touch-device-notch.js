@@ -80,4 +80,4 @@ const initTouchDevice = () => {
   if (touchDevice) touchDevice.initialize();
 }
 
-initTouchDevice();
+initTouchDevice()

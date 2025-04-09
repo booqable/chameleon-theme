@@ -78,4 +78,4 @@ const initTextWithImageSpacer = (selector = '.text-image') => {
   })
 }
 
-initTextWithImageSpacer();
+initTextWithImageSpacer()

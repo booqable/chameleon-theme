@@ -103,4 +103,4 @@ const initTabs = (selector = '.tabs') => {
   })
 }
 
-initTabs();
+initTabs()
