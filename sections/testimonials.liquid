@@ -103,8 +103,7 @@
   >
     <div class="testimonials__container container">
       {%- if carousel -%}
-        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}" aria-role="Gallery">
-          <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
+        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}" data-carousel-timer="{{- timer -}}" aria-role="Gallery">
           <div class="carousel__wrapper">
       {%- endif -%}
 
