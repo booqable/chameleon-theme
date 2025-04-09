@@ -1,10 +1,4 @@
 const handleImageLoading = () => {
-  const observerOptions = {
-    root: null,          // viewport
-    rootMargin: '100px', // preload images slightly before they enter viewport
-    threshold: 0.01      // trigger as soon as 1% of the image is visible
-  }
-
   const imageOptions = {
     attributes: {
       sourceSrcset: 'data-source-srcset',
@@ -21,16 +15,6 @@ const handleImageLoading = () => {
 
   const wrappers = document.querySelectorAll(`.${imageOptions.classes.wrapper}`);
   if (!wrappers.length) return false;
-
-  const isInViewport = (el) => {
-    const rect = el.getBoundingClientRect();
-    return (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    )
-  }
 
   const sourcesDataLoad = (mainImage) => {
     const wrapper = mainImage.closest(`.${imageOptions.classes.wrapper}`),
@@ -76,7 +60,7 @@ const handleImageLoading = () => {
           placeholder = wrapper && wrapper.querySelector(`.${imageOptions.classes.placeholder}`);
 
     // Listen for when mainImage is really loaded (from network)
-    (mainImage.complete)
+    mainImage.complete
       ? imageFadeIn(mainImage, placeholder)
       : mainImage.addEventListener('load', () => imageFadeIn(mainImage, placeholder), { once: true })
   }
@@ -91,7 +75,8 @@ const handleImageLoading = () => {
     })
   }
 
-  const observer = new IntersectionObserver(handleIntersection, observerOptions);
+  // Create observer using Utils function
+  const observer = Utils.createIntersectionObserver(handleIntersection);
 
   wrappers.forEach(wrapper => {
     const mainImage = wrapper.querySelector(`.${imageOptions.classes.main}`),
@@ -102,9 +87,10 @@ const handleImageLoading = () => {
     // Skip if the image doesn't have the hidden class (means it's eager loaded)
     if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
-    (isInViewport(mainImage))
+    // Use Utils.isInViewport instead of local function
+    Utils.isInViewport(mainImage)
       ? loadMainImage(mainImage)
-      : observer.observe(mainImage)
+      : observer && observer.observe(mainImage)
   })
 
   // Add a function to prioritize visible images
@@ -113,15 +99,15 @@ const handleImageLoading = () => {
     const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
-      if (isInViewport(img)) {
+      if (Utils.isInViewport(img)) {
         loadMainImage(img);
-        observer.unobserve(img);
+        observer && observer.unobserve(img);
       }
     })
   }
 
   // Call on DOMContentLoaded for early loading of visible images
-  (document.readyState === 'loading')
+  document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', prioritizeVisibleImages)
     : prioritizeVisibleImages()
 
@@ -132,11 +118,11 @@ const handleImageLoading = () => {
 
     notLoadedImages.forEach(img => {
       loadMainImage(img);
-      observer.unobserve(img);
+      observer && observer.unobserve(img);
     })
   })
 }
 
-(document.readyState === 'loading')
+document.readyState === 'loading'
   ? document.addEventListener('DOMContentLoaded', handleImageLoading)
   : handleImageLoading()
