@@ -43,6 +43,7 @@ const handleCarousel = (carousel) => {
       timer: "data-carousel-timer"
     },
     var: {
+      animation: "--animation-duration",
       overlay: "--overlay-color",
       overlay08: "--overlay-color-08",
       overlay45: "--overlay-color-45"
@@ -54,7 +55,11 @@ const handleCarousel = (carousel) => {
       start: "touchstart",
       end: "touchend",
       enter: "mouseenter",
-      leave: "mouseleave"
+      leave: "mouseleave",
+      wheel: "wheel",
+      resize: "resize",
+      scrollend: "scrollend",
+      onscrollend: "onscrollend"
     }
   }
 
@@ -64,6 +69,7 @@ const handleCarousel = (carousel) => {
       wheelTimeout = null,
       isWheeling = false,
       infinite = true,
+      defaultDuration = 200, // Default animation duration
       slideWidth = 0, // Cache slide width to avoid recalculation
       lastWindowWidth = window.innerWidth; // Track window width for resize optimization
 
@@ -448,15 +454,13 @@ const handleCarousel = (carousel) => {
 
   // Helper function to get animation duration in milliseconds
   const getAnimationDuration = () => {
-    const transitionStyle = getComputedStyle(carousel);
-    const animationDuration = transitionStyle.getPropertyValue('--animation-duration') || '200ms';
+    const transitionStyle = getComputedStyle(carousel),
+          animationDuration = transitionStyle.getPropertyValue(config.var.animation) || `${defaultDuration}ms`;
 
-    // Parse duration to milliseconds - remove 'ms' suffix and convert to number
     let durationMs = parseInt(animationDuration.replace('ms', ''));
-    if (isNaN(durationMs)) durationMs = 200; // Fallback to 200ms if parsing fails
+    if (isNaN(durationMs)) durationMs = defaultDuration;
 
-    // Add 200ms to the duration as specified in the CSS (transition: ... + 200ms)
-    return durationMs + 200;
+    return durationMs + defaultDuration; // Add 200ms to the duration as specified in the CSS (transition: ... + 200ms)
   }
 
   // Track the last overlay timer to clear it if needed
@@ -472,14 +476,11 @@ const handleCarousel = (carousel) => {
 
     if (itemIndex >= 0 && itemIndex < elements.items.length) {
       const item = elements.items[itemIndex],
-            overlayColor = item.getAttribute(config.attr.overlayColor) || defaultColor;
+            overlayColor = item.getAttribute(config.attr.overlayColor) || defaultColor,
+            durationMs = getAnimationDuration(), // Get animation duration
+            halfDuration = Math.max(durationMs / 2, defaultDuration / 2); // // Calculate midpoint. Default is 100ms delay
 
-      // Get animation duration and calculate midpoint
-      const durationMs = getAnimationDuration(),
-            halfDuration = Math.max(durationMs / 2, 100); // At least 100ms delay
-
-      // Clear any existing timer to avoid race conditions
-      if (overlayTimer) clearTimeout(overlayTimer);
+      if (overlayTimer) clearTimeout(overlayTimer); // Clear any existing timer to avoid race conditions
 
       // Delay setting the overlay color until halfway through the transition
       overlayTimer = setTimeout(() => {
@@ -489,8 +490,7 @@ const handleCarousel = (carousel) => {
         parentStyle.setProperty(config.var.overlay08, `${overlayColor}24`);
         parentStyle.setProperty(config.var.overlay45, `${overlayColor}73`);
 
-        // Clear the timer reference once executed
-        overlayTimer = null;
+        overlayTimer = null; // Clear the timer reference once executed
       }, halfDuration);
     }
   }
@@ -523,13 +523,9 @@ const handleCarousel = (carousel) => {
     }
 
     // Use scrollend event if supported, otherwise fallback to timeout
-    if ('onscrollend' in window) {
-      element.addEventListener('scrollend', handleScrollEnd, { once: true });
-    } else {
-      // Get animation duration and add buffer time to ensure transition completes
-      const durationMs = getAnimationDuration();
-      setTimeout(handleScrollEnd, durationMs + 50);
-    }
+    config.event.onscrollend in window
+      ? element.addEventListener(config.event.scrollend, handleScrollEnd, { once: true })
+      : setTimeout(handleScrollEnd, getAnimationDuration() + 50) // Get animation duration and add buffer time to ensure transition completes
   }
 
   const getSiblingElement = (element, selector, direction) => {
@@ -556,15 +552,15 @@ const handleCarousel = (carousel) => {
 
   const setupListeners = () => {
     // Button and dot click handlers using LazyUtils from js-lazy-utils.js
-    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handlePagination);
-    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handleNavigation);
-    LazyUtils.addEventListenerToNodes(elements.btns, 'click', handleNavigation);
+    LazyUtils.addEventListenerToNodes(elements.dots, config.event.click, handlePagination);
+    LazyUtils.addEventListenerToNodes(elements.dots, config.event.click, handleNavigation);
+    LazyUtils.addEventListenerToNodes(elements.btns, config.event.click, handleNavigation);
 
     // Touch and wheel events attached to the carousel element only (not document)
     // for better performance - use passive listeners where possible
-    carousel.addEventListener('wheel', handleTouchpadMovement, { passive: false });
-    carousel.addEventListener('touchstart', handleTouchscreenMovement, { passive: true });
-    carousel.addEventListener('touchend', handleTouchscreenMovement, { passive: true });
+    carousel.addEventListener(config.event.wheel, handleTouchpadMovement, { passive: false });
+    carousel.addEventListener(config.event.start, handleTouchscreenMovement, { passive: true });
+    carousel.addEventListener(config.event.end, handleTouchscreenMovement, { passive: true });
 
     // Optimized resize handler - only update when width actually changes
     const debouncedResize = LazyUtils.debounce(() => {
@@ -586,7 +582,7 @@ const handleCarousel = (carousel) => {
       }
     }, 150)
 
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener(config.event.resize, debouncedResize);
   }
 
   const initialize = () => {
@@ -599,8 +595,8 @@ const handleCarousel = (carousel) => {
 
     // Check if auto-rotation is needed - only run this code if necessary
     if (carousel.hasAttribute(config.attr.timer)) {
-        startTimer();
-        if (carousel.classList.contains(config.class.pause)) autoRotatePause();
+      startTimer();
+      if (carousel.classList.contains(config.class.pause)) autoRotatePause();
     }
 
     // Run these functions in order - they depend on each other
