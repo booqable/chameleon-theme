@@ -37,13 +37,10 @@ class Main {
     this.setLoadedClass();
 
     // Use requestIdleCallback for non-critical operations if available
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => this.getDatePickerHeight(), { timeout: 2000 });
-    } else {
-      setTimeout(() => this.getDatePickerHeight(), 1000);
-    }
+    'requestIdleCallback' in window
+      ? requestIdleCallback(() => this.getDatePickerHeight(), { timeout: 2000 })
+      : setTimeout(() => this.getDatePickerHeight(), 1000)
 
-    // Use passive event listeners for smoother scrolling
     window.addEventListener("resize", this.getDatePickerHeight.bind(this), { passive: true });
     window.addEventListener("resize", this.setResizeClass.bind(this), { passive: true });
   }

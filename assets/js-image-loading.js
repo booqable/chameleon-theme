@@ -76,7 +76,7 @@ const handleImageLoading = () => {
           placeholder = wrapper && wrapper.querySelector(`.${imageOptions.classes.placeholder}`);
 
     // Listen for when mainImage is really loaded (from network)
-    (mainImage.complete)
+    mainImage.complete
       ? imageFadeIn(mainImage, placeholder)
       : mainImage.addEventListener('load', () => imageFadeIn(mainImage, placeholder), { once: true })
   }
@@ -102,7 +102,7 @@ const handleImageLoading = () => {
     // Skip if the image doesn't have the hidden class (means it's eager loaded)
     if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
-    (isInViewport(mainImage))
+    isInViewport(mainImage)
       ? loadMainImage(mainImage)
       : observer.observe(mainImage)
   })
@@ -121,7 +121,7 @@ const handleImageLoading = () => {
   }
 
   // Call on DOMContentLoaded for early loading of visible images
-  (document.readyState === 'loading')
+  document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', prioritizeVisibleImages)
     : prioritizeVisibleImages()
 
@@ -137,6 +137,6 @@ const handleImageLoading = () => {
   })
 }
 
-(document.readyState === 'loading')
+document.readyState === 'loading'
   ? document.addEventListener('DOMContentLoaded', handleImageLoading)
   : handleImageLoading()

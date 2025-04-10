@@ -1,61 +1,81 @@
-class TextWithImageSpacer {
-  constructor(section) {
-    this.section = section;
+/**
+ * Text With Image Spacer
+ *
+ * Ensures that spacer elements in text-with-image sections
+ * inherit the correct color palette from the previous section.
+ */
+const handleTextWithImageSpacer = (section) => {
+  if (!section) return null;
 
-    this.classes = {
-      spacer: "text-image__spacer",
-      one: "palette-one",
-      two: "palette-two",
-      three: "palette-three",
+  const config = {
+    classes: {
+      spacer: 'text-image__spacer',
+      palettes: ['palette-one', 'palette-two', 'palette-three']
+    },
+    selectors: {
+      spacer: '.text-image__spacer'
     }
   }
 
-  init() {
-    if (!this.section) return false;
-
-    this.setColor();
+  const elements = {
+    children: [...section.children],
+    prevSection: section.previousElementSibling
   }
 
-  setColor() {
-    const children = [...this.section.children],
-          classes = [this.classes.one, this.classes.two, this.classes.three];
+  const applyPaletteToSpacer = (spacer, prevChild) => {
+    const prevChildPalettes = config.classes.palettes.filter(
+      paletteClass => prevChild.classList.contains(paletteClass)
+    )
 
-    children.forEach(child => {
-      if (!child.classList.contains(this.classes.spacer)) return false;
+    const currentSpacerPalettes = config.classes.palettes.filter(
+      paletteClass => spacer.classList.contains(paletteClass)
+    )
 
-      const prevSection = this.section.previousElementSibling;
+    // Apply palette classes from the previous section to the spacer
+    prevChildPalettes.forEach(palette => {
+      const currentPalette = currentSpacerPalettes[0]; // Take the first palette if multiple exist
 
-      if (!prevSection) return false;
+      if (currentPalette && currentPalette !== palette) {
+        // Replace the current palette with the one from the previous section
+        spacer.classList.replace(currentPalette, palette);
+      } else if (!currentPalette) {
+        // No palette on the spacer, just add the one from the previous section
+        spacer.classList.add(palette);
+      }
+    })
+  }
 
-      const prevChildren = [...prevSection.children];
+  const setSpacerColors = () => {
+    if (!elements.prevSection) return;
 
-      prevChildren.forEach(item => {
-        const itemClasses = classes.filter(className => item.classList.contains(className)),
-              childClasses = classes.filter(className => child.classList.contains(className));
+    const prevChildren = [...elements.prevSection.children];
+    if (!prevChildren.length) return;
 
-        itemClasses.forEach(itemClass => {
-          const replaceClass = childClasses.find(childClass => child.classList.contains(childClass));
+    elements.children.forEach(child => {
+      if (!child.classList.contains(config.classes.spacer)) return;
 
-          if (replaceClass) {
-            child.classList.replace(replaceClass, itemClass);
-          }
-        })
+      // Apply palette from each element in previous section
+      prevChildren.forEach(prevChild => {
+        applyPaletteToSpacer(child, prevChild);
       })
     })
   }
+
+  const initialize = () => setSpacerColors();
+
+  return {
+    initialize
+  }
 }
 
-const initSpacerSection = (el = ".text-image") => {
-  const nodes = document.querySelectorAll(el);
+const initTextWithImageSpacer = (selector = '.text-image') => {
+  const sections = document.querySelectorAll(selector);
+  if (!sections.length) return;
 
-  if (!nodes.length) return false;
-
-  nodes.forEach(node => {
-    const spacer = new TextWithImageSpacer(node);
-    spacer.init();
+  sections.forEach(section => {
+    const spacer = handleTextWithImageSpacer(section);
+    if (spacer) spacer.initialize();
   })
 }
 
-document.addEventListener("readystatechange", (e) => {
-  if (e.target.readyState === "complete") initSpacerSection();
-})
+initTextWithImageSpacer();
