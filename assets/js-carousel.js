@@ -9,87 +9,73 @@ const handleCarousel = (carousel) => {
 
   const config = {
     selector: {
-      navi: ".carousel__navigation",
-      pagination: ".carousel__pagination",
-      btn: ".carousel__btn",
-      prev: ".carousel__btn.prev",
-      next: ".carousel__btn.next",
-      dot: ".carousel__dot",
-      wrapper: ".carousel__wrapper",
-      item: ".carousel__item",
-      count: ".carousel__count"
+      btn: '.carousel__btn',
+      dot: '.carousel__dot',
+      count: '.carousel__count',
+      item: '.carousel__item',
+      next: '.carousel__btn.next',
+      prev: '.carousel__btn.prev',
+      navigation: '.carousel__navigation',
+      pagination: '.carousel__pagination',
+      wrapper: '.carousel__wrapper'
     },
     class: {
-      show: "show",
-      fade: "carousel__fade-effect",
-      full: "carousel__full-width",
-      edges: "carousel__edges",
-      pause: "carousel__pause",
-      dot: "carousel__dot",
-      prev: "prev",
-      next: "next",
-      init: "initialized"
+      show: 'show',
+      fade: 'carousel__fade-effect',
+      full: 'carousel__full-width',
+      edges: 'carousel__edges',
+      pause: 'carousel__pause',
+      dot: 'carousel__dot',
+      prev: 'prev',
+      next: 'next',
+      init: 'initialized'
     },
     modifier: {
-      active: "active",
-      hidden: "hidden",
-      show: "show",
-      hide: "hide"
+      active: 'active',
+      hidden: 'hidden',
+      show: 'show',
+      hide: 'hide'
     },
     attr: {
-      index: "data-index",
-      overlayColor: "data-overlay-color",
-      defaultColor: "data-dafault-color",
-      timer: "data-carousel-timer"
+      index: 'data-index',
+      defaultColor: 'data-dafault-color',
+      overlayColor: 'data-overlay-color',
+      timer: 'data-carousel-timer'
     },
-    var: {
-      animation: "--animation-duration",
-      overlay: "--overlay-color",
-      overlay08: "--overlay-color-08",
-      overlay45: "--overlay-color-45"
-    },
-    event: {
-      click: "click",
-      prev: "prev",
-      next: "next",
-      start: "touchstart",
-      end: "touchend",
-      enter: "mouseenter",
-      leave: "mouseleave",
-      wheel: "wheel",
-      resize: "resize",
-      scrollend: "scrollend",
-      onscrollend: "onscrollend"
+    cssVar: {
+      animation: '--animation-duration',
+      overlay: '--overlay-color',
+      overlay08: '--overlay-color-08',
+      overlay45: '--overlay-color-45'
     }
   }
 
-  let interval = null,
+  let defaultDuration = 200, // Default animation duration
+      infinite = true,
+      interval = null,
+      isWheeling = false,
       touchstart = null,
       touchend = null,
-      wheelTimeout = null,
-      isWheeling = false,
-      infinite = true,
-      defaultDuration = 200, // Default animation duration
+      lastWindowWidth = window.innerWidth, // Track window width for resize optimization
       slideWidth = 0, // Cache slide width to avoid recalculation
-      lastWindowWidth = window.innerWidth; // Track window width for resize optimization
+      wheelTimeout = null;
 
   const elements = {
-    wrap: carousel.querySelector(config.selector.wrapper),
-    navi: carousel.querySelector(config.selector.navi),
-    pagi: carousel.querySelector(config.selector.pagination),
+    btns: carousel.querySelectorAll(config.selector.btn),
+    count: carousel.querySelector(config.selector.count),
+    dots: carousel.querySelectorAll(config.selector.dot),
     item: carousel.querySelector(config.selector.item),
     items: carousel.querySelectorAll(config.selector.item),
-    btns: carousel.querySelectorAll(config.selector.btn),
-    dots: carousel.querySelectorAll(config.selector.dot),
-    count: carousel.querySelector(config.selector.count)
+    navi: carousel.querySelector(config.selector.navigation),
+    pagi: carousel.querySelector(config.selector.pagination),
+    wrap: carousel.querySelector(config.selector.wrapper)
   }
 
   const startTimer = () => {
-    const timerValue = carousel.getAttribute(config.attr.timer);
+    const value = carousel.getAttribute(config.attr.timer);
+    if (!value) return;
 
-    if (!timerValue) return;
-
-    const time = parseInt(timerValue, 10) * 1000;
+    const time = parseInt(value, 10) * 1000;
 
     autoRotate(time);
   }
@@ -104,18 +90,18 @@ const handleCarousel = (carousel) => {
     const isPause = carousel.classList.contains(config.class.pause);
     if (!isPause || !elements.items.length) return;
 
-    const handlePauseEvent = (event) => {
-      if (event.type === config.event.enter || event.type === config.event.start) {
+    const handlePauseEvent = (e) => {
+      if (e.type === 'mouseenter' || e.type === 'touchstart') {
         clearInterval(interval);
-      } else if (event.type === config.event.leave || event.type === config.event.end) {
+      } else if (e.type === 'mouseleave' || e.type === 'touchend') {
         startTimer();
       }
     }
 
-    carousel.addEventListener(config.event.enter, handlePauseEvent);
-    carousel.addEventListener(config.event.leave, handlePauseEvent);
-    carousel.addEventListener(config.event.start, handlePauseEvent);
-    carousel.addEventListener(config.event.end, handlePauseEvent);
+    carousel.addEventListener('mouseenter', handlePauseEvent);
+    carousel.addEventListener('mouseleave', handlePauseEvent);
+    carousel.addEventListener('touchstart', handlePauseEvent);
+    carousel.addEventListener('touchend', handlePauseEvent);
   }
 
   const handleNavigation = (event, time) => {
@@ -137,7 +123,7 @@ const handleCarousel = (carousel) => {
 
     // Determine which element to scroll
     element = isDot || isPrev || isNext
-      ? getSiblingElement(target?.parentElement, config.selector.wrapper, config.event.prev)
+      ? getSiblingElement(target?.parentElement, config.selector.wrapper, 'prev')
       : elements.wrap;
 
     if (!element) return;
@@ -147,14 +133,14 @@ const handleCarousel = (carousel) => {
           clientX = element.clientWidth,
           children = [...element.children];
 
-    if (isPrev) {
+    const handleSlidingLeft = () => {
       if (!isFade) {
         valueLeft = calculateSlidePosition({
           currentScroll: left,
           clientVal: clientX,
           scrollVal: isFull ? width * children.length : scrollX,
           size: width,
-          trigger: config.event.prev
+          trigger: 'prev'
         })
       } else {
         handleFadeEffect({
@@ -165,14 +151,14 @@ const handleCarousel = (carousel) => {
       }
     }
 
-    if (isNext || time) {
+    const handleSlidingRight = () => {
       if (!isFade) {
         valueLeft = calculateSlidePosition({
           currentScroll: left,
           clientVal: clientX,
           scrollVal: isFull ? width * children.length : scrollX,
           size: width,
-          trigger: config.event.next
+          trigger: 'next'
         })
       } else {
         handleFadeEffect({
@@ -185,6 +171,10 @@ const handleCarousel = (carousel) => {
       }
     }
 
+    if (isPrev) handleSlidingLeft();
+
+    if (isNext || time) handleSlidingRight();
+
     if (isDot && !isFade) valueLeft = width * (index - 1);
 
     if (!isFade) smoothScrollTo(element, valueLeft, 0);
@@ -194,7 +184,7 @@ const handleCarousel = (carousel) => {
     const { currentScroll, scrollVal, clientVal, size, trigger } = options;
     let condition, lastIndex, nextIndex, scrollToVal;
 
-    if (trigger === config.event.prev) {
+    if (trigger === 'prev') {
       condition = currentScroll === 0;
       lastIndex = Math.ceil((scrollVal - clientVal) / size + 1);
       nextIndex = Math.ceil(currentScroll / size);
@@ -282,23 +272,18 @@ const handleCarousel = (carousel) => {
 
     // Only update pagination if carousel is wider than viewport
     if (scroll - client > 0) {
-      const visibleDots = Math.ceil((scroll - client) / width) + 1;
-
-      // First find currently active dot before making changes
-      const currentDot = getCurrentDot(),
-            activeIndex = currentDot.index;
-
-      // Find dots that need to change state (performance optimization)
-      const dotsToHide = [],
+      const seenDots = Math.ceil((scroll - client) / width) + 1,
+            { index: activeIndex } = getCurrentDot(),
+            dotsToHide = [],
             dotsToShow = [];
 
       elements.dots.forEach(dot => {
         const index = parseInt(dot.getAttribute(config.attr.index)),
-              isCurrentlyHidden = dot.classList.contains(config.modifier.hidden);
+              isHidden = dot.classList.contains(config.modifier.hidden);
 
-        if (index <= visibleDots && isCurrentlyHidden) {
+        if (index <= seenDots && isHidden) {
           dotsToShow.push(dot);
-        } else if (index > visibleDots && !isCurrentlyHidden) {
+        } else if (index > seenDots && !isHidden) {
           dotsToHide.push(dot);
         }
       })
@@ -308,12 +293,13 @@ const handleCarousel = (carousel) => {
       dotsToShow.forEach(dot => dot.classList.remove(config.modifier.hidden));
 
       // Check if active dot is now hidden
-      if (activeIndex > visibleDots) {
-        // Activate first dot and scroll to first slide
-        handlePagination(undefined, 1);
+      if (activeIndex > seenDots) {
+        // Activate last dot and scroll to acordingly slide
+        handlePagination(undefined, seenDots);
 
         // Update carousel position
-        smoothScrollTo(elements.wrap, 0, 0);
+        const slidePosition = (seenDots - 1) * width;
+        smoothScrollTo(elements.wrap, slidePosition, 0);
       }
     }
   }
@@ -347,9 +333,9 @@ const handleCarousel = (carousel) => {
 
     if (!dots.length && !wrap) return;
 
-    if (event.type === config.event.start) {
+    if (event.type === 'touchstart') {
       touchstart = event.changedTouches[0].screenX;
-    } else if (event.type === config.event.end && touchstart !== null) {
+    } else if (event.type === 'touchend' && touchstart !== null) {
       touchend = event.changedTouches[0].screenX;
       processTouchDirection(wrap);
 
@@ -382,8 +368,8 @@ const handleCarousel = (carousel) => {
       if (left >= 0 && left <= scroll - client) {
         infinite = false;
 
-        if (leftSwipe) LazyUtils.triggerEvent(next, config.event.click);
-        if (rightSwipe) LazyUtils.triggerEvent(prev, config.event.click);
+        if (leftSwipe) LazyUtils.triggerEvent(next, 'click');
+        if (rightSwipe) LazyUtils.triggerEvent(prev, 'click');
 
         infinite = true;
       }
@@ -455,7 +441,7 @@ const handleCarousel = (carousel) => {
   // Helper function to get animation duration in milliseconds
   const getAnimationDuration = () => {
     const transitionStyle = getComputedStyle(carousel),
-          animationDuration = transitionStyle.getPropertyValue(config.var.animation) || `${defaultDuration}ms`;
+          animationDuration = transitionStyle.getPropertyValue(config.cssVar.animation) || `${defaultDuration}ms`;
 
     let durationMs = parseInt(animationDuration.replace('ms', ''));
     if (isNaN(durationMs)) durationMs = defaultDuration;
@@ -486,9 +472,9 @@ const handleCarousel = (carousel) => {
       overlayTimer = setTimeout(() => {
         // Set all CSS variables at once for better performance
         const parentStyle = carousel.parentElement.style;
-        parentStyle.setProperty(config.var.overlay, overlayColor);
-        parentStyle.setProperty(config.var.overlay08, `${overlayColor}24`);
-        parentStyle.setProperty(config.var.overlay45, `${overlayColor}73`);
+        parentStyle.setProperty(config.cssVar.overlay, overlayColor);
+        parentStyle.setProperty(config.cssVar.overlay08, `${overlayColor}24`);
+        parentStyle.setProperty(config.cssVar.overlay45, `${overlayColor}73`);
 
         overlayTimer = null; // Clear the timer reference once executed
       }, halfDuration);
@@ -509,7 +495,7 @@ const handleCarousel = (carousel) => {
     element.scrollTo({
       left,
       top,
-      behavior: "smooth"
+      behavior: 'smooth'
     })
 
     // Add a one-time scroll event listener to detect when scrolling ends
@@ -523,8 +509,8 @@ const handleCarousel = (carousel) => {
     }
 
     // Use scrollend event if supported, otherwise fallback to timeout
-    config.event.onscrollend in window
-      ? element.addEventListener(config.event.scrollend, handleScrollEnd, { once: true })
+    'onscrollend' in window
+      ? element.addEventListener('scrollend', handleScrollEnd, { once: true })
       : setTimeout(handleScrollEnd, getAnimationDuration() + 50) // Get animation duration and add buffer time to ensure transition completes
   }
 
@@ -533,13 +519,13 @@ const handleCarousel = (carousel) => {
 
     let sibling;
 
-    if (direction === config.event.prev) {
+    if (direction === 'prev') {
       sibling = element.previousElementSibling;
       while (sibling) {
         if (sibling.matches(selector)) return sibling;
         sibling = sibling.previousElementSibling;
       }
-    } else if (direction === config.event.next) {
+    } else if (direction === 'next') {
       sibling = element.nextElementSibling;
       while (sibling) {
         if (sibling.matches(selector)) return sibling;
@@ -552,15 +538,15 @@ const handleCarousel = (carousel) => {
 
   const setupListeners = () => {
     // Button and dot click handlers using LazyUtils from js-lazy-utils.js
-    LazyUtils.addEventListenerToNodes(elements.dots, config.event.click, handlePagination);
-    LazyUtils.addEventListenerToNodes(elements.dots, config.event.click, handleNavigation);
-    LazyUtils.addEventListenerToNodes(elements.btns, config.event.click, handleNavigation);
+    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handlePagination);
+    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handleNavigation);
+    LazyUtils.addEventListenerToNodes(elements.btns, 'click', handleNavigation);
 
     // Touch and wheel events attached to the carousel element only (not document)
     // for better performance - use passive listeners where possible
-    carousel.addEventListener(config.event.wheel, handleTouchpadMovement, { passive: false });
-    carousel.addEventListener(config.event.start, handleTouchscreenMovement, { passive: true });
-    carousel.addEventListener(config.event.end, handleTouchscreenMovement, { passive: true });
+    carousel.addEventListener('wheel', handleTouchpadMovement, { passive: false });
+    carousel.addEventListener('touchstart', handleTouchscreenMovement, { passive: true });
+    carousel.addEventListener('touchend', handleTouchscreenMovement, { passive: true });
 
     // Optimized resize handler - only update when width actually changes
     const debouncedResize = LazyUtils.debounce(() => {
@@ -582,7 +568,7 @@ const handleCarousel = (carousel) => {
       }
     }, 150)
 
-    window.addEventListener(config.event.resize, debouncedResize);
+    window.addEventListener('resize', debouncedResize);
   }
 
   const initialize = () => {
@@ -622,7 +608,7 @@ const handleCarousel = (carousel) => {
  * Initialize carousels with intersection observer for performance
  * @param {string} selector - CSS selector for carousel elements
  */
-const initCarousel = (selector = ".carousel") => {
+const initCarousel = (selector = '.carousel') => {
   const nodes = document.querySelectorAll(selector);
   if (!nodes.length) return;
 
