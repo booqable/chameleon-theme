@@ -68,15 +68,29 @@ const handleImageLoading = () => {
   const handleIntersection = (entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        // When the image enters the viewport, load it
-        loadMainImage(entry.target);
-        observer.unobserve(entry.target);
+        loadMainImage(entry.target);// When the image enters the viewport, load it
+        const obs = getObserver();
+        if (obs) obs.unobserve(entry.target);
       }
     })
   }
 
-  // Create observer using Utils directly
-  const observer = Utils.createObserver(handleIntersection);
+  // Instead of creating the observer immediately, create a function that gets or creates it on demand
+  const utils = window.Utils;
+  const isFunc = (obj) => typeof obj === 'function';
+  let observer = null;
+
+  const getObserver = () => {
+    // Only create observer once and cache it
+    if (observer === null) {
+      // Safely check if Utils exists before using
+      if (utils && isFunc(utils.createObserver)) {
+        observer = utils.createObserver(handleIntersection);
+      }
+    }
+
+    return observer;
+  }
 
   wrappers.forEach(wrapper => {
     const mainImage = wrapper.querySelector(`.${imageOptions.classes.main}`),
@@ -87,10 +101,17 @@ const handleImageLoading = () => {
     // Skip if the image doesn't have the hidden class (means it's eager loaded)
     if (!mainImage.classList.contains(imageOptions.classes.hidden)) return;
 
-    // Use Utils.inViewport directly
-    Utils.inViewport(mainImage)
-      ? loadMainImage(mainImage)
-      : observer && observer.observe(mainImage)
+    // Safely check if Utils exists before using inViewport
+    const isInView = utils && isFunc(utils.inViewport)
+                    ? utils.inViewport(mainImage)
+                    : false
+
+    if (isInView) {
+      loadMainImage(mainImage);
+    } else {
+      const obs = getObserver();
+      if (obs) obs.observe(mainImage);
+    }
   })
 
   // Add a function to prioritize visible images
@@ -99,9 +120,15 @@ const handleImageLoading = () => {
     const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
     notLoadedImages.forEach(img => {
-      if (Utils.inViewport(img)) {
+      // Safely check if Utils exists before using inViewport
+      const isInView = utils && isFunc(utils.inViewport)
+                      ? utils.inViewport(img)
+                      : false;
+
+      if (isInView) {
         loadMainImage(img);
-        observer && observer.unobserve(img);
+        const obs = getObserver();
+        if (obs) obs.unobserve(img);
       }
     })
   }
@@ -118,7 +145,8 @@ const handleImageLoading = () => {
 
     notLoadedImages.forEach(img => {
       loadMainImage(img);
-      observer && observer.unobserve(img);
+      const obs = getObserver();
+      if (obs) obs.unobserve(img);
     })
   })
 }
