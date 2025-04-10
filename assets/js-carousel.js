@@ -263,44 +263,35 @@ const handleCarousel = (carousel) => {
   const updatePaginationDots = () => {
     if (!elements.dots.length || !elements.wrap) return;
 
-    const client = elements.wrap.clientWidth,
-          scroll = elements.wrap.scrollWidth,
-          width = slideWidth || elements.item.getBoundingClientRect().width; // Use cached slideWidth to avoid recalculation
+    const { index: activeIndex, dots: visibleDots } = getCurrentDot(); // Get current dots state with max visible dots calculation
+    if (visibleDots === 0) return;
 
-    // Update cache if needed
-    if (!slideWidth) slideWidth = width;
+    const width = slideWidth, // Cache slide width
+          dotsToHide = [],
+          dotsToShow = [];
 
-    // Only update pagination if carousel is wider than viewport
-    if (scroll - client > 0) {
-      const seenDots = Math.ceil((scroll - client) / width) + 1,
-            { index: activeIndex } = getCurrentDot(),
-            dotsToHide = [],
-            dotsToShow = [];
+    elements.dots.forEach(dot => {
+      const index = parseInt(dot.getAttribute(config.attr.index)),
+            isHidden = dot.classList.contains(config.modifier.hidden);
 
-      elements.dots.forEach(dot => {
-        const index = parseInt(dot.getAttribute(config.attr.index)),
-              isHidden = dot.classList.contains(config.modifier.hidden);
-
-        if (index <= seenDots && isHidden) {
-          dotsToShow.push(dot);
-        } else if (index > seenDots && !isHidden) {
-          dotsToHide.push(dot);
-        }
-      })
-
-      // Batch DOM operations for better performance
-      dotsToHide.forEach(dot => dot.classList.add(config.modifier.hidden));
-      dotsToShow.forEach(dot => dot.classList.remove(config.modifier.hidden));
-
-      // Check if active dot is now hidden
-      if (activeIndex > seenDots) {
-        // Activate last dot and scroll to acordingly slide
-        handlePagination(undefined, seenDots);
-
-        // Update carousel position
-        const slidePosition = (seenDots - 1) * width;
-        smoothScrollTo(elements.wrap, slidePosition, 0);
+      if (index <= visibleDots && isHidden) {
+        dotsToShow.push(dot);
+      } else if (index > visibleDots && !isHidden) {
+        dotsToHide.push(dot);
       }
+    })
+
+    // Batch DOM operations for better performance
+    dotsToHide.forEach(dot => dot.classList.add(config.modifier.hidden));
+    dotsToShow.forEach(dot => dot.classList.remove(config.modifier.hidden));
+
+    // Check if active dot is now hidden
+    if (activeIndex > visibleDots && visibleDots > 0) {
+      const slidePosition = width * (visibleDots - 1); // Calculate position to scroll to (based on dot index)
+
+      // Activate the dot and scroll to the related slide
+      handlePagination(undefined, visibleDots);
+      smoothScrollTo(elements.wrap, slidePosition, 0);
     }
   }
 
@@ -329,9 +320,9 @@ const handleCarousel = (carousel) => {
     event.stopPropagation();
 
     const wrap = event?.target.closest(config.selector.wrapper);
-    const dots = getCurrentDot().dots;
+    const { dots } = getCurrentDot();
 
-    if (!dots.length && !wrap) return;
+    if (dots < 1 && !wrap) return;
 
     if (event.type === 'touchstart') {
       touchstart = event.changedTouches[0].screenX;
@@ -374,7 +365,7 @@ const handleCarousel = (carousel) => {
         infinite = true;
       }
     } else {
-      if (leftSwipe && index < dots.length) handlePagination(undefined, index + 1);
+      if (leftSwipe && index < dots) handlePagination(undefined, index + 1);
       if (rightSwipe && index > 1) handlePagination(undefined, index - 1);
     }
   }
@@ -395,7 +386,7 @@ const handleCarousel = (carousel) => {
     event.preventDefault();
 
     const { dots, index } = getCurrentDot();
-    if (!dots.length) return;
+    if (dots < 1) return;
 
     isWheeling = true;
 
@@ -404,7 +395,7 @@ const handleCarousel = (carousel) => {
 
     if (delta === -1 && index > 1) {
       handlePagination(undefined, index - 1);
-    } else if (delta === 1 && index < dots.length) {
+    } else if (delta === 1 && index < dots) {
       handlePagination(undefined, index + 1);
     }
 
@@ -416,18 +407,30 @@ const handleCarousel = (carousel) => {
   }
 
   const getCurrentDot = () => {
-    if (!elements.dots || !elements.dots.length) return { index: 1, dots: [] };
+    if (!elements.dots || !elements.dots.length) return { index: 1, dots: 0 };
+
+    let visibleDots = 0;
+
+    // Calculate max visible dots
+    if (elements.item && elements.wrap) {
+      const client = elements.wrap.clientWidth,
+            scroll = elements.wrap.scrollWidth,
+            width = slideWidth || elements.item.getBoundingClientRect().width,
+            maxDots = Math.ceil((scroll - client) / width) + 1;
+
+      if (!slideWidth) slideWidth = width; // Update cache if needed
+      if (scroll - client > 0) visibleDots = maxDots; // Calculate max dots that can be visible based on carousel width
+    }
+
+    if (visibleDots === 0) return;
 
     // Use a more efficient approach to filter and find active dot
-    const visibleDots = [];
     let activeIndex = 1,
         foundActive = false;
 
     // Only loop through dots once
     for (const dot of elements.dots) {
       if (!dot.classList.contains(config.modifier.hidden)) {
-        visibleDots.push(dot);
-
         if (!foundActive && dot.classList.contains(config.modifier.active)) {
           activeIndex = parseInt(dot.getAttribute(config.attr.index));
           foundActive = true;
@@ -435,7 +438,7 @@ const handleCarousel = (carousel) => {
       }
     }
 
-    return { index: activeIndex, dots: visibleDots };
+    return { index: activeIndex, dots: visibleDots }
   }
 
   // Helper function to get animation duration in milliseconds
@@ -470,8 +473,7 @@ const handleCarousel = (carousel) => {
 
       // Delay setting the overlay color until halfway through the transition
       overlayTimer = setTimeout(() => {
-        // Set all CSS variables at once for better performance
-        const parentStyle = carousel.parentElement.style;
+        const parentStyle = carousel.parentElement.style; // Set all CSS variables at once for better performance
         parentStyle.setProperty(config.cssVar.overlay, overlayColor);
         parentStyle.setProperty(config.cssVar.overlay08, `${overlayColor}24`);
         parentStyle.setProperty(config.cssVar.overlay45, `${overlayColor}73`);
@@ -558,9 +560,7 @@ const handleCarousel = (carousel) => {
         lastWindowWidth = currentWidth;
 
         // Recalculate slide width since viewport changed
-        if (elements.item) {
-          slideWidth = elements.item.getBoundingClientRect().width;
-        }
+        if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
 
         // Update UI elements
         updateControls();
@@ -616,12 +616,10 @@ const initCarousel = (selector = '.carousel') => {
   const handleCarouselIntersection = (entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        // Initialize the carousel
         const carousel = handleCarousel(entry.target);
-        if (carousel) carousel.initialize();
+        if (carousel) carousel.initialize(); // Initialize the carousel
 
-        // Stop observing after it's initialized
-        observer.unobserve(entry.target);
+        observer.unobserve(entry.target); // Stop observing after it's initialized
       }
     })
   }
