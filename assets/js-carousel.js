@@ -261,7 +261,7 @@ const handleCarousel = (carousel) => {
   }
 
   const updatePaginationDots = () => {
-    if (!elements.dots.length || !elements.wrap) return;
+    if (!elements.dots.length || !elements.wrap || !getCurrentDot()) return;
 
     const { index: activeIndex, dots: visibleDots } = getCurrentDot(); // Get current dots state with max visible dots calculation
     if (visibleDots === 0) return;
