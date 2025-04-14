@@ -487,33 +487,78 @@ const handleCarousel = (carousel) => {
   let isScrolling = false;
   let currentScrollTarget = null;
 
-  // Enhanced scroll with transition tracking
+  // Enhanced scroll with transition tracking and transform-based animation for better performance
   const smoothScrollTo = (element, left, top) => {
     // Mark that we're starting a scroll transition
     isScrolling = true;
     currentScrollTarget = left;
 
-    // Perform the smooth scroll
-    element.scrollTo({
-      left,
-      top,
-      behavior: 'smooth'
-    })
+    // Get the animation duration
+    const duration = getAnimationDuration();
 
-    // Add a one-time scroll event listener to detect when scrolling ends
-    const handleScrollEnd = () => {
-      // Reset scrolling state when the transition is complete
-      isScrolling = false;
-      currentScrollTarget = null;
+    // Standard scroll implementation (define it first to avoid the reference error)
+    const performStandardScroll = () => {
+      // Perform the smooth scroll
+      element.scrollTo({
+        left,
+        top,
+        behavior: 'smooth'
+      })
 
-      // Remove the listener once fired
-      element.removeEventListener('scrollend', handleScrollEnd);
+      // Add a one-time scroll event listener to detect when scrolling ends
+      const handleScrollEnd = () => {
+        // Reset scrolling state when the transition is complete
+        isScrolling = false;
+        currentScrollTarget = null;
+
+        // Remove the listener once fired
+        element.removeEventListener('scrollend', handleScrollEnd);
+      }
+
+      // Use scrollend event if supported, otherwise fallback to timeout
+      'onscrollend' in window
+        ? element.addEventListener('scrollend', handleScrollEnd, { once: true })
+        : setTimeout(handleScrollEnd, duration + 50) // Add buffer time to ensure transition completes
     }
 
-    // Use scrollend event if supported, otherwise fallback to timeout
-    'onscrollend' in window
-      ? element.addEventListener('scrollend', handleScrollEnd, { once: true })
-      : setTimeout(handleScrollEnd, getAnimationDuration() + 50) // Get animation duration and add buffer time to ensure transition completes
+    const isFade = carousel.classList.contains(config.class.fade),
+          isFull = carousel.classList.contains(config.class.full);
+
+    if (isFull && !isFade) {
+      // Use GPU-accelerated transform for smoother animation
+      const wrapper = element.firstElementChild;
+
+      if (wrapper) {
+        // Apply CSS class for transition properties and set duration as inline style
+        wrapper.style.transitionDuration = `${duration}ms`; // Only set the dynamic duration
+        wrapper.style.transform = `translateX(-${left}px)`;
+
+        // Handle transition end
+        const handleTransitionEnd = () => {
+          // Reset scrolling state
+          isScrolling = false;
+          currentScrollTarget = null;
+
+          // Sync scroll position with transform
+          element.scrollLeft = left;
+
+          // Remove class and reset styles for proper scroll behavior
+          wrapper.style.transitionDuration = '';
+          wrapper.style.transform = '';
+
+          // Remove listener
+          wrapper.removeEventListener('transitionend', handleTransitionEnd);
+        }
+
+        wrapper.addEventListener('transitionend', handleTransitionEnd, { once: true });
+      } else {
+        // Fallback to scroll if wrapper not found
+        performStandardScroll();
+      }
+    } else {
+      // Use standard scroll for complex layouts
+      performStandardScroll();
+    }
   }
 
   const getSiblingElement = (element, selector, direction) => {
@@ -539,18 +584,41 @@ const handleCarousel = (carousel) => {
   }
 
   const setupListeners = () => {
-    // Button and dot click handlers using LazyUtils from js-lazy-utils.js
-    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handlePagination);
-    LazyUtils.addEventListenerToNodes(elements.dots, 'click', handleNavigation);
-    LazyUtils.addEventListenerToNodes(elements.btns, 'click', handleNavigation);
+    // Use event delegation for better performance - attach event handlers to the carousel
+    // instead of to each individual element
+    carousel.addEventListener('click', event => {
+      const target = event.target;
 
-    // Touch and wheel events attached to the carousel element only (not document)
-    // for better performance - use passive listeners where possible
-    carousel.addEventListener('wheel', handleTouchpadMovement, { passive: false });
+      // Handle dot clicks
+      if (target.classList.contains(config.class.dot)) {
+        handlePagination(event);
+        handleNavigation(event);
+      }
+
+      // Handle button clicks
+      if (target.classList.contains(config.class.prev) || target.classList.contains(config.class.next)) {
+        handleNavigation(event);
+      }
+    });
+
+    // Touch and wheel events with optimized passive listeners
+    // Use a throttled wheel handler for better performance
+    let wheelThrottled = false;
+    carousel.addEventListener('wheel', event => {
+      if (!wheelThrottled) {
+        wheelThrottled = true;
+        window.requestAnimationFrame(() => {
+          handleTouchpadMovement(event);
+          wheelThrottled = false;
+        });
+      }
+    }, { passive: false });
+
     carousel.addEventListener('touchstart', handleTouchscreenMovement, { passive: true });
     carousel.addEventListener('touchend', handleTouchscreenMovement, { passive: true });
 
-    // Optimized resize handler - only update when width actually changes
+    // Optimized resize handler with requestAnimationFrame for smoother updates
+    // Reduce debounce time for more responsive UI during resize
     const debouncedResize = LazyUtils.debounce(() => {
       const currentWidth = window.innerWidth;
 
@@ -559,14 +627,19 @@ const handleCarousel = (carousel) => {
         // Update cached width
         lastWindowWidth = currentWidth;
 
-        // Recalculate slide width since viewport changed
-        if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
+        // Use requestAnimationFrame for smoother visual updates
+        window.requestAnimationFrame(() => {
+          // Recalculate slide width since viewport changed
+          if (elements.item) {
+            slideWidth = elements.item.getBoundingClientRect().width;
+          }
 
-        // Update UI elements
-        updateControls();
-        updatePaginationDots();
+          // Update UI elements
+          updateControls();
+          updatePaginationDots();
+        });
       }
-    }, 150)
+    }, 100);
 
     window.addEventListener('resize', debouncedResize);
   }
@@ -596,11 +669,35 @@ const handleCarousel = (carousel) => {
     setupListeners();
   }
 
+  // Cleanup function to prevent memory leaks
+  const destroy = () => {
+    // Clear any running timers
+    if (interval) clearInterval(interval);
+    if (wheelTimeout) clearTimeout(wheelTimeout);
+    if (overlayTimer) clearTimeout(overlayTimer);
+
+    // Remove window event listeners
+    window.removeEventListener('resize', debouncedResize);
+
+    // Remove all event listeners from carousel element using cloneNode technique
+    // This is a clean way to remove all listeners at once
+    const newCarousel = carousel.cloneNode(true);
+    carousel.parentNode?.replaceChild(newCarousel, carousel);
+
+    // Clear references to DOM elements
+    for (const key in elements) {
+      if (Object.prototype.hasOwnProperty.call(elements, key)) {
+        elements[key] = null;
+      }
+    }
+  };
+
   // Public API
   return {
     initialize,
     updateControls,
-    updatePaginationDots
+    updatePaginationDots,
+    destroy
   }
 }
 
@@ -624,8 +721,12 @@ const initCarousel = (selector = '.carousel') => {
     })
   }
 
-  // Create observer using Utils directly
-  const observer = Utils.createObserver(handleCarouselIntersection);
+  // Create observer using Utils with enhanced options for better preloading
+  const observerOptions = {
+    rootMargin: '200px 0px', // Increased vertical margin for earlier loading (200px instead of 100px)
+    threshold: 0.01 // Trigger when just 1% is visible (same as default)
+  };
+  const observer = Utils.createObserver(handleCarouselIntersection, observerOptions);
 
   nodes.forEach(node => {
     observer

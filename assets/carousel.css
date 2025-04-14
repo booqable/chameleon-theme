@@ -2,6 +2,9 @@
   height: 100%;
   width: 100%;
   position: relative;
+  contain: content; /* Performance: Reduces the scope of layout recalculations */
+  margin: 0 -16px;
+  width: calc(100% + 32px);
 }
 
 .carousel *::-webkit-scrollbar {
@@ -18,8 +21,6 @@
 }
 
 .carousel__wrapper {
-  margin: 0 -16px;
-  width: calc(100% + 32px);
   height: 100%;
   overflow-x: scroll;
   overflow-y: hidden;
@@ -32,6 +33,9 @@
   align-items: stretch;
   scrollbar-width: none;
   scrollbar-color: transparent transparent;
+  will-change: transform; /* Performance: Hints the browser to optimize for animations */
+  transition-property: transform; /* Animation styles for transform-based animations */
+  transition-timing-function: var(--transition-function-ease-in-out);
 }
 
 .carousel--controls .carousel__wrapper {
@@ -67,7 +71,7 @@
   left: 0;
   bottom: 0;
   display: flex;
-  margin: 0 -4px;
+  margin: 0 12px;
   z-index: 1;
 }
 
@@ -106,7 +110,7 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  margin: 0 -8px;
+  margin: 0 8px;
   display: flex;
   z-index: 1;
 }
@@ -154,6 +158,11 @@
 
 .carousel__full-width .carousel__inner {
   padding-right: 16px;
+}
+
+.carousel__edges {
+  width: 100%;
+  margin: 0;
 }
 
 .carousel__edges .carousel__item:last-child {
@@ -425,9 +434,12 @@
 }
 
 @media (min-width: 992px) {
-  .carousel__wrapper {
+  .carousel {
     margin: 0 -24px;
     width: calc(100% + 48px);
+  }
+
+  .carousel__wrapper {
     scroll-padding: 0 24px 0 0;
   }
 
@@ -449,8 +461,21 @@
     padding-right: 24px;
   }
 
+  .carousel__navigation {
+    margin: 0 16px;
+  }
+
+  .carousel__pagination {
+    margin: 0 20px;
+  }
+
   .carousel__full-width .carousel__inner {
     padding-right: 24px;
+  }
+
+  .carousel__edges {
+    width: 100%;
+    margin: 0;
   }
 
   .carousel__edges .carousel__item,
@@ -507,9 +532,12 @@
 }
 
 @media (min-width: 1273px) {
-  .carousel__wrapper {
+  .carousel {
     margin: 0;
     width: 100%;
+  }
+
+  .carousel__wrapper {
     scroll-padding: 0;
   }
 
@@ -524,6 +552,14 @@
 
   .carousel__item:last-child .carousel__inner {
     padding-right: 0;
+  }
+
+  .carousel__navigation {
+    margin: 0 -8px;
+  }
+
+  .carousel__pagination {
+    margin: 0 -4px;
   }
 
   .carousel__full-width .carousel__item:last-child .carousel__inner,
