@@ -3,6 +3,8 @@
  *
  * Detects touch devices and safe area insets (notches),
  * then applies appropriate CSS classes and data attributes.
+ *
+ * @requires js-lazy-utils.js
  */
 const handleTouchDevice = () => {
   const config = {
@@ -23,6 +25,8 @@ const handleTouchDevice = () => {
       landscape: 'landscape'
     }
   }
+
+  let resizeHandler = null;
 
   const elements = {
     doc: document.documentElement
@@ -67,11 +71,22 @@ const handleTouchDevice = () => {
   const initialize = () => {
     detectNotch();
 
-    window.addEventListener('resize', detectNotch);
+    // Store handler and use utility function
+    resizeHandler = detectNotch;
+    LazyUtils.addEventListenerNode(window, 'resize', resizeHandler);
+  }
+
+  const destroy = () => {
+    // Clean up event listener
+    if (resizeHandler) {
+      LazyUtils.removeEventListenerNode(window, 'resize', resizeHandler);
+      resizeHandler = null;
+    }
   }
 
   return {
-    initialize
+    initialize,
+    destroy
   }
 }
 

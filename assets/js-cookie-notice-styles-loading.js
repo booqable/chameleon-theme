@@ -3,8 +3,9 @@
  *
  * This script loads cookie consent styling immediately when the cookie element
  * appears in the DOM using MutationObserver for optimal performance.
+ *
+ * @requires js-lazy-utils.js
  */
-
 // Store current state to prevent unnecessary reapplication
 let ccCurrentPalette = '';
 let ccAppliedStyles = false;
@@ -117,8 +118,25 @@ const checkInterval = setInterval(() => {
   }
 }, 1500)
 
+// Store handlers for proper cleanup
+const domContentLoadedHandler = () => applyCookieStyles();
+const cookieConsentInitHandler = () => applyCookieStyles();
+
 // Also try on DOM ready
-document.addEventListener('DOMContentLoaded', () => applyCookieStyles());
+LazyUtils.addEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler);
 
 // Apply when cookie consent UI is initialized
-window.addEventListener('cookie-consent-ui-initialized', () => applyCookieStyles());
+LazyUtils.addEventListenerNode(window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
+
+// Provide cleanup function
+const cleanupEventListeners = () => {
+  LazyUtils.removeEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler);
+  LazyUtils.removeEventListenerNode(window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
+
+  if (observer) observer.disconnect();
+
+  if (checkInterval) clearInterval(checkInterval);
+}
+
+// Expose cleanup function to global scope for potential use
+window.cleanupCookieNoticeEventListeners = cleanupEventListeners;

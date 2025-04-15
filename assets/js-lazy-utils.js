@@ -28,14 +28,50 @@ LazyUtils.debounce = (func, wait) => {
 
 /**
  * Add event listener to multiple nodes
- * @param {NodeList} nodes - NodeList of elements
+ * @param {NodeList|Array|HTMLElement} nodes - NodeList, Array of elements, or single HTMLElement
  * @param {string} event - Event name
  * @param {Function} handler - Event handler
+ * @param {Object} [options] - Optional event listener options
  */
-LazyUtils.addEventListenerToNodes = (nodes, event, handler) => {
-  if (!nodes || !nodes.length) return;
+LazyUtils.addEventListenerNode = (nodes, event, handler, options) => {
+  if (!nodes) return;
 
-  for (const node of nodes) node.addEventListener(event, handler);
+  // Handle single element case
+  if (nodes instanceof HTMLElement) {
+    nodes.addEventListener(event, handler, options);
+    return;
+  }
+
+  // Handle NodeList or Array
+  if (!nodes.length) return;
+
+  for (const node of nodes) {
+    node.addEventListener(event, handler, options);
+  }
+}
+
+/**
+ * Remove event listener from multiple nodes
+ * @param {NodeList|Array|HTMLElement} nodes - NodeList, Array of elements, or single HTMLElement
+ * @param {string} event - Event name
+ * @param {Function} handler - Event handler
+ * @param {Object} [options] - Optional event listener options
+ */
+LazyUtils.removeEventListenerNode = (nodes, event, handler, options) => {
+  if (!nodes) return;
+
+  // Handle single element case
+  if (nodes instanceof HTMLElement) {
+    nodes.removeEventListener(event, handler, options);
+    return;
+  }
+
+  // Handle NodeList or Array
+  if (!nodes.length) return;
+
+  for (const node of nodes) {
+    node.removeEventListener(event, handler, options);
+  }
 }
 
 /**

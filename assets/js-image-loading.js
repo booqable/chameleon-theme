@@ -1,3 +1,11 @@
+/**
+ * ImageLoading Component
+ *
+ * Handles lazy loading of images with placeholders.
+ * Optimizes initial load and uses IntersectionObserver for lazy loading.
+ *
+ * @requires js-lazy-utils.js
+ */
 const handleImageLoading = () => {
   const imageOptions = {
     attributes: {
@@ -15,6 +23,11 @@ const handleImageLoading = () => {
 
   const wrappers = document.querySelectorAll(`.${imageOptions.classes.wrapper}`);
   if (!wrappers.length) return false;
+
+  let observer = null;
+
+  const utils = window.Utils;
+  const isFunc = obj => typeof obj === 'function';
 
   const sourcesDataLoad = (mainImage) => {
     const wrapper = mainImage.closest(`.${imageOptions.classes.wrapper}`),
@@ -46,7 +59,9 @@ const handleImageLoading = () => {
 
     if (placeholder) {
       placeholder.style.opacity = '0'
-      placeholder.addEventListener('transitionend', () => placeholder.remove(), { once: true })
+
+      const placeholderRemoveHandler = () => placeholder.remove(); // Use LazyUtils for event listener
+      LazyUtils.addEventListenerNode(placeholder, 'transitionend', placeholderRemoveHandler, { once: true });
     }
   }
 
@@ -60,9 +75,10 @@ const handleImageLoading = () => {
           placeholder = wrapper && wrapper.querySelector(`.${imageOptions.classes.placeholder}`);
 
     // Listen for when mainImage is really loaded (from network)
+    const imageLoadHandler = () => imageFadeIn(mainImage, placeholder);
     mainImage.complete
       ? imageFadeIn(mainImage, placeholder)
-      : mainImage.addEventListener('load', () => imageFadeIn(mainImage, placeholder), { once: true })
+      : LazyUtils.addEventListenerNode(mainImage, 'load', imageLoadHandler, { once: true })
   }
 
   const handleIntersection = (entries) => {
@@ -76,10 +92,6 @@ const handleImageLoading = () => {
   }
 
   // Instead of creating the observer immediately, create a function that gets or creates it on demand
-  const utils = window.Utils;
-  const isFunc = (obj) => typeof obj === 'function';
-  let observer = null;
-
   const getObserver = () => {
     // Only create observer once and cache it
     if (observer === null) {
@@ -133,13 +145,9 @@ const handleImageLoading = () => {
     })
   }
 
-  // Call on DOMContentLoaded for early loading of visible images
-  document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', prioritizeVisibleImages)
-    : prioritizeVisibleImages()
-
-  // Also handle any remaining images on full load
-  window.addEventListener('load', () => {
+  // Store handlers for proper cleanup
+  const domContentLoadedHandler = prioritizeVisibleImages;
+  const windowLoadHandler = () => {
     // Only select images with the hidden class (lazy-loaded images)
     const notLoadedImages = document.querySelectorAll(`.${imageOptions.classes.main}.${imageOptions.classes.hidden}`);
 
@@ -148,9 +156,50 @@ const handleImageLoading = () => {
       const obs = getObserver();
       if (obs) obs.unobserve(img);
     })
-  })
+  }
+
+  // Call on DOMContentLoaded for early loading of visible images
+  document.readyState === 'loading'
+    ? LazyUtils.addEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler)
+    : prioritizeVisibleImages()
+
+  // Also handle any remaining images on full load
+  LazyUtils.addEventListenerNode(window, 'load', windowLoadHandler);
+
+  // Provide a cleanup function for proper memory management
+  const cleanup = () => {
+    // Remove event listeners
+    LazyUtils.removeEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler);
+    LazyUtils.removeEventListenerNode(window, 'load', windowLoadHandler);
+
+    // Disconnect observer if it exists
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+  }
+
+  // Return cleanup function for potential use
+  return cleanup;
 }
 
-document.readyState === 'loading'
-  ? document.addEventListener('DOMContentLoaded', handleImageLoading)
-  : handleImageLoading()
+// Store handlers and cleanup function
+const imageLoadingHandler = handleImageLoading;
+let imageLoadingCleanup = null;
+
+// Initialize image loading functionality
+if (document.readyState === 'loading') {
+  LazyUtils.addEventListenerNode(document, 'DOMContentLoaded', () => {
+    imageLoadingCleanup = imageLoadingHandler();
+  })
+} else {
+  imageLoadingCleanup = imageLoadingHandler();
+}
+
+// Expose cleanup function to global scope for potential use
+window.cleanupImageLoading = () => {
+  if (isFunc(imageLoadingCleanup)) {
+    imageLoadingCleanup();
+    imageLoadingCleanup = null;
+  }
+}

@@ -1,9 +1,9 @@
 /**
- * Intersection Observer utility functions
+ * Observer utility functions
  * Critical utilities for performance optimization
  */
 
-// Create a namespace for intersection utilities
+// Create a namespace for utilities
 window.Utils = window.Utils || {};
 
 /**
@@ -28,6 +28,82 @@ Utils.createObserver = (callback, customOptions = {}) => {
 
   // Create and return the observer
   return new IntersectionObserver(callback, options);
+}
+
+/**
+ * Create a ResizeObserver with optional debounce
+ * @param {Function} callback - Function to call when elements resize
+ * @param {Object} options - Optional configuration
+ * @param {HTMLElement} options.element - Element to observe
+ * @param {number} options.debounceTime - Debounce time in ms (0 to disable)
+ * @param {boolean} options.trackWidth - Whether to track window width changes
+ * @returns {Object} - Observer instance and cleanup function
+ */
+Utils.createResizeObserver = (callback, options = {}) => {
+  // Default options with good performance settings
+  const defaultOptions = {
+    debounceTime: 150, // Reasonable debounce default
+    trackWidth: true, // Track window width by default
+    element: null // No default element
+  }
+
+  // Merge with user options
+  const config = { ...defaultOptions, ...options };
+
+  // Variables for width tracking and debouncing
+  let lastWindowWidth = window.innerWidth;
+  let debounceTimer = null;
+  let observer = null;
+
+  // No-op if ResizeObserver is not supported
+  if (!('ResizeObserver' in window)) {
+    return {
+      observer: null,
+      cleanup: () => {}
+    }
+  }
+
+  // Create wrapped callback with debounce and width tracking
+  const wrappedCallback = (entries) => {
+    // If tracking width, check if it changed
+    if (config.trackWidth) {
+      const currentWidth = window.innerWidth;
+      if (currentWidth === lastWindowWidth) return;
+      lastWindowWidth = currentWidth;
+    }
+
+    // If debounce is enabled, use it
+    if (config.debounceTime > 0) {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        window.requestAnimationFrame(() => callback(entries));
+      }, config.debounceTime);
+    } else {
+      // Otherwise run immediately but still in rAF for performance
+      window.requestAnimationFrame(() => callback(entries));
+    }
+  }
+
+  // Create the observer
+  observer = new ResizeObserver(wrappedCallback);
+
+  // Observe the element if provided
+  if (config.element) observer.observe(config.element);
+
+  // Return observer and cleanup function
+  return {
+    observer,
+    cleanup: () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+    }
+  }
 }
 
 /**

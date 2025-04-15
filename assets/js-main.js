@@ -37,8 +37,35 @@ class Main {
     this.setLoadedClass();
     setTimeout(() => this.getDatePickerHeight(), 1000);
 
-    window.addEventListener("resize", this.getDatePickerHeight.bind(this));
-    window.addEventListener("resize", this.setResizeClass.bind(this));
+    // Use ResizeObserver utility if available
+    if (window.Utils && this.isFunc(window.Utils.createResizeObserver)) {
+      // Handle resize for date picker height
+      this.resizeObserverHeight = window.Utils.createResizeObserver(() => {
+        this.getDatePickerHeight();
+      }, {
+        element: document.documentElement,
+        debounceTime: 150
+      })
+
+      // Handle resize for adding resize class
+      this.resizeObserverClass = window.Utils.createResizeObserver(() => {
+        this.setResizeClass();
+      }, {
+        element: document.documentElement,
+        debounceTime: 50
+      })
+    } else {
+      // Fallback to window resize event
+      this.heightResizeHandler = this.getDatePickerHeight.bind(this);
+      this.classResizeHandler = this.setResizeClass.bind(this);
+
+      LazyUtils.addEventListenerNode(window, 'resize', this.heightResizeHandler);
+      LazyUtils.addEventListenerNode(window, 'resize', this.classResizeHandler);
+    }
+  }
+
+  isFunc(obj) {
+    return typeof obj === 'function';
   }
 
   getDatePickerHeight() {
@@ -72,8 +99,48 @@ class Main {
   setLoadedClass() {
     this.block.classList.add(this.modifier.loaded);
   }
+
+  // Cleanup method to properly remove observers and event listeners
+  destroy() {
+    // Clean up ResizeObserver instances if they exist
+    if (this.resizeObserverHeight && this.isFunc(this.resizeObserverHeight.cleanup)) {
+      this.resizeObserverHeight.cleanup();
+      this.resizeObserverHeight = null;
+    }
+
+    if (this.resizeObserverClass && this.isFunc(this.resizeObserverClass.cleanup)) {
+      this.resizeObserverClass.cleanup();
+      this.resizeObserverClass = null;
+    }
+
+    // Clean up window event listeners if fallback was used
+    if (!window.Utils || !this.isFunc(window.Utils.createResizeObserver)) {
+      if (this.heightResizeHandler) {
+        LazyUtils.removeEventListenerNode(window, 'resize', this.heightResizeHandler);
+        this.heightResizeHandler = null;
+      }
+
+      if (this.classResizeHandler) {
+        LazyUtils.removeEventListenerNode(window, 'resize', this.classResizeHandler);
+        this.classResizeHandler = null;
+      }
+    }
+
+    // Clear any timers
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  }
 }
 
 const main = new Main(document.querySelector('body'));
 
 main.init();
+
+// Handle cleanup on page unload or navigation if needed
+const unloadHandler = () => {
+  if (main) main.destroy();
+}
+
+LazyUtils.addEventListenerNode(window, 'unload', unloadHandler);

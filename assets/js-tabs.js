@@ -3,6 +3,8 @@
  *
  * Handles tab switching functionality, including active states
  * for both tabs and their associated content panels.
+ *
+ * @requires js-lazy-utils.js
  */
 const handleTabs = (tabsContainer) => {
   if (!tabsContainer) return null;
@@ -24,6 +26,8 @@ const handleTabs = (tabsContainer) => {
       opener: '#tabs-select-opener'
     }
   }
+
+  let clickHandler = null;
 
   const elements = {
     tabs: tabsContainer.querySelectorAll(config.selectors.tab),
@@ -84,11 +88,22 @@ const handleTabs = (tabsContainer) => {
   const initialize = () => {
     if (!elements.tabs.length) return;
 
-    document.addEventListener('click', handleTabClick);
+    // Store handler and use utility function
+    clickHandler = handleTabClick;
+    LazyUtils.addEventListenerNode(document, 'click', clickHandler);
+  }
+
+  const destroy = () => {
+    // Clean up event listener
+    if (clickHandler) {
+      LazyUtils.removeEventListenerNode(document, 'click', clickHandler);
+      clickHandler = null;
+    }
   }
 
   return {
-    initialize
+    initialize,
+    destroy
   }
 }
 
