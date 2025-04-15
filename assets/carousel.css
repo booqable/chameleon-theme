@@ -33,9 +33,11 @@
   align-items: stretch;
   scrollbar-width: none;
   scrollbar-color: transparent transparent;
-  will-change: transform; /* Performance: Hints the browser to optimize for animations */
-  transition-property: transform; /* Animation styles for transform-based animations */
-  transition-timing-function: var(--transition-function-ease-in-out);
+  /* Optimize with hardware acceleration while ensuring smooth native scrolling */
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch; /* Enable momentum scrolling on iOS */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .carousel--controls .carousel__wrapper {
@@ -64,6 +66,12 @@
 
 .carousel__item:last-child .carousel__inner {
   padding-right: 16px;
+}
+
+/* Performance optimization for off-screen slides */
+.carousel__item--offscreen {
+  contain: layout style paint; /* Use contain to reduce rendering cost of off-screen slides */
+  contain-intrinsic-size: var(--slide-width-mobile) 400px; /* Approximate size placeholder to avoid layout shifts */
 }
 
 .carousel__pagination {
@@ -450,6 +458,10 @@
   .carousel__item {
     min-width: var(--slide-width);
     max-width: var(--slide-width);
+  }
+
+  .carousel__item--offscreen {
+    contain-intrinsic-size: var(--slide-width) 400px;
   }
 
   .carousel__item:last-child {

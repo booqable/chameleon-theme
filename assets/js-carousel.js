@@ -25,6 +25,7 @@ const handleCarousel = (carousel) => {
       full: 'carousel__full-width',
       edges: 'carousel__edges',
       pause: 'carousel__pause',
+      off: 'carousel__item--offscreen',
       dot: 'carousel__dot',
       prev: 'prev',
       next: 'next',
@@ -50,14 +51,25 @@ const handleCarousel = (carousel) => {
     }
   }
 
-  let defaultDuration = 200, // Default animation duration
+  let clickHandler = null,
+      currentScrollTarget = null,
+      defaultDuration = 200, // Default animation duration
       infinite = true,
       interval = null,
+      isScrolling = false, // Track when a scroll transition is occurring
       isWheeling = false,
-      touchstart = null,
-      touchend = null,
       lastWindowWidth = window.innerWidth, // Track window width for resize optimization
+      overlayTimer = null, // Track the last overlay timer to clear it if needed
+      pauseEventHandler = null, // Store pause event handler for cleanup
+      resizeObserverUtil = null,
+      scrollHandler = null,
       slideWidth = 0, // Cache slide width to avoid recalculation
+      touchstart = null,
+      touchStartHandler = null,
+      touchend = null,
+      touchEndHandler = null,
+      wheelHandler = null,
+      windowResizeHandler = null, // Store window resize handler for cleanup
       wheelTimeout = null;
 
   const elements = {
@@ -71,11 +83,14 @@ const handleCarousel = (carousel) => {
     wrap: carousel.querySelector(config.selector.wrapper)
   }
 
-  const startTimer = () => {
-    const value = carousel.getAttribute(config.attr.timer);
-    if (!value) return;
+  const isFunc = obj => typeof obj === 'function';
+  const isUndefined = el => typeof el === 'undefined';
 
-    const time = parseInt(value, 10) * 1000;
+  const startTimer = () => {
+    const val = carousel.getAttribute(config.attr.timer);
+    if (!val) return;
+
+    const time = parseInt(val, 10) * 1000;
 
     autoRotate(time);
   }
@@ -90,7 +105,8 @@ const handleCarousel = (carousel) => {
     const isPause = carousel.classList.contains(config.class.pause);
     if (!isPause || !elements.items.length) return;
 
-    const handlePauseEvent = (e) => {
+    // Store the handler for proper removal later
+    pauseEventHandler = (e) => {
       if (e.type === 'mouseenter' || e.type === 'touchstart') {
         clearInterval(interval);
       } else if (e.type === 'mouseleave' || e.type === 'touchend') {
@@ -98,10 +114,10 @@ const handleCarousel = (carousel) => {
       }
     }
 
-    carousel.addEventListener('mouseenter', handlePauseEvent);
-    carousel.addEventListener('mouseleave', handlePauseEvent);
-    carousel.addEventListener('touchstart', handlePauseEvent);
-    carousel.addEventListener('touchend', handlePauseEvent);
+    LazyUtils.addEventListenerNode(carousel, 'mouseenter', pauseEventHandler);
+    LazyUtils.addEventListenerNode(carousel, 'mouseleave', pauseEventHandler);
+    LazyUtils.addEventListenerNode(carousel, 'touchstart', pauseEventHandler);
+    LazyUtils.addEventListenerNode(carousel, 'touchend', pauseEventHandler);
   }
 
   const handleNavigation = (event, time) => {
@@ -184,17 +200,21 @@ const handleCarousel = (carousel) => {
     const { currentScroll, scrollVal, clientVal, size, trigger } = options;
     let condition, lastIndex, nextIndex, scrollToVal;
 
-    if (trigger === 'prev') {
+    const slideLeft = () => {
       condition = currentScroll === 0;
       lastIndex = Math.ceil((scrollVal - clientVal) / size + 1);
       nextIndex = Math.ceil(currentScroll / size);
       scrollToVal = condition && infinite ? scrollVal : currentScroll - size;
-    } else {
+    }
+
+    const slideRight = () => {
       condition = currentScroll >= scrollVal - clientVal - 16;
       lastIndex = 1;
       nextIndex = parseInt(currentScroll / size + 2);
       scrollToVal = condition && infinite ? 0 : currentScroll + size;
     }
+
+    trigger === 'prev' ? slideLeft() : slideRight()
 
     const i = condition && infinite ? lastIndex : nextIndex;
 
@@ -221,43 +241,38 @@ const handleCarousel = (carousel) => {
 
   const updateFadeClass = (index) => {
     if (!carousel.classList.contains(config.class.fade) || !index || index > elements.items.length) return;
+    const show = config.modifier.show,
+          hide = config.modifier.hide;
 
     elements.items.forEach((item, itemIndex) => {
-      item.classList.replace(config.modifier.show, config.modifier.hide);
-      if (itemIndex + 1 === index) {
-        item.classList.replace(config.modifier.hide, config.modifier.show);
-      }
+      item.classList.replace(show, hide);
+      if (itemIndex + 1 === index) item.classList.replace(hide, show);
     })
   }
 
-  const handlePagination = (event, index) => {
-    const target = event?.target,
+  const handlePagination = (e, i) => {
+    const target = e?.target,
           isDot = target?.classList.contains(config.class.dot);
 
-    if (!isDot && typeof index === 'undefined') return;
+    if (!isDot && isUndefined(i)) return;
     if (!elements.dots.length) return;
 
     for (const dot of elements.dots) {
       const activeIndex = parseInt(dot.getAttribute(config.attr.index));
       dot.classList.remove(config.modifier.active);
 
-      const addActiveClass = () => {
-        dot.classList.add(config.modifier.active);
-      }
+      const addActiveClass = () => dot.classList.add(config.modifier.active);
 
-      if (isDot && dot === target) addActiveClass();
-
-      if (activeIndex === index) addActiveClass();
+      if (isDot && dot === target || activeIndex === i) addActiveClass();
     }
 
-    // If index is undefined, get it from the target
-    if (typeof index === 'undefined' && target) {
-      index = parseInt(target.getAttribute(config.attr.index));
-    }
+    const targetIndex = parseInt(target.getAttribute(config.attr.index));
 
-    updateCounter(index);
-    updateFadeClass(index);
-    setOverlay(index);
+    if (isUndefined(i) && target) i = targetIndex; // If index is undefined, get it from the target
+
+    updateCounter(i);
+    updateFadeClass(i);
+    setOverlay(i);
   }
 
   const updatePaginationDots = () => {
@@ -298,20 +313,28 @@ const handleCarousel = (carousel) => {
   const updateControls = () => {
     if (!elements.navi && !elements.pagi || !elements.wrap) return;
 
-    const hasNoOverflow = elements.wrap.clientWidth === elements.wrap.scrollWidth &&
-                         elements.wrap.clientHeight === elements.wrap.scrollHeight;
+    // More reliable overflow detection using scroll dimensions
+    const tolerance = 1; // Allow a small tolerance (1px) for rounding errors in some browsers
+    const hasNoOverflow = (elements.wrap.clientWidth + tolerance >= elements.wrap.scrollWidth) &&
+                          (elements.wrap.clientHeight + tolerance >= elements.wrap.scrollHeight);
 
-    if (hasNoOverflow) {
-      elements.navi?.classList.add(config.modifier.hidden);
-      elements.pagi?.classList.add(config.modifier.hidden);
-    } else {
-      elements.navi?.classList.remove(config.modifier.hidden);
-      elements.pagi?.classList.remove(config.modifier.hidden);
+    // Update navigation visibility
+    if (elements.navi) {
+      hasNoOverflow
+        ? elements.navi.classList.add(config.modifier.hidden)
+        : elements.navi.classList.remove(config.modifier.hidden)
+    }
+
+    // Update pagination visibility
+    if (elements.pagi) {
+      hasNoOverflow
+        ? elements.pagi.classList.add(config.modifier.hidden)
+        : elements.pagi.classList.remove(config.modifier.hidden)
     }
   }
 
   const updateCounter = (i) => {
-    if (!elements.count || i === 0 || typeof i === 'undefined') return;
+    if (!elements.count || i === 0 || isUndefined(i)) return;
 
     elements.count.innerHTML = i < 10 ? `0${i}` : `${i}`;
   }
@@ -452,9 +475,7 @@ const handleCarousel = (carousel) => {
     return durationMs + defaultDuration; // Add 200ms to the duration as specified in the CSS (transition: ... + 200ms)
   }
 
-  // Track the last overlay timer to clear it if needed
-  let overlayTimer = null;
-
+  // Set overlay color with a delay for smoother transitions
   const setOverlay = (index) => {
     if (!carousel.classList.contains(config.class.edges) ||
         !index ||
@@ -483,11 +504,7 @@ const handleCarousel = (carousel) => {
     }
   }
 
-  // Track when a scroll transition is occurring
-  let isScrolling = false;
-  let currentScrollTarget = null;
-
-  // Enhanced scroll with transition tracking and transform-based animation for better performance
+  // Enhanced scroll with transition tracking for better performance
   const smoothScrollTo = (element, left, top) => {
     // Mark that we're starting a scroll transition
     isScrolling = true;
@@ -496,69 +513,27 @@ const handleCarousel = (carousel) => {
     // Get the animation duration
     const duration = getAnimationDuration();
 
-    // Standard scroll implementation (define it first to avoid the reference error)
-    const performStandardScroll = () => {
-      // Perform the smooth scroll
-      element.scrollTo({
-        left,
-        top,
-        behavior: 'smooth'
-      })
+    // Perform the smooth scroll using standard browser scrolling
+    element.scrollTo({
+      left,
+      top,
+      behavior: 'smooth'
+    })
 
-      // Add a one-time scroll event listener to detect when scrolling ends
-      const handleScrollEnd = () => {
-        // Reset scrolling state when the transition is complete
-        isScrolling = false;
-        currentScrollTarget = null;
+    // Add a one-time scroll event listener to detect when scrolling ends
+    const handleScrollEnd = () => {
+      // Reset scrolling state when the transition is complete
+      isScrolling = false;
+      currentScrollTarget = null;
 
-        // Remove the listener once fired
-        element.removeEventListener('scrollend', handleScrollEnd);
-      }
-
-      // Use scrollend event if supported, otherwise fallback to timeout
-      'onscrollend' in window
-        ? element.addEventListener('scrollend', handleScrollEnd, { once: true })
-        : setTimeout(handleScrollEnd, duration + 50) // Add buffer time to ensure transition completes
+      // Update visible slides after scrolling finishes
+      handleVisibleSlides();
     }
 
-    const isFade = carousel.classList.contains(config.class.fade),
-          isFull = carousel.classList.contains(config.class.full);
-
-    if (isFull && !isFade) {
-      // Use GPU-accelerated transform for smoother animation
-      const wrapper = element.firstElementChild;
-
-      if (wrapper) {
-        // Apply CSS class for transition properties and set duration as inline style
-        wrapper.style.transitionDuration = `${duration}ms`; // Only set the dynamic duration
-        wrapper.style.transform = `translateX(-${left}px)`;
-
-        // Handle transition end
-        const handleTransitionEnd = () => {
-          // Reset scrolling state
-          isScrolling = false;
-          currentScrollTarget = null;
-
-          // Sync scroll position with transform
-          element.scrollLeft = left;
-
-          // Remove class and reset styles for proper scroll behavior
-          wrapper.style.transitionDuration = '';
-          wrapper.style.transform = '';
-
-          // Remove listener
-          wrapper.removeEventListener('transitionend', handleTransitionEnd);
-        }
-
-        wrapper.addEventListener('transitionend', handleTransitionEnd, { once: true });
-      } else {
-        // Fallback to scroll if wrapper not found
-        performStandardScroll();
-      }
-    } else {
-      // Use standard scroll for complex layouts
-      performStandardScroll();
-    }
+    // Use scrollend event if supported, otherwise fallback to timeout
+    'onscrollend' in window
+      ? LazyUtils.addEventListenerNode(element, 'scrollend', handleScrollEnd, { once: true })
+      : setTimeout(handleScrollEnd, duration + 100) // Use a longer timeout for wider browser compatibility
   }
 
   const getSiblingElement = (element, selector, direction) => {
@@ -586,62 +561,133 @@ const handleCarousel = (carousel) => {
   const setupListeners = () => {
     // Use event delegation for better performance - attach event handlers to the carousel
     // instead of to each individual element
-    carousel.addEventListener('click', event => {
-      const target = event.target;
-
+    clickHandler = e => {
       // Handle dot clicks
-      if (target.classList.contains(config.class.dot)) {
-        handlePagination(event);
-        handleNavigation(event);
+      if (e.target.classList.contains(config.class.dot)) {
+        handlePagination(e);
+        handleNavigation(e);
       }
 
       // Handle button clicks
-      if (target.classList.contains(config.class.prev) || target.classList.contains(config.class.next)) {
-        handleNavigation(event);
+      if (e.target.classList.contains(config.class.prev) || e.target.classList.contains(config.class.next)) {
+        handleNavigation(e);
       }
-    });
+    }
+    LazyUtils.addEventListenerNode(carousel, 'click', clickHandler);
 
     // Touch and wheel events with optimized passive listeners
     // Use a throttled wheel handler for better performance
     let wheelThrottled = false;
-    carousel.addEventListener('wheel', event => {
+    wheelHandler = e => {
       if (!wheelThrottled) {
         wheelThrottled = true;
         window.requestAnimationFrame(() => {
-          handleTouchpadMovement(event);
+          handleTouchpadMovement(e);
           wheelThrottled = false;
-        });
+        })
       }
-    }, { passive: false });
+    }
+    LazyUtils.addEventListenerNode(carousel, 'wheel', wheelHandler, { passive: false });
 
-    carousel.addEventListener('touchstart', handleTouchscreenMovement, { passive: true });
-    carousel.addEventListener('touchend', handleTouchscreenMovement, { passive: true });
+    // Store touch event handlers
+    touchStartHandler = handleTouchscreenMovement;
+    touchEndHandler = handleTouchscreenMovement;
 
-    // Optimized resize handler with requestAnimationFrame for smoother updates
-    // Reduce debounce time for more responsive UI during resize
-    const debouncedResize = LazyUtils.debounce(() => {
-      const currentWidth = window.innerWidth;
+    LazyUtils.addEventListenerNode(carousel, 'touchstart', touchStartHandler, { passive: true });
+    LazyUtils.addEventListenerNode(carousel, 'touchend', touchEndHandler, { passive: true });
 
-      // Only process resize if width actually changed (skip height-only changes)
-      if (currentWidth !== lastWindowWidth) {
-        // Update cached width
+    const resizeObserver = () => {
+      // Create a callback function for resize changes
+      const handleResize = () => {
+        // Recalculate slide width since viewport changed
+        if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
+
+        // Update UI elements
+        updateControls();
+        updatePaginationDots();
+      }
+
+      // Create the ResizeObserver with our config
+      resizeObserverUtil = Utils.createResizeObserver(handleResize, {
+        element: carousel,
+        debounceTime: 100,
+        trackWidth: true
+      })
+    }
+
+    const debouncedResize = () => {
+      // Fallback to window resize event with debounce for older browsers
+      windowResizeHandler = LazyUtils.debounce(() => {
+        const currentWidth = window.innerWidth;
+
+        if (currentWidth === lastWindowWidth) return;
+
         lastWindowWidth = currentWidth;
 
-        // Use requestAnimationFrame for smoother visual updates
         window.requestAnimationFrame(() => {
-          // Recalculate slide width since viewport changed
           if (elements.item) {
             slideWidth = elements.item.getBoundingClientRect().width;
           }
 
-          // Update UI elements
           updateControls();
           updatePaginationDots();
-        });
-      }
-    }, 100);
+        })
+      }, 100);
 
-    window.addEventListener('resize', debouncedResize);
+      LazyUtils.addEventListenerNode(window, 'resize', windowResizeHandler);
+    }
+
+    // Use the ResizeObserver utility from Utils
+    Utils && isFunc(Utils.createResizeObserver)
+      ? resizeObserver()
+      : debouncedResize()
+  }
+
+  const hideOffScreenImages = (el) => {
+    if (el.classList.contains(config.class.off)) return;
+
+    el.classList.add(config.class.off);
+
+    const pictures = el.querySelectorAll('picture'); // Handle picture elements
+    pictures.forEach(picture => {
+      const img = picture.querySelector('img'); // Handle the img inside the picture
+      if (!img || !img.dataset.originalLoading) return;
+
+      img.dataset.originalLoading = img.loading || 'lazy';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+    })
+  }
+
+  const showOnScreenImages = (el) => {
+    if (!el.classList.contains(config.class.off)) return;
+    el.classList.remove(config.class.off);
+
+    // Restore picture elements
+    const pictures = el.querySelectorAll('picture');
+    pictures.forEach(picture => {
+      const img = picture.querySelector('img');
+      if (!img || !img.dataset.originalLoading) return;
+
+      img.loading = img.dataset.originalLoading;
+      delete img.dataset.originalLoading;
+    })
+  }
+
+  // Optimize performance by only rendering visible and nearby slides
+  const handleVisibleSlides = () => {
+    if (!elements.items) return; // Skip if not enough slides or if using fade effect
+
+    const range = 1, // Number of slides visible on either side of current
+          wrapperWidth = elements.wrap.clientWidth,
+          scrollPosition = elements.wrap.scrollLeft,
+          start = Math.floor(scrollPosition / slideWidth) - range,               // Calculate which slides
+          end = Math.ceil((scrollPosition + wrapperWidth) / slideWidth) + range; //should be visible
+
+    // Apply optimizations to slides
+    elements.items.forEach((el, i) => {
+      i < start || i > end ? hideOffScreenImages(el) : showOnScreenImages(el)
+    })
   }
 
   const initialize = () => {
@@ -651,6 +697,19 @@ const handleCarousel = (carousel) => {
     if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
 
     carousel.classList.add(config.class.init);
+
+    // Apply initial slide optimizations for large carousels
+    handleVisibleSlides();
+
+    // Create scroll handler once and store it for proper removal later
+    scrollHandler = LazyUtils.debounce(() => {
+      window.requestAnimationFrame(handleVisibleSlides);
+    }, 100);
+
+    // Add scroll handler to update visible slides during scrolling
+    if (elements.wrap) {
+      LazyUtils.addEventListenerNode(elements.wrap, 'scroll', scrollHandler, { passive: true });
+    }
 
     // Check if auto-rotation is needed - only run this code if necessary
     if (carousel.hasAttribute(config.attr.timer)) {
@@ -665,24 +724,79 @@ const handleCarousel = (carousel) => {
     // Set initial overlay if feature is enabled (conditional execution)
     if (carousel.classList.contains(config.class.edges)) setOverlay(1);
 
-    // Set up event listeners after all initialization is complete
-    setupListeners();
+    setupListeners(); // Set up event listeners after all initialization is complete
   }
 
-  // Cleanup function to prevent memory leaks
+  // Comprehensive cleanup function to prevent memory leaks
   const destroy = () => {
     // Clear any running timers
     if (interval) clearInterval(interval);
     if (wheelTimeout) clearTimeout(wheelTimeout);
     if (overlayTimer) clearTimeout(overlayTimer);
 
-    // Remove window event listeners
-    window.removeEventListener('resize', debouncedResize);
+    // Clean up ResizeObserver utility if used
+    if (resizeObserverUtil && isFunc(resizeObserverUtil.cleanup)) {
+      resizeObserverUtil.cleanup();
+      resizeObserverUtil = null;
+    }
 
-    // Remove all event listeners from carousel element using cloneNode technique
-    // This is a clean way to remove all listeners at once
-    const newCarousel = carousel.cloneNode(true);
-    carousel.parentNode?.replaceChild(newCarousel, carousel);
+    // Reset any offscreen optimizations
+    if (elements.items && elements.items.length) {
+      elements.items.forEach(item => {
+        showOnScreenImages(item);
+      })
+    }
+
+    // Remove scroll event listener if added
+    if (elements.wrap && scrollHandler) {
+      LazyUtils.removeEventListenerNode(elements.wrap, 'scroll', scrollHandler);
+      scrollHandler = null;
+    }
+
+    // Explicitly remove registered event listeners
+    if (carousel) {
+      if (clickHandler) {
+        LazyUtils.removeEventListenerNode(carousel, 'click', clickHandler);
+        clickHandler = null;
+      }
+
+      if (wheelHandler) {
+        LazyUtils.removeEventListenerNode(carousel, 'wheel', wheelHandler);
+        wheelHandler = null;
+      }
+
+      if (touchStartHandler) {
+        LazyUtils.removeEventListenerNode(carousel, 'touchstart', touchStartHandler);
+        touchStartHandler = null;
+      }
+
+      if (touchEndHandler) {
+        LazyUtils.removeEventListenerNode(carousel, 'touchend', touchEndHandler);
+        touchEndHandler = null;
+      }
+
+      // Clean up pause event handlers if present
+      if (pauseEventHandler) {
+        LazyUtils.removeEventListenerNode(carousel, 'mouseenter', pauseEventHandler);
+        LazyUtils.removeEventListenerNode(carousel, 'mouseleave', pauseEventHandler);
+        LazyUtils.removeEventListenerNode(carousel, 'touchstart', pauseEventHandler);
+        LazyUtils.removeEventListenerNode(carousel, 'touchend', pauseEventHandler);
+        pauseEventHandler = null;
+      }
+
+      // Clean up window resize handler if fallback was used
+      if (windowResizeHandler) {
+        LazyUtils.removeEventListenerNode(window, 'resize', windowResizeHandler);
+        windowResizeHandler = null;
+      }
+
+      // Use cloneNode as a final safeguard for any listeners we might have missed
+      // This ensures all event listeners are removed
+      const newCarousel = carousel.cloneNode(true);
+      if (carousel.parentNode) {
+        carousel.parentNode.replaceChild(newCarousel, carousel);
+      }
+    }
 
     // Clear references to DOM elements
     for (const key in elements) {
@@ -690,7 +804,13 @@ const handleCarousel = (carousel) => {
         elements[key] = null;
       }
     }
-  };
+
+    // Release memory from closure variables
+    slideWidth = 0;
+    lastWindowWidth = 0;
+    isScrolling = false;
+    currentScrollTarget = null;
+  }
 
   // Public API
   return {
@@ -714,24 +834,19 @@ const initCarousel = (selector = '.carousel') => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const carousel = handleCarousel(entry.target);
-        if (carousel) carousel.initialize(); // Initialize the carousel
+        if (carousel) window.requestAnimationFrame(() => carousel.initialize());
 
         observer.unobserve(entry.target); // Stop observing after it's initialized
       }
     })
   }
 
-  // Create observer using Utils with enhanced options for better preloading
-  const observerOptions = {
-    rootMargin: '200px 0px', // Increased vertical margin for earlier loading (200px instead of 100px)
-    threshold: 0.01 // Trigger when just 1% is visible (same as default)
-  };
-  const observer = Utils.createObserver(handleCarouselIntersection, observerOptions);
+  const observer = Utils.createObserver(handleCarouselIntersection);
 
   nodes.forEach(node => {
     observer
       ? observer.observe(node) // If we have an observer, use it to lazy-initialize carousels
-      : handleCarousel(node)?.initialize() // Fallback for browsers without IntersectionObserver
+      : window.requestAnimationFrame(() => handleCarousel(node)?.initialize()) // Fallback for browsers without IntersectionObserver
   })
 }
 
