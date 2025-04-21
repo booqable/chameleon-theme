@@ -79,22 +79,6 @@
   font-family: var(--font-body, sans-serif);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 1px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: transparent;
-}
 
 html {
   overflow-x: hidden;
@@ -121,11 +105,6 @@ body {
   width: 100%;
   overflow-x: hidden;
   overflow-wrap: anywhere;
-}
-
-body::-webkit-scrollbar {
-  width: 0;
-  height: 0;
 }
 
 body > * {
