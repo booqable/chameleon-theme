@@ -88,6 +88,12 @@
   transition-property: max-height;
   transition-duration: var(--animation-duration, 200ms);
   transition-timing-function: var(--transition-function-ease-out);
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.sidebar__menu-wrapper::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
 .sidebar__menu-wrapper .sidebar__menu-list {

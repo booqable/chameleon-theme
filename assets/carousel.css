@@ -4,17 +4,17 @@
   position: relative;
 }
 
-.carousel *::-webkit-scrollbar {
+.carousel *::-webkit-scrollbar,
+.carousel__wrapper::-webkit-scrollbar {
   width: 0;
   height: 0;
+  display: none; /* Completely hide scrollbar */
 }
 
-.carousel *::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.carousel *::-webkit-scrollbar-thumb {
-  background: transparent;
+.carousel,
+.carousel__wrapper {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
 .carousel__wrapper {
@@ -27,11 +27,8 @@
   scroll-snap-stop: always;
   scroll-padding: 0 16px 0 0;
   scroll-behavior: smooth !important;
-  -ms-overflow-style: none;
   display: flex;
   align-items: stretch;
-  scrollbar-width: none;
-  scrollbar-color: transparent transparent;
 }
 
 .carousel--controls .carousel__wrapper {
