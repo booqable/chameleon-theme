@@ -2,15 +2,15 @@
   bq-product-gallery {
     --product-gallery-control-size: 40px;
     --product-gallery-control-padding: 0 5px;
-    --product-gallery-control-border-radius: var(--border-radius-dynamic, 0);
+    --product-gallery-control-border-radius: var(--border-radius-dynamic);
     --product-gallery-control-icon-size: 16px;
     --product-gallery-control-filter: blur(2px);
     --product-gallery-direction: column;
     --product-gallery-gap: 16px;
-    --product-gallery-preview-border-radius: 0;
+    --product-gallery-preview-border-radius: var(--border-radius-block-rounded);
     --product-gallery-preview-gap: 16px;
     --product-gallery-thumbnail-direction: row;
-    --product-gallery-thumbnail-border-radius: 0;
+    --product-gallery-thumbnail-border-radius: var(--border-radius-block-rounded);
     --product-gallery-thumbnail-size: var(--thumbnail-size, 80px);
 
     {% if color_palette == "one" %}

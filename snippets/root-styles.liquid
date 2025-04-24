@@ -217,30 +217,41 @@
 
     {%- case settings.rounded_corners -%}
       {%- when 'none' -%}
+        --border-radius-checkbox: 0px;
+        --border-radius-circle: 0px;
         --border-radius-dynamic: 0px;
         --border-radius-rounded: 0px;
-        --border-radius-circle: 0px;
-        --border-radius-checkbox: 0px;
       {%- when 'sm' -%}
+        --border-radius-checkbox: 4px;
+        --border-radius-circle: 4px;
         --border-radius-dynamic: 4px;
         --border-radius-rounded: 4px;
-        --border-radius-circle: 4px;
-        --border-radius-checkbox: 4px;
       {%- when 'md' -%}
+        --border-radius-checkbox: 4px;
+        --border-radius-circle: 8px;
         --border-radius-dynamic: 8px;
         --border-radius-rounded: 8px;
-        --border-radius-circle: 8px;
-        --border-radius-checkbox: 4px;
       {%- when 'lg' -%}
+        --border-radius-checkbox: 4px;
+        --border-radius-circle: 16px;
         --border-radius-dynamic: 16px;
         --border-radius-rounded: 8px;
-        --border-radius-circle: 16px;
-        --border-radius-checkbox: 4px;
       {%- when 'max' -%}
+        --border-radius-checkbox: 4px;
+        --border-radius-circle: 50%;
         --border-radius-dynamic: 25px;
         --border-radius-rounded: 8px;
-        --border-radius-circle: 50%;
-        --border-radius-checkbox: 4px;
+    {%- endcase -%}
+
+    {%- case settings.rounded_corners_blocks -%}
+      {%- when 'none' -%}
+        --border-radius-block-rounded: 0px;
+      {%- when 'sm' -%}
+        --border-radius-block-rounded: 4px;
+      {%- when 'md' -%}
+        --border-radius-block-rounded: 8px;
+      {%- when 'lg' -%}
+        --border-radius-block-rounded: 16px;
     {%- endcase -%}
   }
 </style>

@@ -60,7 +60,12 @@
   aspect-ratio: 16 / 9;
 }
 
+.contact-form__image-wrapper:after {
+  border-radius: var(--border-radius-block-rounded);
+}
+
 .contact-form__image {
+  border-radius: var(--border-radius-block-rounded);
   width: 100%;
 }
 

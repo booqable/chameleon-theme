@@ -49,10 +49,12 @@
   width: 100%;
   height: 100%;
   margin: var(--text-margin-top) 0 var(--text-margin-bottom);
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .text-image__image {
   width: 100%;
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .text-image__bg-default-wrapper,
