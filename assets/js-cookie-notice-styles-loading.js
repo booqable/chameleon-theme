@@ -4,11 +4,14 @@
  * This script loads cookie consent styling immediately when the cookie element
  * appears in the DOM using MutationObserver for optimal performance.
  *
- * @requires js-lazy-utils.js
+ * @requires js-utils-core.js
  */
+
 // Store current state to prevent unnecessary reapplication
-let ccCurrentPalette = '';
-let ccAppliedStyles = false;
+let ccCurrentPalette = '',
+    ccAppliedStyles = false,
+    observer = null,
+    checkInterval = null;
 
 // Apply the styles to the cookie container
 const applyCookieStyles = (ccMain) => {
@@ -30,60 +33,58 @@ const applyCookieStyles = (ccMain) => {
   // Apply CSS variables from the style map
   const ccStyleMap = window?.cookieSettings?.cookieStyleMap || {};
 
-  for (const [prop, val] of Object.entries(ccStyleMap)) {
-    ccMain.style.setProperty(prop, val);
-  }
+  // Batch DOM writes for better performance
+  $.batchDOM(() => {
+    for (const [prop, val] of Object.entries(ccStyleMap)) {
+      ccMain.style.setProperty(prop, val);
+    }
 
-  // Force a reflow to ensure styles are applied
-  void ccMain.offsetHeight;
-
-  // Update state
-  ccCurrentPalette = ccPalette;
-  ccAppliedStyles = true;
-
-  // Make cookie container visible now that styles are applied
-  setTimeout(() => { ccMain.style.opacity = '1'}, 500);
+    ccCurrentPalette = ccPalette;
+    ccAppliedStyles = true;
+    ccMain.style.opacity = '1';
+  })
 
   return true;
 }
 
-// Load the cookie CSS file with high priority
-const loadCookieStyles = () => {
-  if (document.querySelector('link[href*="cookie-styles.css"]')) return;
-
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = window.theme?.assets_url
-    ? `${window.theme.assets_url}cookie-notice-styles.css`
-    : '/assets/cookie-notice-styles.css';
-  link.setAttribute('priority', 'high');
-
-  document.head.appendChild(link);
-}
-
-// Set up MutationObserver to watch for cookie container
+// Set up MutationObserver to watch for cookie container, with performance optimizations
 const setupMutationObserver = () => {
-  // Create an observer instance
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === 'childList') {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            // Check if this element is the cookie container
-            if (node.id === 'cc-main') {
-              applyCookieStyles(node);
-              return;
-            }
+  // Don't create an observer if one already exists
+  if (observer) return observer;
 
-            // Check if the cookie container is a child of this element
-            const ccMain = node.querySelector('#cc-main');
-            if (ccMain) {
-              applyCookieStyles(ccMain);
-              return;
-            }
-          }
-        }
+  // Helper function to handle cookie container nodes
+  const nodeHandler = (el) => {
+    if (!el && el.nodeType !== Node.ELEMENT_NODE) return false;
+    if (el.id === 'cc-main') {
+      applyCookieStyles(el);
+      return true;
+    } else if (el.querySelector) {
+      const ccMain = el.querySelector('#cc-main');
+      if (ccMain) {
+        applyCookieStyles(ccMain);
+        return true;
       }
+    }
+  }
+
+  // Create an observer instance with optimized callback
+  observer = new MutationObserver((mutations) => {
+    let foundCookieContainer = false;
+
+    // Check for cookie container in added nodes
+    for (let i = 0; i < mutations.length && !foundCookieContainer; i++) {
+      const mutation = mutations[i];
+      if (mutation.type !== 'childList') continue;
+
+      for (let j = 0; j < mutation.addedNodes.length && !foundCookieContainer; j++) {
+        foundCookieContainer = nodeHandler(mutation.addedNodes[j]);
+        if (foundCookieContainer) break;
+      }
+    }
+
+    // If we found the container, disconnect the observer to save resources
+    if (foundCookieContainer && observer) {
+      observer.disconnect();
     }
   })
 
@@ -96,47 +97,50 @@ const setupMutationObserver = () => {
   return observer;
 }
 
-// Initial setup
-loadCookieStyles();
-applyCookieStyles();
+// Cleanup function to avoid memory leaks
+const cleanupCookiesListeners = () => {
+  $.eventListener('remove', window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
 
-// Set up the observer
-const observer = setupMutationObserver();
+  // Clean up observers and intervals
+  if (observer && observer.disconnect) {
+    observer.disconnect();
+    observer = null;
+  }
+
+  if (checkInterval) {
+    clearInterval(checkInterval);
+    checkInterval = null;
+  }
+}
+
+// Store handler for cookie consent initialization
+const cookieConsentInitHandler = () => applyCookieStyles();
+
+applyCookieStyles();
+setupMutationObserver();
 
 // Backup: Check for cookie container a few times with longer intervals
+// This is a fallback for older browsers or if the MutationObserver fails
 let attempts = 0;
-const checkInterval = setInterval(() => {
+checkInterval = setInterval(() => {
   attempts++;
+
+  const clearIntervalhandler = () => {
+    clearInterval(checkInterval);
+    checkInterval = null;
+  }
 
   if (document.getElementById('cc-main')) {
     applyCookieStyles();
+    clearIntervalhandler();
   }
 
   // Stop checking after 3 attempts (fewer attempts, longer interval)
-  if (attempts >= 3) {
-    clearInterval(checkInterval);
-  }
+  if (attempts >= 3) clearIntervalhandler();
 }, 1500)
 
-// Store handlers for proper cleanup
-const domContentLoadedHandler = () => applyCookieStyles();
-const cookieConsentInitHandler = () => applyCookieStyles();
-
-// Also try on DOM ready
-LazyUtils.addEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler);
-
 // Apply when cookie consent UI is initialized
-LazyUtils.addEventListenerNode(window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
+$.eventListener('add', window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
 
-// Provide cleanup function
-const cleanupEventListeners = () => {
-  LazyUtils.removeEventListenerNode(document, 'DOMContentLoaded', domContentLoadedHandler);
-  LazyUtils.removeEventListenerNode(window, 'cookie-consent-ui-initialized', cookieConsentInitHandler);
-
-  if (observer) observer.disconnect();
-
-  if (checkInterval) clearInterval(checkInterval);
-}
-
-// Expose cleanup function to global scope for potential use
-window.cleanupCookieNoticeEventListeners = cleanupEventListeners;
+// Expose cleanup function to global scope for page transitions
+window.cleanupCookiesListeners = cleanupCookiesListeners;

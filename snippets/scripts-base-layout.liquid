@@ -1,15 +1,15 @@
 {%- capture critical_scripts -%}
   [
+    "{{ 'js-utils-core.js' | asset_url }}",
     "{{ 'js-utils.js' | asset_url }}",
-    "{{ 'js-header.js' | asset_url }}",
-    "{{ 'js-main.js' | asset_url }}"
-  ]
-{%- endcapture -%}
+    "{{ 'js-header.js' | asset_url }}"
+    ]
+  {%- endcapture -%}
 
-{%- capture non_critical_scripts -%}
+  {%- capture non_critical_scripts -%}
   [
     "{{ 'lazysizes.min.js' | asset_url }}",
-    "{{ 'js-lazy-utils.js' | asset_url }}",
+    "{{ 'js-main.js' | asset_url }}",
     "{{ 'js-image-loading.js' | asset_url }}",
     "{{ 'js-carousel.js' | asset_url }}",
     "{{ 'js-focal-image.js' | asset_url }}",
