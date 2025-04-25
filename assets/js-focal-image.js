@@ -1,3 +1,4 @@
+
 /**
  * Focal Images Handler
  * Converts Booqable focal point coordinates to CSS object-position
@@ -9,11 +10,19 @@
  * CSS object-position uses percentages where:
  * - X: 0% (far left) to 100% (far right) with 50% being center
  * - Y: 0% (top) to 100% (bottom) with 50% being center
+ *
+ * Performance optimizations:
+ * - Uses IntersectionObserver to only process images as they enter viewport
+ * - Uses batchDOM to batch style changes
+ * - Caches computed values for efficiency
  */
 const handleFocalImages = () => {
   const focalImages = document.querySelectorAll('.focal-image');
 
   if (!focalImages || !focalImages.length) return;
+
+  // Map to cache computed values
+  const computedPositions = new Map();
 
   /**
    * Convert coordinates (-1 to 1) to CSS percentages (0% to 100%)
@@ -33,19 +42,63 @@ const handleFocalImages = () => {
     return `${clampedPercentage}%`;
   }
 
-  focalImages.forEach(image => {
+  const processFocalImage = (image) => {
+    if (image.dataset.focalProcessed === 'true') return;
+
     const focalX = image.getAttribute('data-focal-x');
     const focalY = image.getAttribute('data-focal-y');
 
     if (focalX !== null && focalY !== null) {
-      const objectPositionX = convertCoordinateToPercentage(focalX);
-      const objectPositionY = convertCoordinateToPercentage(focalY);
+      const positionKey = `${focalX}_${focalY}`;
 
-      image.style.objectPosition = `${objectPositionX} ${objectPositionY}`;
+      let position = computedPositions.get(positionKey);
 
-      image.style.opacity = 1;
+      if (!position) {
+        const objectPositionX = convertCoordinateToPercentage(focalX);
+        const objectPositionY = convertCoordinateToPercentage(focalY);
+        position = `${objectPositionX} ${objectPositionY}`;
+
+        computedPositions.set(positionKey, position);
+      }
+
+      $.batchDOM(() => {
+        image.style.objectPosition = position;
+        image.style.opacity = 1;
+        image.dataset.focalProcessed = 'true';
+      })
     }
-  })
+  }
+
+  // Use our Utils.intersectionObserver instead of creating one directly
+  const observerCallback = (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        processFocalImage(entry.target);
+        observer.unobserve(entry.target); // Stop observing this image once processed
+      }
+    })
+  }
+
+  // Check if Utils is available for intersection observer
+  const observer = $.intersectionObserver(observerCallback);
+
+  const focalImageCleanup = () => {
+    window.cleanupFocalImages = () => {
+      if (observer) observer.disconnect();
+      computedPositions.clear();
+    }
+  }
+
+  const focalImageHandler = () => {
+    focalImages.forEach(image => {
+      observer.observe(image);
+    })
+    focalImageCleanup();
+  }
+
+  observer
+    ? focalImageHandler()
+    : focalImages.forEach(processFocalImage);
 }
 
-handleFocalImages()
+handleFocalImages();
