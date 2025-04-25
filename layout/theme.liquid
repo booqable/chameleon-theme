@@ -37,6 +37,9 @@
       <link rel="stylesheet" href="{{ rx_url }}">
     </noscript>
 
+    {% comment %} Preload critical assets including above-the-fold images {% endcomment %}
+    {%- render 'preload-critical-assets' -%}
+
     {{ content_for_header }}
 
     {%- render 'page-social-share-meta',

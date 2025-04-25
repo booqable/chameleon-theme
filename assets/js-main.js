@@ -35,10 +35,14 @@ class Main {
 
   events() {
     this.setLoadedClass();
-    setTimeout(() => this.getDatePickerHeight(), 1000);
 
-    window.addEventListener("resize", this.getDatePickerHeight.bind(this));
-    window.addEventListener("resize", this.setResizeClass.bind(this));
+    // Use requestIdleCallback for non-critical operations if available
+    'requestIdleCallback' in window
+      ? requestIdleCallback(() => this.getDatePickerHeight(), { timeout: 2000 })
+      : setTimeout(() => this.getDatePickerHeight(), 1000)
+
+    window.addEventListener("resize", this.getDatePickerHeight.bind(this), { passive: true });
+    window.addEventListener("resize", this.setResizeClass.bind(this), { passive: true });
   }
 
   getDatePickerHeight() {
