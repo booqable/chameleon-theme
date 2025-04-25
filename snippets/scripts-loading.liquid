@@ -1,51 +1,94 @@
-{% comment %} Scripts loading optimization {% endcomment %}
-<script>
-  // Set up theme global object for settings access
-  window.theme = window.theme || {};
-  window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
+{% comment %} Simple script loader that loads scripts in the order they're defined {% endcomment %}
+{% if criticals != blank or non_criticals != blank %}
+  <script>
+    // Set up theme global object for settings access
+    window.theme = window.theme || {};
+    window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
 
-  const criticalScripts = {{ criticals | default: "[]" | json }},
-        nonCriticalScripts = {{ non_criticals | default: "[]" | json }};
+    const criticalScripts = {{ criticals | default: "[]" | json }},
+          nonCriticalScripts = {{ non_criticals | default: "[]" | json }};
 
-  if (criticalScripts.length && nonCriticalScripts.length) {
-    // Create script elements with optimal loading strategy
-    const createScript = (src, isDeferred = true) => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'script';
-      link.href = src;
-      document.head.appendChild(link);
+    // Keep track of loaded scripts for cleanup and error prevention
+    window.loadedScripts = window.loadedScripts || [];
+
+    // Setup cleanup handler for page transitions
+    window.themeCleanup = () => {
+      if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
+
+      // These global utility identifiers should be preserved
+      // to avoid "undefined" errors in other components
+      window.Utils = window.Utils || {};
+      window.$ = window.$ || {};
+    }
+
+    // Create script element with proper attributes
+    const createScript = (src, isDeferred = true, isPriority = false) => {
+      if (window.loadedScripts.includes(src)) return null;
+      window.loadedScripts.push(src);
 
       const script = document.createElement('script');
       script.src = src;
       script.defer = isDeferred;
+
+      const errorHandler = () => {
+        console.error(`Failed to load script: ${src}`);
+        // Remove from loaded scripts if it failed
+        const index = window.loadedScripts.indexOf(src);
+        if (index > -1) window.loadedScripts.splice(index, 1);
+      }
+
+      script.onerror = () => errorHandler();
+
       return script;
     }
 
-    // Load critical scripts immediately but deferred
-    if (criticalScripts.length) {
-      criticalScripts.forEach(src => {
-        document.body.appendChild(createScript(src))
-      })
+    // Load critical scripts sequentially to respect order
+    const loadCriticalScripts = (index = 0) => {
+      if (index >= criticalScripts.length) {
+        loadNonCriticalScripts();
+        return;
+      }
+
+      const script = createScript(criticalScripts[index], false);
+
+      const loadScriptsHandler = () => {
+        script.onload = () => loadCriticalScripts(index + 1);
+        script.onerror = () => loadCriticalScripts(index + 1);
+        document.body.appendChild(script);
+      }
+
+      script ? loadScriptsHandler() : loadCriticalScripts(index + 1);
     }
 
-    // Load non-critical scripts after everything else
-    if (nonCriticalScripts.length) {
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => {
+    const loadNonCriticalScripts = () => {
+      if (!nonCriticalScripts.length) return;
+
+      window.addEventListener('load', () => {
+        const loadScripts = () => {
           nonCriticalScripts.forEach(src => {
-            document.body.appendChild(createScript(src))
+            const script = createScript(src);
+            if (script) document.body.appendChild(script);
           })
-        }, { timeout: 5000 })
-      } else {
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            nonCriticalScripts.forEach(src => {
-              document.body.appendChild(createScript(src))
-            })
-          }, 100)
-        })
-      }
+        }
+
+        'requestIdleCallback' in window
+          ? window.requestIdleCallback(loadScripts, { timeout: 4000 })
+          : setTimeout(loadScripts, 100);
+      }, { once: true })
     }
-  }
-</script>
+
+    criticalScripts.length ? loadCriticalScripts() : loadNonCriticalScripts();
+
+    // Register cleanup for various navigation events
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('page:before-change', () => {
+        if (window.themeCleanup) window.themeCleanup();
+      })
+
+      // Some platforms use this event
+      window.addEventListener('beforeunload', () => {
+        if (window.themeCleanup) window.themeCleanup();
+      }, {once: true})
+    })
+  </script>
+{% endif %}
