@@ -4,7 +4,7 @@
  * Handles tab switching functionality, including active states
  * for both tabs and their associated content panels.
  *
- * @requires js-lazy-utils.js
+ * @requires js-utils.js
  */
 const handleTabs = (tabsContainer) => {
   if (!tabsContainer) return null;
@@ -40,15 +40,36 @@ const handleTabs = (tabsContainer) => {
 
     if (!arr) return;
 
-    arr.forEach(el => {
-      if (!el) return;
+    // Use frameSequence utility to prevent layout thrashing
+    $.frameSequence(
+      // Read phase: collect elements and determine active state
+      () => {
+        const updates = [];
 
-      const id = el.getAttribute(attr);
+        arr.forEach(el => {
+          if (!el) return;
 
-      el.classList.remove(mod);
+          const id = el.getAttribute(attr);
+          updates.push({
+            element: el,
+            shouldBeActive: val === id
+          })
+        })
 
-      if (val === id) el.classList.add(mod);
-    })
+        return updates;
+      },
+      // Write phase: apply class changes
+      (updates) => {
+        $.batchDOM(() => {
+          updates.forEach(update => {
+            update.element.classList.remove(mod);
+            if (update.shouldBeActive) {
+              update.element.classList.add(mod);
+            }
+          })
+        })
+      }
+    )
   }
 
   const handleTabClick = (event) => {
@@ -58,45 +79,54 @@ const handleTabs = (tabsContainer) => {
 
     if (!isDirectTab && !isChildOfTab) return;
 
-    // Get the actual tab element (could be parent if click was on child)
-    const tabElement = isDirectTab ? target : target.parentElement;
+    // Use nextFrame utility to ensure DOM operations happen at the right time
+    $.nextFrame(() => {
+      // Get the actual tab element (could be parent if click was on child)
+      const tabElement = isDirectTab ? target : target.parentElement;
+      const tabId = tabElement.getAttribute(config.attributes.trigger);
 
-    const tabId = tabElement.getAttribute(config.attributes.trigger);
-
-    updateActiveClasses({
-      arr: elements.tabs,
-      attr: config.attributes.trigger,
-      val: tabId,
-      mod: config.modifiers.active
-    })
-
-    // Update active content if it exists
-    if (elements.content.length) {
+      // Schedule tab updates
       updateActiveClasses({
-        arr: elements.content,
-        attr: config.attributes.content,
+        arr: elements.tabs,
+        attr: config.attributes.trigger,
         val: tabId,
         mod: config.modifiers.active
       })
-    }
 
-    if (elements.opener && target.classList.contains(config.classes.tab)) {
-      elements.opener.checked = false;
-    }
+      // Update active content if it exists
+      if (elements.content.length) {
+        updateActiveClasses({
+          arr: elements.content,
+          attr: config.attributes.content,
+          val: tabId,
+          mod: config.modifiers.active
+        });
+      }
+
+      // Toggle opener checkbox in the next frame
+      if (elements.opener && target.classList.contains(config.classes.tab)) {
+        $.nextFrame(() => {
+          elements.opener.checked = false;
+        })
+      }
+    })
   }
 
   const initialize = () => {
     if (!elements.tabs.length) return;
 
-    // Store handler and use utility function
+    // Store handler and use utility function if available
     clickHandler = handleTabClick;
-    LazyUtils.addEventListenerNode(document, 'click', clickHandler);
+
+    // Use eventListener utility
+    $.eventListener('add', document, 'click', clickHandler);
   }
 
   const destroy = () => {
     // Clean up event listener
     if (clickHandler) {
-      LazyUtils.removeEventListenerNode(document, 'click', clickHandler);
+      // Use utility function to remove event listener
+      $.eventListener('remove', document, 'click', clickHandler);
       clickHandler = null;
     }
   }
@@ -108,14 +138,33 @@ const handleTabs = (tabsContainer) => {
 }
 
 const initTabs = (selector = '.tabs') => {
-  const tabsContainers = document.querySelectorAll(selector);
+  const tabsContainers = document.querySelectorAll(selector),
+        tabInstances = [];
 
-  if (!tabsContainers.length) return;
+  if (!tabsContainers.length) return tabInstances;
 
   tabsContainers.forEach(container => {
     const tabs = handleTabs(container);
-    if (tabs) tabs.initialize();
+    if (tabs) {
+      tabs.initialize();
+      tabInstances.push(tabs);
+    }
   })
+
+  return tabInstances;
 }
 
-initTabs()
+const tabsInstances = initTabs();
+
+// Add cleanup handler
+window.cleanupTabs = () => {
+  if (tabsInstances && tabsInstances.length) {
+    tabsInstances.forEach(instance => {
+      if (instance && $.is(instance.destroy, 'function')) {
+        instance.destroy();
+      }
+    })
+
+    tabsInstances.length = 0;
+  }
+}
