@@ -16,6 +16,7 @@
   border: 1px solid transparent;
   overflow: hidden;
   margin: 0 0 30px;
+  border-radius: var(--border-radius-block-rounded);
   contain: layout;
 }
 
@@ -56,6 +57,7 @@
 
 .mosaic__image {
   max-height: 50px;
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child,

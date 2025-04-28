@@ -51,6 +51,7 @@
 
 .testimonials__image {
   margin: 0 auto;
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .testimonials__content {

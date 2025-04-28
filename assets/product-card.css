@@ -4,6 +4,7 @@
   position: relative;
   min-width: 298px;
   overflow: clip;
+  border-radius: var(--border-radius-block-rounded);
   contain: content;
 }
 

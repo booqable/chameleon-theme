@@ -7,17 +7,17 @@
   width: calc(100% + 32px);
 }
 
-.carousel *::-webkit-scrollbar {
+.carousel *::-webkit-scrollbar,
+.carousel__wrapper::-webkit-scrollbar {
   width: 0;
   height: 0;
+  display: none; /* Completely hide scrollbar */
 }
 
-.carousel *::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.carousel *::-webkit-scrollbar-thumb {
-  background: transparent;
+.carousel,
+.carousel__wrapper {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
 .carousel__wrapper {
@@ -28,7 +28,6 @@
   scroll-snap-stop: always;
   scroll-padding: 0 16px 0 0;
   scroll-behavior: smooth !important;
-  -ms-overflow-style: none;
   display: flex;
   align-items: stretch;
   scrollbar-width: none;
@@ -129,7 +128,7 @@
 
 .carousel__btn {
   margin: 0 8px;
-  border-radius: var(--border-radius-dynamic, 50%);
+  border-radius: var(--border-radius-dynamic);
   width: 48px;
   height: 48px;
   border: 1px solid transparent;
@@ -230,7 +229,7 @@
   cursor: pointer;
   width: 40px;
   height: 40px;
-  border-radius: var(--border-radius-dynamic, 0);
+  border-radius: var(--border-radius-dynamic);
   margin: 0;
   z-index: 2;
   line-height: var(--line-height-xs, 1);

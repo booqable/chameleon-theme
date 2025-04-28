@@ -23,6 +23,7 @@
   flex-direction: column;
   border: 1px solid transparent;
   position: relative;
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .columns__image-wrapper {

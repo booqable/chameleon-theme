@@ -1,5 +1,5 @@
 /**
- * Extended Utilities (optional, load as needed)
+ * Utilities (optional, load as needed)
  * Depends on js-utils-core.js being loaded first
  */
 

@@ -12,7 +12,7 @@
 
 .cookie-notice-preferences__inner {
   border: 1px solid transparent;
-  border-radius: var(--border-radius-rounded);
+  border-radius: var(--border-radius-block-rounded);
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
