@@ -13,8 +13,9 @@
 
     // Setup cleanup handler for page transitions
     window.themeCleanup = () => {
-      if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
+      if (window.cleanupFocalImages) window.cleanupFocalImages();
       if (window.cleanupImageSpacer) window.cleanupImageSpacer();
+      if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
 
       // These global utility identifiers should be preserved
       // to avoid "undefined" errors in other components
