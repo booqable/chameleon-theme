@@ -28,43 +28,14 @@ const handleImageLoading = () => {
 
   let observer = null;
 
-  // Detect modern image format support (the results may be cached in Utils.imageFormats)
-  // This object holds browser format support information
-  const formatSupport = {
-    webp: false,
-    avif: false
-  }
-
-  // Initialize format detection with minimal overhead
-  // Only needed to determine which <source> elements to load for performance
-  const initFormatSupport = async () => {
-    try {
-      // Utils.imageFormats already implements efficient caching,
-      // so we don't need to worry about duplicate checks
-      const formats = await $.imageFormats();
-      formatSupport.webp = formats.webp;
-      formatSupport.avif = formats.avif;
-
-      // We could optionally store this in localStorage to avoid
-      // even the minimal detection overhead on repeat visits, but
-      // the existing checks are already very efficient
-    } catch (err) {
-      // Fail gracefully - browser will load appropriate formats
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.warn('Format detection failed, loading all formats');
-      }
-    }
-  }
-
-  initFormatSupport();
-
-  // Helper function to decode images using the most appropriate method
+  // Helper function to decode lazy-loaded images
+  // Only used for images that are lazy-loaded but become visible
   const decodeImage = (image) => {
-    if ('decode' in image) {
-      image.decode().catch(() => {}) // Use .decode() first as it's more widely supported
-    } else if ('createImageBitmap' in window) {
-      createImageBitmap(image).catch(() => {}) // Fallback to createImageBitmap for older browsers that support it
-    }
+    if (!('decode' in image)) return;
+
+    image.decode().catch(() => {
+      // Silently fail - the image will still display normally
+    })
   }
 
   const sourcesDataLoad = (mainImage) => {
@@ -317,7 +288,7 @@ const handleImageLoading = () => {
     const imageChunkHandler = () => {
       // On fast connections with good devices, load all remaining images
       // Split loading into chunks for better performance
-      const chunkSize = 10,
+      const chunkSize = 5,
             totalImages = notLoadedImages.length;
 
       const loadImageChunk = (startIndex) => {
