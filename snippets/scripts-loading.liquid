@@ -1,4 +1,3 @@
-
 {% comment %} Simple script loader that loads scripts in the order they're defined {% endcomment %}
 {% if criticals != blank or non_criticals != blank %}
   <script>
@@ -11,6 +10,16 @@
 
     // Keep track of loaded scripts for cleanup and error prevention
     window.loadedScripts = window.loadedScripts || [];
+
+    // Setup cleanup handler for page transitions
+    window.themeCleanup = () => {
+      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
+
+      // These global utility identifiers should be preserved
+      // to avoid "undefined" errors in other components
+      window.Utils = window.Utils || {};
+      window.$ = window.$ || {};
+    }
 
     // Create script element with proper attributes
     const createScript = (src, isDeferred = true, isPriority = false) => {
@@ -69,5 +78,17 @@
     }
 
     criticalScripts.length ? loadCriticalScripts() : loadNonCriticalScripts();
+
+    // Register cleanup for various navigation events
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('page:before-change', () => {
+        if (window.themeCleanup) window.themeCleanup();
+      })
+
+      // Some platforms use this event
+      window.addEventListener('beforeunload', () => {
+        if (window.themeCleanup) window.themeCleanup();
+      }, {once: true})
+    })
   </script>
 {% endif %}
