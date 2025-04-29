@@ -1,4 +1,3 @@
-
 /**
  * Focal Images Handler
  * Converts Booqable focal point coordinates to CSS object-position
@@ -21,8 +20,8 @@ const handleFocalImages = () => {
 
   if (!focalImages || !focalImages.length) return;
 
-  // Map to cache computed values
-  const computedPositions = new Map();
+  // Cache for storing calculated position values
+  const cachePositions = new Map();
 
   /**
    * Convert coordinates (-1 to 1) to CSS percentages (0% to 100%)
@@ -42,6 +41,33 @@ const handleFocalImages = () => {
     return `${clampedPercentage}%`;
   }
 
+  /**
+   * Calculate and cache position from focal coordinates
+   * Uses Map to efficiently cache previously calculated positions
+   * @param {string|number} focalX - X-axis focal point (-1 to 1)
+   * @param {string|number} focalY - Y-axis focal point (-1 to 1)
+   * @returns {string} CSS object-position value
+   */
+  const calculatePosition = (focalX, focalY) => {
+    // Skip invalid coordinates
+    if (focalX === null || focalY === null) return '50% 50%';
+
+    const positionKey = `${focalX}_${focalY}`; // Create a unique key for caching
+
+    let position = cachePositions.get(positionKey); // Check if position's already calculated
+
+    // If not found in cache, calculate and store it
+    if (!position) {
+      const objectPositionX = convertCoordinateToPercentage(focalX);
+      const objectPositionY = convertCoordinateToPercentage(focalY);
+      position = `${objectPositionX} ${objectPositionY}`;
+
+      cachePositions.set(positionKey, position); // Cache the result
+    }
+
+    return position;
+  }
+
   const processFocalImage = (image) => {
     if (image.dataset.focalProcessed === 'true') return;
 
@@ -49,17 +75,7 @@ const handleFocalImages = () => {
     const focalY = image.getAttribute('data-focal-y');
 
     if (focalX !== null && focalY !== null) {
-      const positionKey = `${focalX}_${focalY}`;
-
-      let position = computedPositions.get(positionKey);
-
-      if (!position) {
-        const objectPositionX = convertCoordinateToPercentage(focalX);
-        const objectPositionY = convertCoordinateToPercentage(focalY);
-        position = `${objectPositionX} ${objectPositionY}`;
-
-        computedPositions.set(positionKey, position);
-      }
+      const position = calculatePosition(focalX, focalY); // Get cached or calculated position
 
       $.batchDOM(() => {
         image.style.objectPosition = position;
@@ -85,7 +101,7 @@ const handleFocalImages = () => {
   const focalImageCleanup = () => {
     window.cleanupFocalImages = () => {
       if (observer) observer.disconnect();
-      computedPositions.clear();
+      cachePositions.clear();
     }
   }
 
