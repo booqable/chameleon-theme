@@ -13,6 +13,7 @@
 
     // Setup cleanup handler for page transitions
     window.themeCleanup = () => {
+      if (window.cleanupImageLoading) window.cleanupImageLoading();
       if (window.cleanupFocalImages) window.cleanupFocalImages();
       if (window.cleanupImageSpacer) window.cleanupImageSpacer();
       if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
