@@ -6,75 +6,133 @@
  *
  * @requires js-utils-core.js
  */
-const handleImageLoading = () => {
-  const config = {
-    attributes: {
-      sourceSrcset: 'data-source-srcset',
-      mainSrcset: 'data-srcset'
-    },
-    classes: {
-      hidden: 'hidden',
-      loaded: 'loaded',
-      main: 'image-main',
-      placeholder: 'image-placeholder',
-      wrapper: 'image-wrapper'
-    }
+
+const ImageConfig = {
+  attributes: {
+    sourceSrcset: 'data-source-srcset',
+    mainSrcset: 'data-srcset'
+  },
+  classes: {
+    hidden: 'hidden',
+    loaded: 'loaded',
+    main: 'image-main',
+    placeholder: 'image-placeholder',
+    wrapper: 'image-wrapper'
+  },
+  viewport: {
+    mobileWidth: 992,
+    defaultMultiplier: 2.5,
+    mobileMultiplier: 2.0,
+    lowEndMultiplier: 1.5,
+    chunkSize: 5
   }
+}
 
-  const wrappers = document.querySelectorAll(`.${config.classes.wrapper}`),
-        mobileWidth = 992;
+const VisibilityManager = {
+  observer: null,
 
-  if (!wrappers.length) return false;
+  createObserver(callback) {
+    if (this.observer !== null) return this.observer;
+    if (!$.is($.intersectionObserver, 'function')) return null;
 
-  let observer = null;
+    this.observer = $.intersectionObserver(callback);
+    return this.observer;
+  },
 
-  // Helper function to decode lazy-loaded images
-  // Only used for images that are lazy-loaded but become visible
-  const decodeImage = (image) => {
+  cleanup() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+  },
+
+  observe(element) {
+    if (!this.observer) return;
+    this.observer.observe(element);
+  },
+
+  unobserve(element) {
+    if (!this.observer) return;
+    this.observer.unobserve(element);
+  },
+
+  checkVisibility(img, multiplier) {
+    if ($.is($.inViewport, 'function') && $.inViewport(img)) {
+      return { visible: true, inViewport: true };
+    }
+
+    const viewport = DeviceManager.getViewportSize(),
+          rect = img.getBoundingClientRect(),
+          isNearViewport = rect.top < viewport.height * multiplier;
+
+    return { visible: isNearViewport, inViewport: false };
+  }
+}
+
+const DeviceManager = {
+  getViewportSize() {
+    return $.viewportSize && $.is($.viewportSize, 'function')
+      ? $.viewportSize()
+      : { width: window.innerWidth, height: window.innerHeight };
+  },
+
+  hasLowMemory() {
+    return navigator.deviceMemory && navigator.deviceMemory < 4;
+  },
+
+  hasReducedData() {
+    return navigator.connection && navigator.connection.saveData;
+  },
+
+  isMobile() {
+    return this.getViewportSize().width < ImageConfig.viewport.mobileWidth;
+  },
+
+  getAdaptiveMultiplier() {
+    if ($.slowConnection() || this.hasLowMemory()) {
+      return ImageConfig.viewport.lowEndMultiplier;
+    }
+    return this.isMobile()
+      ? ImageConfig.viewport.mobileMultiplier
+      : ImageConfig.viewport.defaultMultiplier;
+  }
+}
+
+const ImageLoader = {
+  decodeImage(image) {
     if (!('decode' in image)) return;
-
     image.decode().catch(() => {
       // Silently fail - the image will still display normally
     })
-  }
+  },
 
-  const sourcesDataLoad = (mainImage) => {
-    const wrapper = mainImage.closest(`.${config.classes.wrapper}`),
-          sources = wrapper.querySelectorAll(`source[${config.attributes.sourceSrcset}]`),
-          inViewport = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false,
-          slowConnection = $.slowConnection();
+  loadSources(mainImage) {
+    const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`);
+    if (!wrapper) return;
 
-    const setAttributeHandle = () => {
-      sources.forEach(source => {
-        const dataSrc = source.getAttribute(config.attributes.sourceSrcset);
+    const sources = wrapper.querySelectorAll(`source[${ImageConfig.attributes.sourceSrcset}]`),
+          inViewport = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false;
 
-        if (dataSrc) {
-          source.setAttribute('srcset', dataSrc);
-          source.removeAttribute(config.attributes.sourceSrcset);
+    sources.forEach(source => {
+      const dataSrc = source.getAttribute(ImageConfig.attributes.sourceSrcset);
+      if (!dataSrc) return;
 
-          // Use Priority Hints if available (experimental)
-          if ('importance' in source && !slowConnection && inViewport) {
-            source.importance = 'high';
-          } else if ('importance' in source && slowConnection) {
-            source.importance = 'low';
-          }
-        }
-      })
-    }
+      source.setAttribute('srcset', dataSrc);
+      source.removeAttribute(ImageConfig.attributes.sourceSrcset);
 
-    if (sources.length) setAttributeHandle();
+      if ('importance' in source) {
+        source.importance = (inViewport && !$.slowConnection()) ? 'high' : 'low';
+      }
+    })
 
-    const mainSrcset = mainImage.getAttribute(config.attributes.mainSrcset);
+    const mainSrcset = mainImage.getAttribute(ImageConfig.attributes.mainSrcset);
+    if (!mainSrcset) return;
 
-    if (mainSrcset) {
+    $.batchDOM(() => {
       mainImage.setAttribute('srcset', mainSrcset);
-      mainImage.removeAttribute(config.attributes.mainSrcset);
+      mainImage.removeAttribute(ImageConfig.attributes.mainSrcset);
       mainImage.decoding = inViewport ? 'sync' : 'async';
 
-      // Try to use more modern image decoding methods if available
-      if (inViewport && mainImage.complete) decodeImage(mainImage);
-
-      // Set high priority for images in viewport
       if ($.isFetchPriority()) {
         mainImage.fetchPriority = inViewport ? 'high' : 'low';
       }
@@ -82,242 +140,193 @@ const handleImageLoading = () => {
       if ('importance' in mainImage) {
         mainImage.importance = inViewport ? 'high' : 'auto';
       }
+    })
+
+    if (inViewport && mainImage.complete) {
+      this.decodeImage(mainImage);
     }
-  }
+  },
 
-  const imageFadeIn = (mainImage, placeholder) => {
-    sourcesDataLoad(mainImage);
+  fadeInImage(mainImage, placeholder) {
+    this.loadSources(mainImage);
 
-    mainImage.classList.replace(config.classes.hidden, config.classes.loaded);
+    $.toggleClass(mainImage, ImageConfig.classes.hidden, false);
+    $.toggleClass(mainImage, ImageConfig.classes.loaded, true);
 
-    if (placeholder) {
-      placeholder.style.opacity = '0'
+    if (!placeholder) return;
 
-      const placeholderRemove = () => placeholder.remove();
-      $.eventListener('add', placeholder, 'transitionend', placeholderRemove, { once: true });
-    }
-  }
+    placeholder.style.opacity = '0';
+    const removePlaceholder = () => placeholder.remove();
+    $.eventListener('add', placeholder, 'transitionend', removePlaceholder, { once: true, passive: true });
+  },
 
-  const loadMainImg = (mainImage) => {
-    if (!mainImage.classList.contains(config.classes.main)) return;
-    if (!mainImage.classList.contains(config.classes.hidden)) return;
+  loadImage(mainImage) {
+    if (!mainImage.classList.contains(ImageConfig.classes.main)) return;
+    if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
 
-    const wrapper = mainImage.closest(`.${config.classes.wrapper}`),
-          placeholder = wrapper && wrapper.querySelector(`.${config.classes.placeholder}`);
+    const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`),
+          placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`),
+          inViewport = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false;
 
-    const imagePriorityLow = () => {
+    if ($.slowConnection()) {
       mainImage.decoding = 'async';
       if ($.isFetchPriority()) mainImage.fetchPriority = 'low';
       mainImage.setAttribute('importance', 'low');
+    } else if (inViewport && $.isFetchPriority()) {
+      mainImage.fetchPriority = 'high';
     }
 
-    const imagePriorityHigh = () => {
-      const inView = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false;
-      if (inView && $.isFetchPriority()) mainImage.fetchPriority = 'high';
-    }
-
-    // Apply connection-aware optimizations
-    $.slowConnection()
-      ? imagePriorityLow()
-      : imagePriorityHigh();
-
-    // Listen for when mainImage is really loaded (from network)
-    const imageLoadHandler = () => imageFadeIn(mainImage, placeholder);
-
-    mainImage.complete
-      ? imageFadeIn(mainImage, placeholder)
-      : $.eventListener('add', mainImage, 'load', imageLoadHandler, { once: true })
-  }
-
-  const handleIntersection = (entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        loadMainImg(entry.target); // When the image enters the viewport, load it
-        const obs = getObserver();
-        if (obs) obs.unobserve(entry.target);
-      }
-    })
-  }
-
-  const getObserver = () => {
-    if (observer === null) {
-      if ($.is($.intersectionObserver, 'function')) {
-        observer = $.intersectionObserver(handleIntersection);
-      }
-    }
-
-    return observer;
-  }
-
-  wrappers.forEach(wrapper => {
-    const mainImage = wrapper.querySelector(`.${config.classes.main}`),
-          placeholder = wrapper.querySelector(`.${config.classes.placeholder}`);
-
-    if (!mainImage || !placeholder) return;
-    if (!mainImage.classList.contains(config.classes.hidden)) return;
-
-    const inView = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false
-
-    if (inView) {
-      loadMainImg(mainImage)
+    if (mainImage.complete) {
+      this.fadeInImage(mainImage, placeholder);
     } else {
-      const obs = getObserver();
-      if (obs) obs.observe(mainImage);
+      const handleLoad = () => this.fadeInImage(mainImage, placeholder);
+      $.eventListener('add', mainImage, 'load', handleLoad, { once: true });
     }
-  })
+  }
+}
 
-  const viewportSizeFallback = () => ({
-    height: window.innerHeight,
-    width: window.innerWidth
-  })
+const LoadingStrategy = {
+  prioritizeVisible() {
+    const notLoadedImages = document.querySelectorAll(
+      `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
+    )
 
-  const viewportSize = $.viewportSize && $.is($.viewportSize, 'function')
-    ? $.viewportSize
-    : viewportSizeFallback
-
-  // Add a function to prioritize visible images with adaptive loading strategy
-  const prioritizeVisibleImages = () => {
-    const notLoadedImages = document.querySelectorAll(`.${config.classes.main}.${config.classes.hidden}`);
     if (!notLoadedImages.length) return;
 
-    const viewport = viewportSize(),
-          slowConnection = $.slowConnection(),
-          lowMemory = navigator.deviceMemory && navigator.deviceMemory < 4,
-          isMobile = viewport.width < mobileWidth;
-
-    // Create adaptive loading ranges based on device capabilities
-    // More conservative thresholds for low-end devices or slow connections
-    const viewportMultiplier = slowConnection || lowMemory
-      ? 1.5  // Conservative loading for low-end devices
-      : isMobile
-        ? 2.0  // Moderate preloading for mobile
-        : 3.0; // Aggressive preloading for desktop
-
-    const checkVisibility = (img) => {
-      if ($.is($.inViewport, 'function') && $.inViewport(img)) {
-        return { visible: true, inViewport: true };
-      }
-
-      const rect = img.getBoundingClientRect(),
-            viewportHeight = viewport.height,
-            isNearViewport = rect.top < viewportHeight * viewportMultiplier;
-
-      return { visible: isNearViewport, inViewport: false };
-    }
-
-    const processImageByVisibility = (img) => {
-      const { visible, inViewport } = checkVisibility(img);
-
-      if (!visible) return;
-
-      if ($.isFetchPriority()) {
-        img.fetchPriority = inViewport ? 'high' : 'auto';
-      }
-
-      loadMainImg(img);
-      const obs = getObserver();
-      if (obs) obs.unobserve(img);
-    }
+    const multiplier = DeviceManager.getAdaptiveMultiplier();
 
     $.batchDOM(() => {
-      notLoadedImages.forEach(processImageByVisibility);
-    })
-  }
+      const visibilityResults = [];
 
-  // Store handlers for proper cleanup
-  const windowLoadHandler = () => {
-    const notLoadedImages = document.querySelectorAll(`.${config.classes.main}.${config.classes.hidden}`);
-    if (!notLoadedImages.length) return;
-
-    // Detect device capabilities
-    const viewport = viewportSize(),
-          slowConnection = $.slowConnection(),
-          lowMemory = navigator.deviceMemory && navigator.deviceMemory < 4,
-          hasReducedData = navigator.connection && navigator.connection.saveData;
-
-    // Helper function to process images by their distance from viewport
-    const processImagesByDistance = (images, multiplier) => {
-      images.forEach(img => {
-        const rect = img.getBoundingClientRect(),
-              viewportHeight = viewport.height;
-
-        // Only load images within calculated distance of viewport
-        if (rect.top < viewportHeight * multiplier) {
-          loadMainImg(img);
-          const obs = getObserver();
-          if (obs) obs.unobserve(img);
+      notLoadedImages.forEach(img => {
+        const result = VisibilityManager.checkVisibility(img, multiplier);
+        if (result.visible) {
+          visibilityResults.push({ img, inViewport: result.inViewport });
         }
       })
-    }
 
-    const limitedLoadingHandler = () => {
-      // Use a more conservative loading strategy for limited devices
-      // Batch operations for better performance
-      const viewportMultiplier = slowConnection ? 2 : (lowMemory ? 3 : 4);
+      visibilityResults.forEach(({ img, inViewport }) => {
+        if ($.is($.isFetchPriority, 'function') && $.isFetchPriority()) {
+          img.fetchPriority = inViewport ? 'high' : 'auto';
+        }
+
+        ImageLoader.loadImage(img);
+        VisibilityManager.unobserve(img);
+      })
+    })
+  },
+
+  loadLimited(images) {
+    const multiplier = $.slowConnection() ? 2 : (DeviceManager.hasLowMemory() ? 3 : 4),
+          viewport = DeviceManager.getViewportSize();
+
+    $.frameSequence(
+      // Read phase - gather images that need loading
+      () => {
+        const visibleImages = [];
+        images.forEach(img => {
+          const rect = img.getBoundingClientRect();
+          if (rect.top < viewport.height * multiplier) {
+            visibleImages.push(img);
+          }
+        })
+        return visibleImages;
+      },
+      // Write phase - load the images
+      (visibleImages) => {
+        $.batchDOM(() => {
+          visibleImages.forEach(img => {
+            ImageLoader.loadImage(img);
+            VisibilityManager.unobserve(img);
+          })
+        })
+      }
+    )
+  },
+
+  loadInChunks(images) {
+    const chunkSize = ImageConfig.viewport.chunkSize,
+          totalImages = images.length;
+
+    const loadChunk = (startIndex) => {
+      const endIndex = Math.min(startIndex + chunkSize, totalImages);
 
       $.batchDOM(() => {
-        processImagesByDistance(notLoadedImages, viewportMultiplier);
-      })
-    }
-
-    const defineImageChunk = (start, end) => {
-      for (let i = start; i < end; i++) {
-        const img = notLoadedImages[i];
-        loadMainImg(img);
-        const obs = getObserver();
-        if (obs) obs.unobserve(img);
-      }
-    }
-
-    const imageChunkHandler = () => {
-      // On fast connections with good devices, load all remaining images
-      // Split loading into chunks for better performance
-      const chunkSize = 5,
-            totalImages = notLoadedImages.length;
-
-      const loadImageChunk = (startIndex) => {
-        const endIndex = Math.min(startIndex + chunkSize, totalImages);
-
-        $.batchDOM(() => {
-          defineImageChunk(startIndex, endIndex);
-        })
-
-        // Load next chunk if there are more images
-        if (endIndex < totalImages) {
-          $.requestIdle(() => loadImageChunk(endIndex), { timeout: 100 });
+        for (let i = startIndex; i < endIndex; i++) {
+          const img = images[i];
+          ImageLoader.loadImage(img);
+          VisibilityManager.unobserve(img);
         }
+      })
+
+      if (endIndex < totalImages) {
+        $.requestIdle(() => loadChunk(endIndex), { timeout: 100 });
       }
-
-      loadImageChunk(0);
     }
 
-    // Determine loading strategy based on device capabilities and preferences
-    slowConnection || lowMemory || hasReducedData
-      ? limitedLoadingHandler()
-      : imageChunkHandler();
+    loadChunk(0);
+  },
+
+  handleWindowLoad() {
+    const notLoadedImages = document.querySelectorAll(
+      `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
+    )
+
+    if (!notLoadedImages.length) return;
+
+    const useConservativeStrategy =
+      $.slowConnection() ||
+      DeviceManager.hasLowMemory() ||
+      DeviceManager.hasReducedData();
+
+    useConservativeStrategy
+      ? this.loadLimited(notLoadedImages)
+      : this.loadInChunks(notLoadedImages);
   }
+}
 
-  prioritizeVisibleImages();
+const handleImageLoading = () => {
+  const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`);
+  if (!wrappers.length) return false;
 
-  // Also handle any remaining images on full load
-  $.eventListener('add', window, 'load', windowLoadHandler);
+  VisibilityManager.createObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        ImageLoader.loadImage(entry.target);
+        VisibilityManager.unobserve(entry.target);
+      }
+    })
+  })
 
-  // Provide a cleanup function for proper memory management
+  wrappers.forEach(wrapper => {
+    const mainImage = wrapper.querySelector(`.${ImageConfig.classes.main}`),
+          placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`);
+
+    if (!mainImage || !placeholder) return;
+    if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
+
+    $.is($.inViewport, 'function') && $.inViewport(mainImage)
+      ? ImageLoader.loadImage(mainImage)
+      : VisibilityManager.observe(mainImage);
+  })
+
+  LoadingStrategy.prioritizeVisible();
+
+  // Handle remaining images on window load
+  const windowLoadHandler = () => LoadingStrategy.handleWindowLoad();
+  $.eventListener('add', window, 'load', windowLoadHandler, { passive: true });
+
   const cleanup = () => {
-    $.eventListener('remove', window, 'load', windowLoadHandler);
-
-    if (observer) {
-      observer.disconnect();
-      observer = null;
-    }
+    $.eventListener('remove', window, 'load', windowLoadHandler, { passive: true });
+    VisibilityManager.cleanup();
   }
 
   return cleanup;
 }
 
-// Initialize file immediately because it's included in non_critical scripts
 window.cleanupImageLoading = handleImageLoading();
 
+// Ensure cleanup is idempotent
 const originalCleanup = window.cleanupImageLoading;
 window.cleanupImageLoading = () => {
   if ($.is(originalCleanup, 'function')) {
