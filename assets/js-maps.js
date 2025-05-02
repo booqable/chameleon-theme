@@ -57,9 +57,11 @@ class LocationMap {
           const res = await fetch(url);
           return await res.json();
         } catch (error) {
-          console.error(error);
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.error(error);
+          }
         }
-      };
+      }
 
       const renderMap = (obj) => {
         const icon = document.querySelector(this.selector.icon),
@@ -91,16 +93,16 @@ class LocationMap {
               })
             })
           })
-        ];
+        ]
 
         const interaction = ol.interaction.defaults.defaults({
           mouseWheelZoom: false
-        });
+        })
 
         const view = new ol.View({
           center: ol.proj.fromLonLat([lon, lat]),
           zoom: this.zoom
-        });
+        })
 
         const options = {
           target: id,
@@ -118,11 +120,11 @@ class LocationMap {
         div.innerHTML = `${address} - ${this.addressErrorMessage}`;
         this.block.parentElement.classList.add(this.classes.noImage);
         return map.appendChild(div);
-      };
+      }
 
       getData().then(data => {
         data.length ? (renderMap(data), this.setUrl(data)) : errorMessage()
-      });
+      })
     })
   }
 
@@ -149,6 +151,4 @@ const initMap = (el = ".locations__wrapper") => {
   })
 }
 
-document.addEventListener("readystatechange", (e) => {
-  if (e.target.readyState === "complete") initMap();
-})
+initMap();

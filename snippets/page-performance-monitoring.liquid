@@ -17,7 +17,9 @@
     window.performance.measure('LCP-measure', 'start', 'LCP');
 
     // Optional: Log LCP details for debugging
-    console.log('LCP:', lastEntry.startTime, 'Element:', lastEntry.element);
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('LCP:', lastEntry.startTime, 'Element:', lastEntry.element);
+    }
   })
 
   // Start observing LCP
@@ -33,7 +35,9 @@
     }
 
     // Optional: Log CLS for debugging
-    console.log('CLS:', clsValue);
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('CLS:', clsValue);
+    }
   })
 
   // Start observing CLS
@@ -45,7 +49,9 @@
       const delay = entry.processingStart - entry.startTime;
 
       // Optional: Log FID for debugging
-      console.log('FID:', delay, 'ms');
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('FID:', delay, 'ms');
+      }
     }
   })
 
