@@ -22,7 +22,7 @@ const handleImageLoading = () => {
   }
 
   const wrappers = document.querySelectorAll(`.${config.classes.wrapper}`),
-        mobileWidth = 992; // Define mobile width for responsive design
+        mobileWidth = 992;
 
   if (!wrappers.length) return false;
 
@@ -44,7 +44,7 @@ const handleImageLoading = () => {
           inViewport = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false,
           slowConnection = $.slowConnection();
 
-    if (sources.length) {
+    const setAttributeHandle = () => {
       sources.forEach(source => {
         const dataSrc = source.getAttribute(config.attributes.sourceSrcset);
 
@@ -62,12 +62,14 @@ const handleImageLoading = () => {
       })
     }
 
+    if (sources.length) setAttributeHandle();
+
     const mainSrcset = mainImage.getAttribute(config.attributes.mainSrcset);
 
     if (mainSrcset) {
       mainImage.setAttribute('srcset', mainSrcset);
       mainImage.removeAttribute(config.attributes.mainSrcset);
-      mainImage.decoding = inViewport ? 'sync' : 'async'; // Set decoding attribute for better performance
+      mainImage.decoding = inViewport ? 'sync' : 'async';
 
       // Try to use more modern image decoding methods if available
       if (inViewport && mainImage.complete) decodeImage(mainImage);
@@ -77,7 +79,6 @@ const handleImageLoading = () => {
         mainImage.fetchPriority = inViewport ? 'high' : 'low';
       }
 
-      // Also use the experimental importance attribute if available
       if ('importance' in mainImage) {
         mainImage.importance = inViewport ? 'high' : 'auto';
       }
@@ -92,28 +93,25 @@ const handleImageLoading = () => {
     if (placeholder) {
       placeholder.style.opacity = '0'
 
-      const placeholderRemove = () => placeholder.remove(); // Use Utils for event listener
+      const placeholderRemove = () => placeholder.remove();
       $.eventListener('add', placeholder, 'transitionend', placeholderRemove, { once: true });
     }
   }
 
   const loadMainImg = (mainImage) => {
     if (!mainImage.classList.contains(config.classes.main)) return;
-    if (!mainImage.classList.contains(config.classes.hidden)) return; // Skip if the image doesn't have the hidden class (already loaded or eager)
+    if (!mainImage.classList.contains(config.classes.hidden)) return;
 
     const wrapper = mainImage.closest(`.${config.classes.wrapper}`),
           placeholder = wrapper && wrapper.querySelector(`.${config.classes.placeholder}`);
 
     const imagePriorityLow = () => {
-      mainImage.decoding = 'async'; // For slow connections, use async decoding and lower priority
-
+      mainImage.decoding = 'async';
       if ($.isFetchPriority()) mainImage.fetchPriority = 'low';
-
-      mainImage.setAttribute('importance', 'low'); // On slow connections, set importance attribute if supported
+      mainImage.setAttribute('importance', 'low');
     }
 
     const imagePriorityHigh = () => {
-      // For faster connections, check if in viewport and optimize accordingly
       const inView = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false;
       if (inView && $.isFetchPriority()) mainImage.fetchPriority = 'high';
     }
@@ -141,11 +139,8 @@ const handleImageLoading = () => {
     })
   }
 
-  // Initialize and return the observer when needed
   const getObserver = () => {
-    // Only create observer once and cache it
     if (observer === null) {
-      // Safely check if Utils exists before using
       if ($.is($.intersectionObserver, 'function')) {
         observer = $.intersectionObserver(handleIntersection);
       }
@@ -161,7 +156,6 @@ const handleImageLoading = () => {
     if (!mainImage || !placeholder) return;
     if (!mainImage.classList.contains(config.classes.hidden)) return;
 
-    // Safely check if Utils exists before using inViewport
     const inView = $.is($.inViewport, 'function') ? $.inViewport(mainImage) : false
 
     if (inView) {
@@ -172,21 +166,20 @@ const handleImageLoading = () => {
     }
   })
 
-  // Use Utils.viewportSize if available, otherwise fallback to local implementation
-  const viewportSize = ($.viewportSize && $.is($.viewportSize, 'function'))
+  const viewportSizeFallback = () => ({
+    height: window.innerHeight,
+    width: window.innerWidth
+  })
+
+  const viewportSize = $.viewportSize && $.is($.viewportSize, 'function')
     ? $.viewportSize
-    : () => ({
-        height: window.innerHeight,
-        width: window.innerWidth
-      })
+    : viewportSizeFallback
 
   // Add a function to prioritize visible images with adaptive loading strategy
   const prioritizeVisibleImages = () => {
-    // Only select images with the hidden class (lazy-loaded images)
     const notLoadedImages = document.querySelectorAll(`.${config.classes.main}.${config.classes.hidden}`);
     if (!notLoadedImages.length) return;
 
-    // Detect device capabilities for adaptive loading
     const viewport = viewportSize(),
           slowConnection = $.slowConnection(),
           lowMemory = navigator.deviceMemory && navigator.deviceMemory < 4,
@@ -194,20 +187,17 @@ const handleImageLoading = () => {
 
     // Create adaptive loading ranges based on device capabilities
     // More conservative thresholds for low-end devices or slow connections
-    const viewportMultiplier = (slowConnection || lowMemory)
+    const viewportMultiplier = slowConnection || lowMemory
       ? 1.5  // Conservative loading for low-end devices
       : isMobile
         ? 2.0  // Moderate preloading for mobile
         : 3.0; // Aggressive preloading for desktop
 
-    // Optimized visibility check function
     const checkVisibility = (img) => {
-      // Always load if directly in viewport
       if ($.is($.inViewport, 'function') && $.inViewport(img)) {
         return { visible: true, inViewport: true };
       }
 
-      // Check if near viewport for preloading
       const rect = img.getBoundingClientRect(),
             viewportHeight = viewport.height,
             isNearViewport = rect.top < viewportHeight * viewportMultiplier;
@@ -215,18 +205,15 @@ const handleImageLoading = () => {
       return { visible: isNearViewport, inViewport: false };
     }
 
-    // Process a single image based on its visibility status
     const processImageByVisibility = (img) => {
       const { visible, inViewport } = checkVisibility(img);
 
       if (!visible) return;
 
-      // Set proper priority based on visibility
       if ($.isFetchPriority()) {
         img.fetchPriority = inViewport ? 'high' : 'auto';
       }
 
-      // Load the image and remove it from observation
       loadMainImg(img);
       const obs = getObserver();
       if (obs) obs.unobserve(img);
@@ -238,9 +225,7 @@ const handleImageLoading = () => {
   }
 
   // Store handlers for proper cleanup
-  const domContentLoadedHandler = prioritizeVisibleImages;
   const windowLoadHandler = () => {
-    // Only select images with the hidden class (lazy-loaded images)
     const notLoadedImages = document.querySelectorAll(`.${config.classes.main}.${config.classes.hidden}`);
     if (!notLoadedImages.length) return;
 
@@ -275,9 +260,8 @@ const handleImageLoading = () => {
       })
     }
 
-    const defineImageChunk = (s, e) => {
-      for (let i = s; i < e; i++) {
-        // No need for distance check in this case - we want to load all images
+    const defineImageChunk = (start, end) => {
+      for (let i = start; i < end; i++) {
         const img = notLoadedImages[i];
         loadMainImg(img);
         const obs = getObserver();
@@ -304,7 +288,6 @@ const handleImageLoading = () => {
         }
       }
 
-      // Start loading the first chunk
       loadImageChunk(0);
     }
 
@@ -314,7 +297,6 @@ const handleImageLoading = () => {
       : imageChunkHandler();
   }
 
-  // Since this file is loaded as non-critical, we load it immediately
   prioritizeVisibleImages();
 
   // Also handle any remaining images on full load
@@ -322,10 +304,8 @@ const handleImageLoading = () => {
 
   // Provide a cleanup function for proper memory management
   const cleanup = () => {
-    // Remove event listeners - only window.load since we don't use DOMContentLoaded anymore
     $.eventListener('remove', window, 'load', windowLoadHandler);
 
-    // Disconnect observer if it exists
     if (observer) {
       observer.disconnect();
       observer = null;
@@ -335,11 +315,9 @@ const handleImageLoading = () => {
   return cleanup;
 }
 
-// Since this file is included in non-critical scripts that load after
-// the initial page render, we can initialize it immediately
+// Initialize file immediately because it's included in non_critical scripts
 window.cleanupImageLoading = handleImageLoading();
 
-// Wrap the original cleanup function to ensure it's only called once
 const originalCleanup = window.cleanupImageLoading;
 window.cleanupImageLoading = () => {
   if ($.is(originalCleanup, 'function')) {
