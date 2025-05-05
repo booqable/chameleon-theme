@@ -418,10 +418,12 @@
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
-                        {%- assign fetch_priority = "" -%}
+                        {%- assign fetch_priority   = "" -%}
+                        {%- assign loading_strategy = "lazy" -%}
 
                         {%- if forloop.index == 1 -%}
-                          {%- assign fetch_priority = "high" -%}
+                          {%- assign fetch_priority   = "high" -%}
+                          {%- assign loading_strategy = "eager" -%}
                         {%- endif -%}
 
                         <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
@@ -432,7 +434,8 @@
                               image_id: image_id,
                               image_class: 'images__image',
                               image_size: 'xxl',
-                              fetchpriority: fetch_priority
+                              fetchpriority: fetch_priority,
+                              loading: loading_strategy
                           -%}
                         </div>
                       {%- endif -%}
