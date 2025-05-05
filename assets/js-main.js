@@ -6,11 +6,7 @@
  * - Window resize handling
  * - Page loaded state management
  *
- * Performance optimizations:
- * - Uses ResizeObserver instead of window resize events when available
- * - Batches DOM operations using frameSequence and nextFrame
- * - Properly cleans up event listeners and observers
- * - Uses utility functions for better performance
+ * Uses utilities like ResizeObserver, Batches DOM, etc. for better performance
  *
  * @requires js-utils-core.js
  * @requires js-utils.js
