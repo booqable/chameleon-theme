@@ -4,298 +4,345 @@
  * Initializes OpenStreetMap maps for location blocks with performance optimizations.
  * Uses lazy loading strategy to only render maps when they're needed.
  *
- * Performance optimizations:
- * - Uses async/await for data fetching
- * - Uses IntersectionObserver to only process maps as they enter viewport
- * - Uses requestIdle for non-critical operations
- * - Only initializes maps that are visible or will be visible soon
- * - Batches DOM operations for better performance
- * - Caches data for efficiency
- *
  * @requires js-utils-core.js
  * @requires js-utils.js
  */
-const handleLocationMaps = () => {
-  const config = {
-    selector: {
-      wrapper: '.locations__wrapper',
-      map: '.map',
-      icon: '.map-icon__image',
-      link: '.tabs__link',
-      tabsInput: '.tabs__input',
-      tabsContent: '.tabs__content'
-    },
-    attribute: {
-      id: 'id',
-      href: 'href',
-      address: 'data-address',
-      processed: 'data-map-processed'
-    },
-    class: {
-      error: 'map__error',
-      noImage: 'no-image'
-    },
-    defaultZoom: 18,
-    errorMessage: 'We can\'t find this address, please check it again',
-    observerRootMargin: '200px'
-  }
 
-  const cache = {
+const MapConfig = {
+  selector: {
+    wrapper: '.locations__wrapper',
+    map: '.map',
+    icon: '.map-icon__image',
+    link: '.tabs__link',
+    tabsInput: '.tabs__input',
+    tabsContent: '.tabs__content'
+  },
+  attribute: {
+    id: 'id',
+    href: 'href',
+    address: 'data-address',
+    error: 'data-error',
+    processed: 'data-map-processed'
+  },
+  class: {
+    error: 'map__error',
+    noImage: 'no-image'
+  },
+  defaultZoom: 18,
+  errorMessage: 'We can\'t find this address, please check it again',
+  iconWidth: 40,
+  iconHeight: 55,
+  observerRootMargin: '200px'
+}
+
+const MapDOM = {
+  elements: {
+    locationWrappers: null,
+    mapElements: null
+  },
+
+  cache: {
     iconDimensions: new Map(),
     mapLinks: []
+  },
+
+  init() {
+    this.elements.locationWrappers = document.querySelectorAll(MapConfig.selector.wrapper);
+    return this.elements.locationWrappers && this.elements.locationWrappers.length > 0;
+  },
+
+  getIconDimensions(iconSelector = MapConfig.selector.icon) {
+    if (this.cache.iconDimensions.has(iconSelector)) {
+      return this.cache.iconDimensions.get(iconSelector);
+    }
+
+    const icon = document.querySelector(iconSelector);
+    if (!icon) return [MapConfig.iconWidth, MapConfig.iconHeight];
+
+    const dimensions = $.getDimensions(icon);
+    const result = dimensions.width && dimensions.height
+      ? [dimensions.width, dimensions.height]
+      : [MapConfig.iconWidth, MapConfig.iconHeight];
+
+    this.cache.iconDimensions.set(iconSelector, result); // Cache the result for future use
+
+    return result;
+  },
+
+  updateMapLinks(locationData) {
+    const links = document.querySelectorAll(MapConfig.selector.link);
+    if (!links || !links.length) return;
+
+    const [lat, lon] = [locationData[0].lat, locationData[0].lon],
+          mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=${MapConfig.defaultZoom}/${lat}/${lon}`;
+
+    this.cache.mapLinks.push(mapUrl);
+
+    $.batchDOM(() => {
+      links.forEach((link, i) => {
+        if (this.cache.mapLinks[i]) {
+          link.setAttribute(MapConfig.attribute.href, this.cache.mapLinks[i]);
+        }
+      })
+    })
+  },
+
+  isElementVisible(element) {
+    if (!element) return false;
+    if ($.inViewport(element)) return true;
+
+    const tabContent = element.closest(MapConfig.selector.tabsContent);
+    if (tabContent && window.getComputedStyle(tabContent).display !== 'none') return true;
+
+    return false;
+  },
+
+  cleanup() {
+    this.cache.mapLinks.length = 0;
+    this.cache.iconDimensions.clear();
+
+    Object.keys(this.elements).forEach(key => {
+      this.elements[key] = null; // Clear element references
+    })
   }
+}
 
-  const locationWrappers = document.querySelectorAll(config.selector.wrapper);
+const MapRenderer = {
+  // Read phase for map configuration
+  readMapConfiguration(lon, lat) {
+    const iconDimensions = MapDOM.getIconDimensions(),
+          icon = document.querySelector(MapConfig.selector.icon);
 
-  let observer = null,
-      observerSetup = false;
+    return {
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        new ol.layer.Vector({
+          source: new ol.source.Vector({
+            features: [
+              new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
+              })
+            ]
+          }),
+          style: new ol.style.Style({
+            image: new ol.style.Icon({
+              anchor: [0.5, 60],
+              anchorXUnits: 'fraction',
+              anchorYUnits: 'pixels',
+              imgSize: iconDimensions,
+              img: icon
+            })
+          })
+        })
+      ],
+      interaction: ol.interaction.defaults.defaults({
+        mouseWheelZoom: false
+      }),
+      view: new ol.View({
+        center: ol.proj.fromLonLat([lon, lat]),
+        zoom: MapConfig.defaultZoom
+      })
+    }
+  },
 
-  if (!locationWrappers || !locationWrappers.length) return;
+  // Write phase for creating the map
+  writeMapObject(targetId, mapConfig) {
+    new ol.Map({
+      target: targetId,
+      layers: mapConfig.layers,
+      interactions: mapConfig.interaction,
+      view: mapConfig.view
+    })
+  },
 
-  const fetchLocationData = async (address) => {
+  renderMap(targetId, locationData) {
+    const [lon, lat] = [locationData[0].lon, locationData[0].lat];
+
+    // Bind the context to ensure 'this' references are maintained
+    const readPhase = this.readMapConfiguration.bind(this, lon, lat),
+          writePhase = (mapConfig) => this.writeMapObject(targetId, mapConfig);
+
+    $.frameSequence(readPhase, writePhase);
+  },
+
+  // Read phase for error message preparation
+  readErrorElements(mapElement, address) {
+    const errorDiv = document.createElement('div');
+    errorDiv.classList.add(MapConfig.class.error);
+    errorDiv.innerHTML = `${address} - ${MapConfig.errorMessage}`;
+
+    return {
+      errorDiv,
+      parentElement: mapElement.closest(MapConfig.selector.wrapper)
+    }
+  },
+
+  // Write phase for error message display
+  writeErrorElements(data) {
+    data.mapElement.appendChild(data.errorDiv);
+
+    if (data.parentElement) {
+      $.toggleClass(data.parentElement, MapConfig.class.noImage, true);
+    }
+  },
+
+  displayErrorMessage(mapElement, address) {
+    // Bind the context to ensure 'this' references are maintained
+    const readPhase = () => this.readErrorElements(mapElement, address);
+    const writePhase = (data) => {
+      if (!data) return;
+      // Add the mapElement to the data object for use in the write phase
+      data.mapElement = mapElement;
+      this.writeErrorElements(data);
+    }
+
+    $.frameSequence(readPhase, writePhase);
+  }
+}
+
+const MapData = {
+  async fetchLocationData(address) {
     try {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`,
             response = await fetch(url);
-      return await response.json()
+      return await response.json();
     } catch (error) {
       console.error('Error fetching location data:', error);
       return [];
     }
   }
+}
 
-  const getIconDimensions = (iconSelector = config.selector.icon) => {
-    // Check cache first for better performance
-    if (cache.iconDimensions.has(iconSelector)) {
-      return cache.iconDimensions.get(iconSelector);
-    }
+const MapProcessor = {
+  async processMapElement(mapElement) {
+    if (!mapElement || mapElement.getAttribute(MapConfig.attribute.processed) === 'true') return;
 
-    const icon = document.querySelector(iconSelector);
-    if (!icon) return [40, 55] // Default dimensions
+    const address = mapElement.getAttribute(MapConfig.attribute.address);
+    if (!address) return;
 
-    const dimensions = $.getDimensions(icon);
-    const result = dimensions.width && dimensions.height
-      ? [dimensions.width, dimensions.height]
-      : [40, 55];
-
-    cache.iconDimensions.set(iconSelector, result); // Cache the result for future use
-
-    return result;
-  }
-
-  const createMap = async (mapElement, address) => {
-    if (!mapElement || !address) return;
-
-    if (mapElement.getAttribute(config.attribute.processed) === 'true') return;
-
-    const mapId = mapElement.getAttribute(config.attribute.id),
-          locationData = await fetchLocationData(address);
+    const mapId = mapElement.getAttribute(MapConfig.attribute.id),
+          locationData = await MapData.fetchLocationData(address);
 
     if (!locationData || !locationData.length) {
-      displayErrorMessage(mapElement, address);
+      MapRenderer.displayErrorMessage(mapElement, address);
       return;
     }
 
-    renderMap(mapId, locationData);
-    updateMapLinks(locationData);
+    MapRenderer.renderMap(mapId, locationData);
+    MapDOM.updateMapLinks(locationData);
 
-    mapElement.setAttribute(config.attribute.processed, 'true'); // Mark as processed to prevent duplicate processing
-  }
+    mapElement.setAttribute(MapConfig.attribute.processed, 'true'); // Mark as processed to prevent duplicate processing
+  },
 
-  const renderMap = (targetId, locationData) => {
-    const [lon, lat] = [locationData[0].lon, locationData[0].lat];
-    const iconDimensions = getIconDimensions(),
-          icon = document.querySelector(config.selector.icon);
-
-    // Use frameSequence to batch read/write operations for performance
-    $.frameSequence(
-      // Read phase - prepare map configuration
-      () => ({
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM()
-          }),
-          new ol.layer.Vector({
-            source: new ol.source.Vector({
-              features: [
-                new ol.Feature({
-                  geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
-                })
-              ]
-            }),
-            style: new ol.style.Style({
-              image: new ol.style.Icon({
-                anchor: [0.5, 60],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'pixels',
-                imgSize: iconDimensions,
-                img: icon
-              })
-            })
-          })
-        ],
-        interaction: ol.interaction.defaults.defaults({
-          mouseWheelZoom: false
-        }),
-        view: new ol.View({
-          center: ol.proj.fromLonLat([lon, lat]),
-          zoom: config.defaultZoom
-        })
-      }),
-      // Write phase - create the map with prepared configuration
-      (mapConfig) => {
-        new ol.Map({
-          target: targetId,
-          layers: mapConfig.layers,
-          interactions: mapConfig.interaction,
-          view: mapConfig.view
-        })
-      }
-    )
-  }
-
-  const displayErrorMessage = (mapElement, address) => {
-    $.frameSequence(
-      // Read phase - prepare elements
-      () => {
-        const errorDiv = document.createElement('div');
-        errorDiv.classList.add(config.class.error);
-        errorDiv.innerHTML = `${address} - ${config.errorMessage}`;
-        return {
-          errorDiv,
-          parentElement: mapElement.closest(config.selector.wrapper)
-        }
-      },
-      // Write phase - append elements
-      (data) => {
-        mapElement.appendChild(data.errorDiv)
-        if (data.parentElement) {
-          $.toggleClass(data.parentElement, config.class.noImage, true);
-        }
-      }
-    )
-  }
-
-  const updateMapLinks = (locationData) => {
-    const links = document.querySelectorAll(config.selector.link);
-    if (!links || !links.length) return;
-
-    const [lat, lon] = [locationData[0].lat, locationData[0].lon],
-          mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=${config.defaultZoom}/${lat}/${lon}`
-
-    cache.mapLinks.push(mapUrl);
-
-    // Batch DOM updates for performance
-    $.batchDOM(() => {
-      links.forEach((link, i) => {
-        if (cache.mapLinks[i]) {
-          link.setAttribute(config.attribute.href, cache.mapLinks[i]);
-        }
-      })
-    })
-  }
-
-  const processMapElement = (mapElement) => {
-    if (mapElement.getAttribute(config.attribute.processed) === 'true') return;
-
-    const address = mapElement.getAttribute(config.attribute.address);
-    if (address) createMap(mapElement, address);
-  }
-
-  const isElementVisible = (element) => {
-    if (!element) return false;
-    if ($.inViewport(element)) return true;
-
-    const tabContent = element.closest(config.selector.tabsContent)
-    if (tabContent && window.getComputedStyle(tabContent).display !== 'none') return true;
-
-    return false;
-  }
-
-  const processLocationWrapper = (wrapper) => {
-    const maps = wrapper.querySelectorAll(config.selector.map);
+  processLocationWrapper(wrapper) {
+    const maps = wrapper.querySelectorAll(MapConfig.selector.map);
     if (!maps || !maps.length) return;
 
-    const processLocationHandler = () => {
-      maps.forEach(map => {
-        // Only observe maps that haven't been processed yet
-        if (map.getAttribute(config.attribute.processed) !== 'true') {
-          observer.observe(map)
-        }
-      })
-    }
+    maps.forEach(map => {
+      const attribute = map.getAttribute(MapConfig.attribute.processed);
+      const mapObserver = () => {
+        if (attribute !== 'true') MapVisibility.observer.observe(map);
+      }
 
-    const mapElementFallback = () => {
-      maps.forEach(map => {
-        if (isElementVisible(map)) {
-          processMapElement(map)
-        }
-      })
-    }
-
-    // Use IntersectionObserver for performance when available
-    observer ? processLocationHandler() : mapElementFallback();
+      MapDOM.isElementVisible(map)
+        ? this.processMapElement(map)
+        : MapVisibility.observer ? mapObserver() : null // Only observe maps that haven't been processed yet
+    })
   }
+}
 
-  const setupIntersectionObserver = () => {
-    if (observerSetup) return observer;
+const MapVisibility = {
+  observer: null,
+  observerSetup: false,
+
+  setupIntersectionObserver() {
+    if (this.observerSetup) return this.observer;
 
     const observerCallback = (entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          processMapElement(entry.target);
-          observer.unobserve(entry.target);
+          MapProcessor.processMapElement(entry.target);
+          this.observer.unobserve(entry.target);
         }
       })
     }
 
-    observer = $.intersectionObserver(observerCallback);
-    observerSetup = true;
+    this.observer = $.intersectionObserver(observerCallback);
+    this.observerSetup = true;
 
-    return observer;
-  }
+    return this.observer;
+  },
 
-  const initMaps = () => {
-    setupIntersectionObserver();
-
-    $ || $.requestIdle() || $.is($.requestIdle(), 'function')
-      ? ($.requestIdle(() => {
-          locationWrappers.forEach(processLocationWrapper);
-        }, { timeout: 2000 }))
-      : initLocationMaps();
-  }
-
-  const runInitialization = () => {
-    $.slowConnection()
-      ? setTimeout(initMaps, 1000)
-      : initMaps();
-  }
-
-  // Clean up resources when page is unloaded
-  const cleanup = () => {
-    // Clear caches
-    cache.mapLinks.length = 0;
-    cache.iconDimensions.clear();
-
-    // Disconnect observer
-    if (observer) {
-      observer.disconnect();
-      observer = null;
+  cleanup() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+      this.observerSetup = false;
     }
   }
+}
 
-  runInitialization();
+const MapDevice = {
+  slowConnection() {
+    return $.slowConnection() && $.is($.slowConnection, 'function');
+  }
+}
+
+const handleLocationMaps = () => {
+  if (!MapDOM.init()) return null;
+
+  MapVisibility.setupIntersectionObserver();
+
+  const processWrappersWithDelay = () => {
+    const mapWrappers = MapDOM.elements.locationWrappers;
+    if (!mapWrappers || !mapWrappers.length) return;
+
+    const handleWrappers = () => {
+      MapDOM.elements.locationWrappers.forEach(wrapper => {
+        MapProcessor.processLocationWrapper(wrapper);
+      })
+    }
+
+    $.is($.requestIdle, 'function')
+      ? $.requestIdle(() => {handleWrappers()}, { timeout: 2000 })
+      : handleWrappers();
+  }
+
+  // Initialize with connection-aware delay
+  MapDevice.slowConnection()
+    ? setTimeout(processWrappersWithDelay, 1000)
+    : processWrappersWithDelay();
+
+  const cleanup = () => {
+    MapVisibility.cleanup();
+    MapDOM.cleanup();
+    return null;
+  }
+
   return cleanup;
 }
 
-const initLocationMaps = () => {
-  const cleanup = handleLocationMaps();
+const initMaps = () => {
+  window.cleanupMaps = handleLocationMaps();
 
+  // Ensure cleanup is idempotent
+  const originalCleanup = window.cleanupMaps;
   window.cleanupMaps = () => {
-    if ($.is(cleanup, 'function')) {
-      cleanup();
+    if ($.is(originalCleanup, 'function')) {
+      originalCleanup();
       window.cleanupMaps = () => {}; // Replace with no-op after cleanup
+    }
+  }
+
+  if (window.themeCleanup) {
+    const originalThemeCleanup = window.themeCleanup;
+    window.themeCleanup = () => {
+      if (window.cleanupMaps) window.cleanupMaps();
+      originalThemeCleanup();
     }
   }
 }
 
-window.addEventListener('load', () => initLocationMaps())
+window.addEventListener('load', initMaps);
