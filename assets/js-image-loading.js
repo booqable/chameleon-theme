@@ -28,7 +28,7 @@ const ImageConfig = {
   }
 }
 
-const VisibilityManager = {
+const ImageVisibility = {
   observer: null,
 
   createObserver(callback) {
@@ -61,7 +61,7 @@ const VisibilityManager = {
       return { visible: true, inViewport: true };
     }
 
-    const viewport = DeviceManager.getViewportSize(),
+    const viewport = ImageDevice.getViewportSize(),
           rect = img.getBoundingClientRect(),
           isNearViewport = rect.top < viewport.height * multiplier;
 
@@ -69,7 +69,7 @@ const VisibilityManager = {
   }
 }
 
-const DeviceManager = {
+const ImageDevice = {
   getViewportSize() {
     return $.viewportSize && $.is($.viewportSize, 'function')
       ? $.viewportSize()
@@ -185,7 +185,7 @@ const ImageLoader = {
   }
 }
 
-const LoadingStrategy = {
+const ImageLoadingStrategy = {
   prioritizeVisible() {
     const notLoadedImages = document.querySelectorAll(
       `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
@@ -193,13 +193,13 @@ const LoadingStrategy = {
 
     if (!notLoadedImages.length) return;
 
-    const multiplier = DeviceManager.getAdaptiveMultiplier();
+    const multiplier = ImageDevice.getAdaptiveMultiplier();
 
     $.batchDOM(() => {
       const visibilityResults = [];
 
       notLoadedImages.forEach(img => {
-        const result = VisibilityManager.checkVisibility(img, multiplier);
+        const result = ImageVisibility.checkVisibility(img, multiplier);
         if (result.visible) {
           visibilityResults.push({ img, inViewport: result.inViewport });
         }
@@ -211,37 +211,45 @@ const LoadingStrategy = {
         }
 
         ImageLoader.loadImage(img);
-        VisibilityManager.unobserve(img);
+        ImageVisibility.unobserve(img);
+      })
+    })
+  },
+
+  // Read phase: identify visible images
+  readVisibleImages(images) {
+    const multiplier = $.slowConnection() ? 2 : (ImageDevice.hasLowMemory() ? 3 : 4),
+          viewport = ImageDevice.getViewportSize();
+
+    const visibleImages = [];
+    images.forEach(img => {
+      const rect = img.getBoundingClientRect();
+      if (rect.top < viewport.height * multiplier) {
+        visibleImages.push(img);
+      }
+    })
+
+    return visibleImages;
+  },
+
+  // Write phase: load identified images
+  writeVisibleImages(visibleImages) {
+    if (!visibleImages || !visibleImages.length) return;
+
+    $.batchDOM(() => {
+      visibleImages.forEach(img => {
+        ImageLoader.loadImage(img);
+        ImageVisibility.unobserve(img);
       })
     })
   },
 
   loadLimited(images) {
-    const multiplier = $.slowConnection() ? 2 : (DeviceManager.hasLowMemory() ? 3 : 4),
-          viewport = DeviceManager.getViewportSize();
+    // Bind the context to ensure 'this' references the ImageLoadingStrategy
+    const readPhase = this.readVisibleImages.bind(this, images),
+          writePhase = this.writeVisibleImages.bind(this);
 
-    $.frameSequence(
-      // Read phase - gather images that need loading
-      () => {
-        const visibleImages = [];
-        images.forEach(img => {
-          const rect = img.getBoundingClientRect();
-          if (rect.top < viewport.height * multiplier) {
-            visibleImages.push(img);
-          }
-        })
-        return visibleImages;
-      },
-      // Write phase - load the images
-      (visibleImages) => {
-        $.batchDOM(() => {
-          visibleImages.forEach(img => {
-            ImageLoader.loadImage(img);
-            VisibilityManager.unobserve(img);
-          })
-        })
-      }
-    )
+    $.frameSequence(readPhase, writePhase);
   },
 
   loadInChunks(images) {
@@ -255,7 +263,7 @@ const LoadingStrategy = {
         for (let i = startIndex; i < endIndex; i++) {
           const img = images[i];
           ImageLoader.loadImage(img);
-          VisibilityManager.unobserve(img);
+          ImageVisibility.unobserve(img);
         }
       })
 
@@ -276,8 +284,8 @@ const LoadingStrategy = {
 
     const useConservativeStrategy =
       $.slowConnection() ||
-      DeviceManager.hasLowMemory() ||
-      DeviceManager.hasReducedData();
+      ImageDevice.hasLowMemory() ||
+      ImageDevice.hasReducedData();
 
     useConservativeStrategy
       ? this.loadLimited(notLoadedImages)
@@ -285,52 +293,75 @@ const LoadingStrategy = {
   }
 }
 
-const handleImageLoading = () => {
-  const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`);
-  if (!wrappers.length) return false;
+const ImageHandler = {
+  windowLoadHandler: null,
 
-  VisibilityManager.createObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        ImageLoader.loadImage(entry.target);
-        VisibilityManager.unobserve(entry.target);
-      }
+  initialize() {
+    const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`);
+    if (!wrappers.length) return false;
+
+    this.setupIntersectionObserver();
+    this.processInitialImages(wrappers);
+    this.setupWindowLoadHandler();
+
+    return this.cleanup.bind(this);
+  },
+
+  setupIntersectionObserver() {
+    ImageVisibility.createObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          ImageLoader.loadImage(entry.target);
+          ImageVisibility.unobserve(entry.target);
+        }
+      })
     })
-  })
+  },
 
-  wrappers.forEach(wrapper => {
-    const mainImage = wrapper.querySelector(`.${ImageConfig.classes.main}`),
-          placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`);
+  processInitialImages(wrappers) {
+    wrappers.forEach(wrapper => {
+      const mainImage = wrapper.querySelector(`.${ImageConfig.classes.main}`),
+            placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`);
 
-    if (!mainImage || !placeholder) return;
-    if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
+      if (!mainImage || !placeholder) return;
+      if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
 
-    $.is($.inViewport, 'function') && $.inViewport(mainImage)
-      ? ImageLoader.loadImage(mainImage)
-      : VisibilityManager.observe(mainImage);
-  })
+      $.is($.inViewport, 'function') && $.inViewport(mainImage)
+        ? ImageLoader.loadImage(mainImage)
+        : ImageVisibility.observe(mainImage);
+    })
 
-  LoadingStrategy.prioritizeVisible();
+    // Process any visible images that weren't covered above
+    ImageLoadingStrategy.prioritizeVisible();
+  },
 
-  // Handle remaining images on window load
-  const windowLoadHandler = () => LoadingStrategy.handleWindowLoad();
-  $.eventListener('add', window, 'load', windowLoadHandler, { passive: true });
+  setupWindowLoadHandler() {
+    this.windowLoadHandler = () => ImageLoadingStrategy.handleWindowLoad();
+    $.eventListener('add', window, 'load', this.windowLoadHandler, { passive: true });
+  },
 
-  const cleanup = () => {
-    $.eventListener('remove', window, 'load', windowLoadHandler, { passive: true });
-    VisibilityManager.cleanup();
-  }
+  cleanup() {
+    if (this.windowLoadHandler) {
+      $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true });
+      this.windowLoadHandler = null;
+    }
 
-  return cleanup;
-}
-
-window.cleanupImageLoading = handleImageLoading();
-
-// Ensure cleanup is idempotent
-const originalCleanup = window.cleanupImageLoading;
-window.cleanupImageLoading = () => {
-  if ($.is(originalCleanup, 'function')) {
-    originalCleanup();
-    window.cleanupImageLoading = () => {}; // Replace with no-op after cleanup
+    ImageVisibility.cleanup();
+    return null;
   }
 }
+
+const initImageLoading = () => {
+  window.cleanupImageLoading = ImageHandler.initialize();
+
+  // Ensure cleanup is idempotent
+  const originalCleanup = window.cleanupImageLoading;
+  window.cleanupImageLoading = () => {
+    if ($.is(originalCleanup, 'function')) {
+      originalCleanup();
+      window.cleanupImageLoading = () => {}; // Replace with no-op after cleanup
+    }
+  }
+}
+
+initImageLoading();
