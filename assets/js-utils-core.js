@@ -27,7 +27,8 @@ Utils.slowConnection = () => {
 }
 
 // CSS variable management
-Utils.setCssVar = (key, value, element = document.documentElement, unit = '') => {
+Utils.setCssVar = (args) => {
+  const { key, value, element = document.documentElement, unit = '' } = args;
   element.style.setProperty(key, `${value}${unit}`);
 }
 
