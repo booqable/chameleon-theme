@@ -95,9 +95,7 @@ const MapDOM = {
 
     const tabContent = element.closest(MapConfig.selector.tabsContent),
           tabContentStyles = window.getComputedStyle(tabContent);
-    if (tabContent && tabContentStyles.display !== 'none') return true;
-
-    return false;
+    return tabContent && tabContentStyles.display !== 'none';
   },
 
   cleanup() {
