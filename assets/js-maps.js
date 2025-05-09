@@ -303,7 +303,7 @@ const handleLocationMaps = () => {
     }
 
     $.is($.requestIdle, 'function')
-      ? $.requestIdle(() => {handleWrappers()}, { timeout: MapConfig.idleTimeout })
+      ? $.requestIdle(() => { handleWrappers() }, { timeout: MapConfig.idleTimeout })
       : handleWrappers();
   }
 
