@@ -1,5 +1,5 @@
 .map {
-  height: 350px;
+  aspect-ratio: 16 / 9;
   width: 100%;
   overflow: hidden;
 }
@@ -86,7 +86,6 @@
 
 @media (min-width: 768px) {
   .map {
-    min-height: 600px;
     height: 100%;
   }
 }
