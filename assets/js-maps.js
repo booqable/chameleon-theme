@@ -32,7 +32,9 @@ const MapConfig = {
   errorMessage: 'We can\'t find this address, please check it again',
   iconWidth: 40,
   iconHeight: 55,
-  observerRootMargin: '200px'
+  idleTimeout: 2000,
+  observerRootMargin: '200px',
+  slowConnectionDelay: 1000
 }
 
 const MapDOM = {
@@ -91,8 +93,9 @@ const MapDOM = {
     if (!element) return false;
     if ($.inViewport(element)) return true;
 
-    const tabContent = element.closest(MapConfig.selector.tabsContent);
-    if (tabContent && window.getComputedStyle(tabContent).display !== 'none') return true;
+    const tabContent = element.closest(MapConfig.selector.tabsContent),
+          tabContentStyles = window.getComputedStyle(tabContent);
+    if (tabContent && tabContentStyles.display !== 'none') return true;
 
     return false;
   },
@@ -183,9 +186,8 @@ const MapRenderer = {
   writeErrorElements(data) {
     data.mapElement.appendChild(data.errorDiv);
 
-    if (data.parentElement) {
-      $.toggleClass(data.parentElement, MapConfig.class.noImage, true);
-    }
+    if (!data.parentElement) return;
+    $.toggleClass(data.parentElement, MapConfig.class.noImage, true);
   },
 
   displayErrorMessage(mapElement, address) {
@@ -217,7 +219,8 @@ const MapData = {
 
 const MapProcessor = {
   async processMapElement(mapElement) {
-    if (!mapElement || mapElement.getAttribute(MapConfig.attribute.processed) === 'true') return;
+    const processed = mapElement.getAttribute(MapConfig.attribute.processed);
+    if (!mapElement || processed === 'true') return;
 
     const address = mapElement.getAttribute(MapConfig.attribute.address);
     if (!address) return;
@@ -246,9 +249,11 @@ const MapProcessor = {
         if (attribute !== 'true') MapVisibility.observer.observe(map);
       }
 
-      MapDOM.isElementVisible(map)
-        ? this.processMapElement(map)
-        : MapVisibility.observer ? mapObserver() : null // Only observe maps that haven't been processed yet
+      if (MapDOM.isElementVisible(map)) {
+        this.processMapElement(map)
+      } else if (MapVisibility.observer) {
+        mapObserver() // Only observe maps that haven't been processed yet
+      }
     })
   }
 }
@@ -257,15 +262,14 @@ const MapVisibility = {
   observer: null,
   observerSetup: false,
 
-  setupIntersectionObserver() {
+  setIntersectionObserver() {
     if (this.observerSetup) return this.observer;
 
     const observerCallback = (entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          MapProcessor.processMapElement(entry.target);
-          this.observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        MapProcessor.processMapElement(entry.target);
+        this.observer.unobserve(entry.target);
       })
     }
 
@@ -276,26 +280,19 @@ const MapVisibility = {
   },
 
   cleanup() {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-      this.observerSetup = false;
-    }
-  }
-}
-
-const MapDevice = {
-  slowConnection() {
-    return $.slowConnection() && $.is($.slowConnection, 'function');
+    if (!this.observer) return;
+    this.observer.disconnect();
+    this.observer = null;
+    this.observerSetup = false;
   }
 }
 
 const handleLocationMaps = () => {
   if (!MapDOM.init()) return null;
 
-  MapVisibility.setupIntersectionObserver();
+  MapVisibility.setIntersectionObserver();
 
-  const processWrappersWithDelay = () => {
+  const wrappersWithDelay = () => {
     const mapWrappers = MapDOM.elements.locationWrappers;
     if (!mapWrappers || !mapWrappers.length) return;
 
@@ -306,14 +303,14 @@ const handleLocationMaps = () => {
     }
 
     $.is($.requestIdle, 'function')
-      ? $.requestIdle(() => {handleWrappers()}, { timeout: 2000 })
+      ? $.requestIdle(() => {handleWrappers()}, { timeout: MapConfig.idleTimeout })
       : handleWrappers();
   }
 
   // Initialize with connection-aware delay
-  MapDevice.slowConnection()
-    ? setTimeout(processWrappersWithDelay, 1000)
-    : processWrappersWithDelay();
+  $.slowConnection() && $.is($.slowConnection, 'function')
+    ? setTimeout(wrappersWithDelay, MapConfig.slowConnectionDelay)
+    : wrappersWithDelay();
 
   const cleanup = () => {
     MapVisibility.cleanup();
@@ -330,19 +327,19 @@ const initMaps = () => {
   // Ensure cleanup is idempotent
   const originalCleanup = window.cleanupMaps;
   window.cleanupMaps = () => {
-    if ($.is(originalCleanup, 'function')) {
-      originalCleanup();
-      window.cleanupMaps = () => {}; // Replace with no-op after cleanup
-    }
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window.cleanupMaps = () => {}; // Replace with no-op after cleanup
   }
 
-  if (window.themeCleanup) {
+  const themeCleanupHandler = () => {
     const originalThemeCleanup = window.themeCleanup;
     window.themeCleanup = () => {
       if (window.cleanupMaps) window.cleanupMaps();
       originalThemeCleanup();
     }
   }
+  if (window.themeCleanup) themeCleanupHandler();
 }
 
 window.addEventListener('load', initMaps);
