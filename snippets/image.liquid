@@ -10,6 +10,7 @@
   image_size - "string" *required,
   focal - image.coordinates optional,
   loading - "string" optional, (defaults to "lazy", use "eager" for above-the-fold content)
+  custom_height - "string" optional,
   custom_width - "string" optional,
   custom_size - "string" optional,
   keep_type - boolean optional,
@@ -25,8 +26,9 @@
       image_class: 'your_class',
       image_id: id,
       image_size: 'm',  <-------- use only this ONE property
-      custom_width: '170',  <---- or these TWO
-      custom_size: '170px', <---- instead of 'image_size' property
+      custom_size: '170px', <---- or these TWO properties (custom_size, custom_width)
+      custom_width: '170',  <---- instead of 'image_size' property
+      custom_height: '170',
       focal: points,
       loading: 'eager',
       fetchpriority: 'high',    - use for hero images or important visible content
@@ -243,8 +245,8 @@
         loading="{{- loading_strategy -}}"
         src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
         {%- if loading_strategy == "lazy" -%}data-{%- endif -%}srcset="{{- image_fallback_width -}}"
-        height="100%"
-        width="100%"
+        height="{%- if custom_height != blank -%}{{- custom_height -}}{%- else -%}100%{%- endif -%}"
+        width="{%- if custom_width != blank -%}{{- custom_width -}}{%- else -%}100%{%- endif -%}"
         alt="{{- image_alt -}}"
         {%- if image_points -%}style="opacity: 0;"{%- endif -%}
       >
