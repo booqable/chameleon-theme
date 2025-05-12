@@ -63,21 +63,24 @@ const MainDOM = {
   setClassResize() {
     if (!this.elements.body) return;
 
-    if (!this.isResizing) {
+    const target = this.elements.body,
+          mod = MainConfig.modifier.resize;
+
+    const addClassHandler = () => {
       this.isResizing = true;
-      $.batchDOM(() => {
-        $.toggleClass(this.elements.body, MainConfig.modifier.resize, true);
-      })
+      const addClass = () => $.toggleClass(target, mod, true);
+      $.batchDOM(addClass)
+    }
+    const removeClassHandler = () => {
+      this.isResizing = false;
+      const removeClass = () => $.toggleClass(target, mod, false);
+      $.batchDOM(removeClass)
     }
 
+    if (!this.isResizing) addClassHandler();
     if (this.resizeTimer) clearTimeout(this.resizeTimer);
 
-    this.resizeTimer = setTimeout(() => {
-      this.isResizing = false;
-      $.batchDOM(() => {
-        $.toggleClass(this.elements.body, MainConfig.modifier.resize, false);
-      })
-    }, MainConfig.time.resizeDelay)
+    this.resizeTimer = setTimeout(removeClassHandler, MainConfig.time.resizeDelay)
   },
 
   cleanup() {
@@ -183,7 +186,7 @@ const MainResize = {
   },
 
   cleanup() {
-    if (!this.resizeObserver && !$.is(this.resizeObserver.cleanup, 'function')) return;
+    if (!this.resizeObserver || !$.is(this.resizeObserver.cleanup, 'function')) return;
     this.resizeObserver.cleanup();
     this.resizeObserver = null;
   }
@@ -231,9 +234,9 @@ const handleMain = () => {
   if (!elements.body) return null;
 
   const delay = MainConfig.time.slowConnectionDelay,
-        slowly = $.slowConnection() && $.is($.slowConnection, 'function'),
+        laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
         inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
-        setDelay = slowly ? delay * 2 : delay;
+        setDelay = laggy ? delay * 2 : delay;
 
   MainDOM.setClassLoaded();
 

@@ -166,10 +166,13 @@
 
   .image-wrapper:has(.image-placeholder) {
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: auto;
   }
 
   .image-wrapper:has(.image-placeholder) .image-main {
-    transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+    will-change: opacity;
+    opacity: 1;
   }
 
   .image-wrapper:has(.image-placeholder) .image-main.hidden {
@@ -178,6 +181,7 @@
 
   .image-wrapper:has(.image-placeholder) .image-main.loaded {
     opacity: 1;
+    transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .image-placeholder {
@@ -189,7 +193,9 @@
     height: 100%;
     object-fit: cover;
     max-width: none;
+    will-change: opacity;
     transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+    backface-visibility: hidden;
   }
 
   /* Header styles */
