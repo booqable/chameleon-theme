@@ -27,8 +27,9 @@ const MainConfig = {
     datePickerBlockHeight: '--date-picker-block-height'
   },
   time: {
-    delay: 1000,
-    resizeDelay: 500
+    idleTimeout: 2000,
+    resizeDelay: 500,
+    slowConnectionDelay: 1000
   }
 }
 
@@ -166,8 +167,6 @@ const MainHeight = {
 
 const MainResize = {
   resizeObserver: null,
-  heightResizeHandler: null,
-  classResizeHandler: null,
 
   setupResizeHandlers() {
     const handleResize = () => {
@@ -180,34 +179,13 @@ const MainResize = {
       debounceTime: 0
     }
 
-    const handleResizeFallback = () => {
-      this.heightResizeHandler = () => MainHeight.calculateDatePickerHeight();
-      this.classResizeHandler = () => MainDOM.setClassResize();
-
-      $.eventListener('add', window, 'resize', this.heightResizeHandler, { passive: true });
-      $.eventListener('add', window, 'resize', this.classResizeHandler, { passive: true });
-    }
-
-    $.is($.resizeObserver, 'function')
-      ? this.resizeObserver = $.resizeObserver(handleResize, handleResizeSettings)
-      : handleResizeFallback();
+    this.resizeObserver = $.resizeObserver(handleResize, handleResizeSettings);
   },
 
   cleanup() {
-    if (this.resizeObserver && $.is(this.resizeObserver.cleanup, 'function')) {
-      this.resizeObserver.cleanup();
-      this.resizeObserver = null;
-    }
-
-    if (this.heightResizeHandler) {
-      $.eventListener('remove', window, 'resize', this.heightResizeHandler, { passive: true });
-      this.heightResizeHandler = null;
-    }
-
-    if (this.classResizeHandler) {
-      $.eventListener('remove', window, 'resize', this.classResizeHandler, { passive: true });
-      this.classResizeHandler = null;
-    }
+    if (!this.resizeObserver && !$.is(this.resizeObserver.cleanup, 'function')) return;
+    this.resizeObserver.cleanup();
+    this.resizeObserver = null;
   }
 }
 
@@ -225,35 +203,22 @@ const MainVisibility = {
     }
 
     this.observer = $.intersectionObserver(handleIntersection);
-    if (!this.observer) return;
     this.observer.observe(MainDOM.elements.datePicker);
   },
 
   cleanup() {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
-  }
-}
-
-const MainDevice = {
-  getdelay() {
-    return $.slowConnection()
-      ? MainConfig.time.timeout * 2 // Longer delay for slow connections
-      : MainConfig.time.timeout;
-  },
-
-  isInViewport(element) {
-    return $.is($.inViewport, 'function') && $.inViewport(element);
+    if (! this.observer) return;
+    this.observer.disconnect();
+    this.observer = null;
   }
 }
 
 const handleMainLoading = () => {
   MainHeight.setInitialHeights();
 
-  const body = document.querySelector(MainConfig.selector.body);
-  if (body) $.toggleClass(body, MainConfig.modifier.loaded, true);
+  const body = document.querySelector(MainConfig.selector.body),
+        loaded = MainConfig.modifier.loaded;
+  if (body) $.toggleClass(body, loaded, true);
 }
 
 handleMainLoading();
@@ -261,20 +226,25 @@ handleMainLoading();
 const handleMain = () => {
   MainDOM.init();
 
-  if (!MainDOM.elements.body) return null;
+  const elements = MainDOM.elements;
+
+  if (!elements.body) return null;
+
+  const delay = MainConfig.time.slowConnectionDelay,
+        slowly = $.slowConnection() && $.is($.slowConnection, 'function'),
+        inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
+        setDelay = slowly ? delay * 2 : delay;
 
   MainDOM.setClassLoaded();
 
   // Initialize date picker height with connection-aware delay
-  const calculateDatePickerHeightFallback = () => {
-    setTimeout(() => {
-      MainHeight.calculateDatePickerHeight();
-    }, MainDevice.getdelay())
+  const calculateWithDelay = () => {
+    setTimeout(MainHeight.calculateDatePickerHeight, setDelay)
   }
 
-  MainDOM.elements.datePicker && MainDevice.isInViewport(MainDOM.elements.datePicker)
+  elements.datePicker && inView
     ? MainHeight.calculateDatePickerHeight()
-    : calculateDatePickerHeightFallback();
+    : calculateWithDelay();
 
   MainResize.setupResizeHandlers();
   MainVisibility.setupIntersectionObserver();
@@ -295,21 +265,21 @@ const initMain = () => {
   // Ensure cleanup is idempotent
   const originalCleanup = window.cleanupMain;
   window.cleanupMain = () => {
-    if ($.is(originalCleanup, 'function')) {
-      originalCleanup();
-      window.cleanupMain = () => {}; // Replace with no-op after cleanup
-    }
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window.cleanupMain = () => {}; // Replace with no-op after cleanup
   }
 
-  if (window.themeCleanup) {
+  const themeCleanupHandler = () => {
     const originalThemeCleanup = window.themeCleanup;
     window.themeCleanup = () => {
       if (window.cleanupMain) window.cleanupMain();
       originalThemeCleanup();
     }
   }
+  if (window.themeCleanup) themeCleanupHandler();
 }
 
 $.is($.requestIdle, 'function')
-  ? $.requestIdle(initMain, { timeout: 2000 })
-  : setTimeout(initMain, MainConfig.time.timeout); // Use a short timeout to ensure body is ready
+  ? $.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout })
+  : setTimeout(initMain, MainConfig.time.slowConnectionDelay); // Use a short timeout to ensure body is ready
