@@ -17,7 +17,7 @@ const MapConfig = {
     tabsInput: '.tabs__input',
     tabsContent: '.tabs__content'
   },
-  attribute: {
+  attr: {
     id: 'id',
     href: 'href',
     address: 'data-address',
@@ -53,7 +53,7 @@ const MapDOM = {
     return this.elements.locationWrappers && this.elements.locationWrappers.length > 0;
   },
 
-  getIconDimensions(iconSelector = MapConfig.selector.icon) {
+  getPinDimensions(iconSelector = MapConfig.selector.icon) {
     if (this.cache.iconDimensions.has(iconSelector)) {
       return this.cache.iconDimensions.get(iconSelector);
     }
@@ -80,16 +80,18 @@ const MapDOM = {
 
     this.cache.mapLinks.push(mapUrl);
 
-    $.batchDOM(() => {
+    const mapLinksHandler = () => {
       links.forEach((link, i) => {
         if (this.cache.mapLinks[i]) {
-          link.setAttribute(MapConfig.attribute.href, this.cache.mapLinks[i]);
+          link.setAttribute(MapConfig.attr.href, this.cache.mapLinks[i]);
         }
       })
-    })
+    }
+
+    $.batchDOM(mapLinksHandler)
   },
 
-  isElementVisible(element) {
+  isVisible(element) {
     if (!element) return false;
     if ($.inViewport(element)) return true;
 
@@ -111,7 +113,7 @@ const MapDOM = {
 const MapRenderer = {
   // Read phase for map configuration
   readMapConfiguration(lon, lat) {
-    const iconDimensions = MapDOM.getIconDimensions(),
+    const iconDimensions = MapDOM.getPinDimensions(),
           icon = document.querySelector(MapConfig.selector.icon);
 
     return {
@@ -217,13 +219,13 @@ const MapData = {
 
 const MapProcessor = {
   async processMapElement(mapElement) {
-    const processed = mapElement.getAttribute(MapConfig.attribute.processed);
+    const processed = mapElement.getAttribute(MapConfig.attr.processed);
     if (!mapElement || processed === 'true') return;
 
-    const address = mapElement.getAttribute(MapConfig.attribute.address);
+    const address = mapElement.getAttribute(MapConfig.attr.address);
     if (!address) return;
 
-    const mapId = mapElement.getAttribute(MapConfig.attribute.id),
+    const mapId = mapElement.getAttribute(MapConfig.attr.id),
           locationData = await MapData.fetchLocationData(address);
 
     if (!locationData || !locationData.length) {
@@ -234,7 +236,7 @@ const MapProcessor = {
     MapRenderer.renderMap(mapId, locationData);
     MapDOM.updateMapLinks(locationData);
 
-    mapElement.setAttribute(MapConfig.attribute.processed, 'true'); // Mark as processed to prevent duplicate processing
+    mapElement.setAttribute(MapConfig.attr.processed, 'true'); // Mark as processed to prevent duplicate processing
   },
 
   processLocationWrapper(wrapper) {
@@ -242,12 +244,12 @@ const MapProcessor = {
     if (!maps || !maps.length) return;
 
     maps.forEach(map => {
-      const attribute = map.getAttribute(MapConfig.attribute.processed);
+      const attribute = map.getAttribute(MapConfig.attr.processed);
       const mapObserver = () => {
         if (attribute !== 'true') MapVisibility.observer.observe(map);
       }
 
-      if (MapDOM.isElementVisible(map)) {
+      if (MapDOM.isVisible(map)) {
         this.processMapElement(map)
       } else if (MapVisibility.observer) {
         mapObserver() // Only observe maps that haven't been processed yet
@@ -285,7 +287,7 @@ const MapVisibility = {
   }
 }
 
-const handleLocationMaps = () => {
+const handleLocation = () => {
   if (!MapDOM.init()) return null;
 
   MapVisibility.setIntersectionObserver();
@@ -320,7 +322,7 @@ const handleLocationMaps = () => {
 }
 
 const initMaps = () => {
-  window.cleanupMaps = handleLocationMaps();
+  window.cleanupMaps = handleLocation();
 
   // Ensure cleanup is idempotent
   const originalCleanup = window.cleanupMaps;
