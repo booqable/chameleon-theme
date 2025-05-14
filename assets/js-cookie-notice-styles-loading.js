@@ -140,24 +140,23 @@ const CookieObserver = {
 
 const CookieInterval = {
   intervalId: null,
-  attempts: 0,
 
   start() {
-    this.attempts = 0;
-
+    let attempts = 0;
     const interval = CookieConfig.defaults.interval;
 
     const applyStyles = () => {
-      this.attempts++;
+      attempts++;
 
-      if (CookieDOM.init()) {
+      const applyStylesHandler = () => {
         CookieStyler.applyStyles();
         this.stop();
         return;
       }
+      if (CookieDOM.init()) applyStylesHandler();
 
       // Stop checking after max attempts
-      if (this.attempts >= CookieConfig.defaults.maxAttempts) this.stop();
+      if (attempts >= CookieConfig.defaults.maxAttempts) this.stop();
     }
 
     this.intervalId = setInterval(applyStyles, interval);
