@@ -1,170 +1,248 @@
 /**
- * Text With Image Spacer
+ * Text With Image Spacer Component
  *
- * Ensures that spacer elements in text-with-image sections
- * inherit the correct color palette from the previous section.
- * Optimized for performance with Utils library functions.
+ * Ensures that spacer of text-with-image section gets
+ * the correct color palette from the previous section.
  *
  * @requires js-utils-core.js
  * @requires js-utils.js
  */
-const handleTextWithImageSpacer = (section) => {
-  if (!section) return null;
 
-  const config = {
-    class: {
-      spacer: 'text-image__spacer',
-      palettes: ['palette-one', 'palette-two', 'palette-three']
+const TextImageConfig = {
+  selector: {
+    section: '.text-image',
+    spacer: '.text-image__spacer'
+  },
+  palette: {
+    one: 'palette-one',
+    two: 'palette-two',
+    three: 'palette-three'
+  },
+  palettes: ['palette-one', 'palette-two', 'palette-three']
+}
+
+const TextImageDOM = {
+  elements: {
+    sections: null
+  },
+
+  cache: {
+    spacers: new Map(),
+    prevSections: new Map()
+  },
+
+  init() {
+    this.elements.sections = document.querySelectorAll(TextImageConfig.selector.section);
+    return this.elements.sections && this.elements.sections.length > 0;
+  },
+
+  getPreviousSection(section) {
+    if (!section) return null;
+
+    if (this.cache.prevSections.has(section)) {
+      return this.cache.prevSections.get(section);
     }
+
+    const prevSection = $.getSibling(section, '*', 'prev');
+    this.cache.prevSections.set(section, prevSection);
+
+    return prevSection;
+  },
+
+  getSpacer(section) {
+    if (!section) return null;
+    if (this.cache.spacers.has(section)) {
+      return this.cache.spacers.get(section);
+    }
+
+    // Since there's only one spacer per section, find it directly
+    const spacer = section.querySelector('.' + TextImageConfig.selector.spacer.substring(1));
+
+    this.cache.spacers.set(section, spacer);
+    return spacer;
+  },
+
+  cleanup() {
+    this.cache.spacers.clear();
+    this.cache.prevSections.clear();
+
+    Object.keys(this.elements).forEach(key => {
+      this.elements[key] = null;
+    })
   }
+}
 
-  // Cache elements but get previous section on demand
-  const getElements = () => ({
-    section,
-    prevSection: $.getSibling(section, '*', 'prev')
-  })
+const TextImagePaletteDetector = {
+  findPaletteInElement(el) {
+    if (!el) return null;
 
-  // Cache checking functions for better performance
-  const hasPalette = (el, palette) => el.classList.contains(palette);
-  const hasSpacerClass = (el) => el.classList.contains(config.class.spacer);
+    for (const palette of TextImageConfig.palettes) {
+      if (el.classList.contains(palette)) return palette;
+    }
 
-  const applyPaletteToSpacer = (spacer, prevChild) => {
-    let foundPrevPalette = null,
-        currentSpacerPalette = null;
+    return null;
+  },
 
-    const findPalette = (el) => {
-      for (let i = 0; i < config.class.palettes.length; i++) {
-        const palette = config.class.palettes[i];
-
-        if (hasPalette(el, palette)) return palette;
-      }
+  findSourceElement(prevSection) {
+    if (!prevSection || !prevSection.children || prevSection.children.length === 0) {
       return null;
     }
 
-    foundPrevPalette = findPalette(prevChild); // Find palettes in previous child and current spacer
+    for (const child of prevSection.children) {
+      const palette = this.findPaletteInElement(child);
 
-    if (!foundPrevPalette) return;
-
-    currentSpacerPalette = findPalette(spacer); // Find the current palette in the spacer
-
-    // Apply palette class efficiently using Utils with frame sequencing
-    const applyClasses = () => {
-      if (currentSpacerPalette && currentSpacerPalette !== foundPrevPalette) {
-        // Use frameSequence for better performance and transition handling
-        $.frameSequence(
-          // Read phase - no actual reads needed here, just prepare data
-          () => ({
-            remove: currentSpacerPalette,
-            add: foundPrevPalette
-          }),
-          // Write phase - perform DOM updates with proper sequencing
-          (data) => {
-            $.toggleClass(spacer, data.remove, false);
-            $.nextFrame(() => $.toggleClass(spacer, data.add, true));
-          }
-        )
-      } else if (!currentSpacerPalette) {
-        // No palette on the spacer, just add the one from the previous section
-        $.nextFrame(() => $.toggleClass(spacer, foundPrevPalette, true));
-      }
+      if (palette) return { element: child, palette };
     }
 
-    $.batchDOM(applyClasses);
-  }
-
-  const setSpacerColors = () => {
-    const elements = getElements(),
-          prevSection = elements.prevSection;
-
-    if (!prevSection) return;
-
-    const prevChildren = prevSection.children;
-    if (!prevChildren || prevChildren.length === 0) return;
-
-    const children = elements.section.children,
-          spacers = [],
-          prevWithPalettes = [];
-
-    // Use a single function for the detection work
-    const findElements = () => {
-      for (let i = 0; i < children.length; i++) {
-        if (hasSpacerClass(children[i])) {
-          spacers.push(children[i]);
-        }
-      }
-
-      if (spacers.length === 0) return false;
-
-      // Find all previous children with palettes
-      for (let i = 0; i < prevChildren.length; i++) {
-        const prevChild = prevChildren[i];
-        let hasPaletteClass = false;
-
-        // Check if this previous child has any palette class
-        for (let j = 0; j < config.class.palettes.length; j++) {
-          if (hasPalette(prevChild, config.class.palettes[j])) {
-            hasPaletteClass = true;
-            break;
-          }
-        }
-
-        if (hasPaletteClass) {
-          prevWithPalettes.push(prevChild);
-          break;
-        }
-      }
-
-      // If no previous children with palettes, signal early exit
-      return prevWithPalettes.length > 0;
-    }
-
-    if (!findElements()) return;
-
-    // Use the first previous child with a palette for simplicity
-    const sourcePalette = prevWithPalettes[0];
-    const applyPalettes = () => {
-      for (let i = 0; i < spacers.length; i++) {
-        applyPaletteToSpacer(spacers[i], sourcePalette);
-      }
-    }
-
-    // Use batch DOM operations for better performance
-    $.batchDOM(applyPalettes);
-  }
-
-  const initialize = () => {
-    setSpacerColors();
-    return true;
-  }
-
-  return {
-    initialize,
-    updateColors: setSpacerColors // Allow manual updates if needed
+    return null;
   }
 }
 
-const initTextWithImageSpacer = (selector = '.text-image') => {
-  const instances = [],
-        sections = document.querySelectorAll(selector);
-  if (!sections.length) return;
+const TextImageRenderer = {
+  // Read phase - gather palette information
+  readPaletteData(spacer, sourceElement) {
+    if (!spacer || !sourceElement) return null;
 
-  const processSections = () => {
+    const prevPalette = TextImagePaletteDetector.findPaletteInElement(sourceElement);
+    const currentPalette = TextImagePaletteDetector.findPaletteInElement(spacer);
+
+    if (!prevPalette) return null;
+
+    return {
+      currentPalette,
+      prevPalette,
+      needsUpdate: !currentPalette || currentPalette !== prevPalette
+    }
+  },
+
+  // Write phase - apply palette changes
+  writePaletteChanges(data) {
+    if (!data || !data.spacer || !data.needsUpdate) return;
+
+    if (data.currentPalette) {
+      data.spacer.classList.remove(data.currentPalette);
+    }
+
+    data.spacer.classList.add(data.prevPalette);
+  },
+
+  // Apply palette to a single spacer
+  applyPalette(spacer, sourceElement) {
+    if (!spacer || !sourceElement) return;
+
+    // Read phase
+    const readPhase = () => {
+      const paletteData = this.readPaletteData(spacer, sourceElement);
+      if (!paletteData) return null;
+
+      return { ...paletteData, spacer }
+    }
+
+    // Write phase
+    const writePhase = (data) => {
+      this.writePaletteChanges(data);
+    }
+
+    $.frameSequence(readPhase, writePhase);
+  }
+}
+
+const TextImageProcessor = {
+  // Read phase - gather information about section
+  readSectionData(section) {
+    if (!section) return null;
+
+    const prevSection = TextImageDOM.getPreviousSection(section);
+    if (!prevSection) return null;
+
+    const spacer = TextImageDOM.getSpacer(section);
+    if (!spacer) return null;
+
+    const sourceInfo = TextImagePaletteDetector.findSourceElement(prevSection);
+    if (!sourceInfo) return null;
+
+    return {
+      spacer,
+      sourceElement: sourceInfo.element
+    }
+  },
+
+  // Write phase - apply palette to the spacer
+  writePaletteToSection(data) {
+    if (!data || !data.spacer || !data.sourceElement) return;
+
+    // Process the spacer with proper separation of reads and writes
+    TextImageRenderer.applyPalette(data.spacer, data.sourceElement);
+  },
+
+  processSingleSection(section) {
+    if (!section) return;
+
+    // Bind the context to ensure 'this' references the TextImageProcessor
+    const readPhase = this.readSectionData.bind(this),
+          writePhase = this.writePaletteToSection.bind(this);
+
+    $.frameSequence(readPhase, writePhase);
+  },
+
+  // Read phase - prepare all sections
+  readAllSectionsData() {
+    const sections = TextImageDOM.elements.sections;
+    if (!sections || !sections.length) return null;
+
+    return Array.from(sections);
+  },
+
+  // Write phase - process all sections
+  writeAllSectionsData(sections) {
+    if (!sections || !sections.length) return;
+
     sections.forEach(section => {
-      const spacer = handleTextWithImageSpacer(section);
-      if (spacer && spacer.initialize()) instances.push(spacer);
+      this.processSingleSection(section);
     })
-  }
+  },
 
-  $.batchDOM(processSections);
+  processAllSections() {
+    // Bind the context to ensure 'this' references the TextImageProcessor
+    const readPhase = this.readAllSectionsData.bind(this),
+          writePhase = this.writeAllSectionsData.bind(this);
 
-  return instances;
-}
-
-const textWithImageInstances = initTextWithImageSpacer();
-
-// Add global cleanup handler if needed
-window.cleanupImageSpacer = () => {
-  if (textWithImageInstances && textWithImageInstances.length) {
-    textWithImageInstances.length = 0;
+    $.frameSequence(readPhase, writePhase);
   }
 }
+
+const handleTextWithImage = () => {
+  if (!TextImageDOM.init()) return null;
+
+  TextImageProcessor.processAllSections();
+
+  const cleanup = () => {
+    TextImageDOM.cleanup();
+    return null;
+  }
+
+  return cleanup;
+}
+
+const initTextWithImage = () => {
+  window.cleanupImageSpacer = handleTextWithImage();
+
+  // Ensure cleanup is idempotent
+  const originalCleanup = window.cleanupImageSpacer;
+  window.cleanupImageSpacer = () => {
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window.cleanupImageSpacer = () => {}; // Replace with no-op after cleanup
+  }
+
+  const themeCleanupHandler = () => {
+    const originalThemeCleanup = window.themeCleanup;
+    window.themeCleanup = () => {
+      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
+      originalThemeCleanup();
+    }
+  }
+  if (window.themeCleanup) themeCleanupHandler();
+}
+
+initTextWithImage();
