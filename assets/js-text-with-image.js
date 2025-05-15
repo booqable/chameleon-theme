@@ -13,11 +13,6 @@ const TextImageConfig = {
     section: '.text-image',
     spacer: '.text-image__spacer'
   },
-  palette: {
-    one: 'palette-one',
-    two: 'palette-two',
-    three: 'palette-three'
-  },
   palettes: ['palette-one', 'palette-two', 'palette-three']
 }
 
@@ -55,7 +50,6 @@ const TextImageDOM = {
       return this.cache.spacers.get(section);
     }
 
-    // Since there's only one spacer per section, find it directly
     const spacer = section.querySelector('.' + TextImageConfig.selector.spacer.substring(1));
 
     this.cache.spacers.set(section, spacer);
@@ -72,8 +66,8 @@ const TextImageDOM = {
   }
 }
 
-const TextImagePaletteDetector = {
-  findPaletteInElement(el) {
+const TextImageDetector = {
+  findElementPalette(el) {
     if (!el) return null;
 
     for (const palette of TextImageConfig.palettes) {
@@ -83,13 +77,11 @@ const TextImagePaletteDetector = {
     return null;
   },
 
-  findSourceElement(prevSection) {
-    if (!prevSection || !prevSection.children || prevSection.children.length === 0) {
-      return null;
-    }
+  findElementSource(prevSection) {
+    if (!prevSection || !prevSection.children || prevSection.children.length === 0) return null;
 
     for (const child of prevSection.children) {
-      const palette = this.findPaletteInElement(child);
+      const palette = this.findElementPalette(child);
 
       if (palette) return { element: child, palette };
     }
@@ -103,8 +95,8 @@ const TextImageRenderer = {
   readPaletteData(spacer, sourceElement) {
     if (!spacer || !sourceElement) return null;
 
-    const prevPalette = TextImagePaletteDetector.findPaletteInElement(sourceElement);
-    const currentPalette = TextImagePaletteDetector.findPaletteInElement(spacer);
+    const prevPalette = TextImageDetector.findElementPalette(sourceElement),
+          currentPalette = TextImageDetector.findElementPalette(spacer);
 
     if (!prevPalette) return null;
 
@@ -148,64 +140,46 @@ const TextImageRenderer = {
 }
 
 const TextImageProcessor = {
-  // Read phase - gather information about section
-  readSectionData(section) {
-    if (!section) return null;
+  processSections() {
+    // Read phase - gather all relevant data at once
+    const readPhase = () => {
+      const sections = TextImageDOM.elements.sections;
+      if (!sections || !sections.length) return null;
 
-    const prevSection = TextImageDOM.getPreviousSection(section);
-    if (!prevSection) return null;
+      // Process all sections at once to avoid multiple frame sequences
+      const processData = [];
 
-    const spacer = TextImageDOM.getSpacer(section);
-    if (!spacer) return null;
+      Array.from(sections).forEach(section => {
+        const prevSection = TextImageDOM.getPreviousSection(section);
+        if (!prevSection) return;
 
-    const sourceInfo = TextImagePaletteDetector.findSourceElement(prevSection);
-    if (!sourceInfo) return null;
+        const spacer = TextImageDOM.getSpacer(section);
+        if (!spacer) return;
 
-    return {
-      spacer,
-      sourceElement: sourceInfo.element
+        const sourceData = TextImageDetector.findElementSource(prevSection);
+        if (!sourceData) return;
+
+        // Only gather data for valid sections
+        processData.push({
+          spacer,
+          sourceElement: sourceData.element
+        })
+      })
+
+      return processData.length > 0 ? processData : null;
     }
-  },
 
-  // Write phase - apply palette to the spacer
-  writePaletteToSection(data) {
-    if (!data || !data.spacer || !data.sourceElement) return;
+    // Write phase - apply palette changes to all spacers
+    const writePhase = (sectionsData) => {
+      if (!sectionsData) return;
 
-    // Process the spacer with proper separation of reads and writes
-    TextImageRenderer.applyPalette(data.spacer, data.sourceElement);
-  },
-
-  processSingleSection(section) {
-    if (!section) return;
-
-    // Bind the context to ensure 'this' references the TextImageProcessor
-    const readPhase = this.readSectionData.bind(this),
-          writePhase = this.writePaletteToSection.bind(this);
-
-    $.frameSequence(readPhase, writePhase);
-  },
-
-  // Read phase - prepare all sections
-  readAllSectionsData() {
-    const sections = TextImageDOM.elements.sections;
-    if (!sections || !sections.length) return null;
-
-    return Array.from(sections);
-  },
-
-  // Write phase - process all sections
-  writeAllSectionsData(sections) {
-    if (!sections || !sections.length) return;
-
-    sections.forEach(section => {
-      this.processSingleSection(section);
-    })
-  },
-
-  processAllSections() {
-    // Bind the context to ensure 'this' references the TextImageProcessor
-    const readPhase = this.readAllSectionsData.bind(this),
-          writePhase = this.writeAllSectionsData.bind(this);
+      // Process all spacers in a single frame
+      sectionsData.forEach(data => {
+        if (data && data.spacer && data.sourceElement) {
+          TextImageRenderer.applyPalette(data.spacer, data.sourceElement);
+        }
+      })
+    }
 
     $.frameSequence(readPhase, writePhase);
   }
@@ -214,7 +188,7 @@ const TextImageProcessor = {
 const handleTextWithImage = () => {
   if (!TextImageDOM.init()) return null;
 
-  TextImageProcessor.processAllSections();
+  TextImageProcessor.processSections();
 
   const cleanup = () => {
     TextImageDOM.cleanup();
