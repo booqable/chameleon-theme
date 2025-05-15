@@ -16,6 +16,7 @@
   border: 1px solid transparent;
   overflow: hidden;
   margin: 0 0 30px;
+  border-radius: var(--border-radius-block-rounded);
   contain: layout;
 }
 
@@ -56,11 +57,18 @@
 
 .mosaic__image {
   max-height: 50px;
+  border-radius: var(--border-radius-block-rounded);
 }
 
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child,
 .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child {
   margin: 0;
+  width: 100%;
+}
+
+.mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child .mosaic__image-wrapper,
+.mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child .mosaic__image-wrapper {
+  aspect-ratio: 1 / 0.76;
   width: 100%;
 }
 
@@ -108,6 +116,13 @@
   height: auto;
   aspect-ratio: 1 / 0.867;
   position: relative;
+}
+
+.mosaic__list-small .mosaic__item-col.no-image,
+.mosaic__list-small .mosaic__item-col .mosaic__image-wrapper,
+.mosaic__list-small .mosaic__item-col--image {
+  width: 100%;
+  aspect-ratio: 1 / 0.867;
 }
 
 .mosaic__show-wrapper {
@@ -297,6 +312,12 @@
   .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child {
     aspect-ratio: 1 / 1.3;
     width: 53%;
+    height: 100%;
+  }
+
+  .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col:first-child .mosaic__image-wrapper,
+  .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col:first-child .mosaic__image-wrapper {
+    aspect-ratio: auto;
     height: 100%;
   }
 

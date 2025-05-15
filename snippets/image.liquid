@@ -10,6 +10,7 @@
   image_size - "string" *required,
   focal - image.coordinates optional,
   loading - "string" optional, (defaults to "lazy", use "eager" for above-the-fold content)
+  custom_height - "string" optional,
   custom_width - "string" optional,
   custom_size - "string" optional,
   keep_type - boolean optional,
@@ -25,8 +26,9 @@
       image_class: 'your_class',
       image_id: id,
       image_size: 'm',  <-------- use only this ONE property
-      custom_width: '170',  <---- or these TWO
-      custom_size: '170px', <---- instead of 'image_size' property
+      custom_size: '170px', <---- or these TWO properties (custom_size, custom_width)
+      custom_width: '170',  <---- instead of 'image_size' property
+      custom_height: '170',
       focal: points,
       loading: 'eager',
       fetchpriority: 'high',    - use for hero images or important visible content
@@ -201,11 +203,11 @@
         {%- if featured_type == ".webp" or featured_type == ".jpg" or featured_type == ".jpeg" or featured_type == ".png" -%}
           <source
             type="image/webp"
-            data-source-srcset="{{ image_webp_sizes }}"
             {%- if image_mobile.url != blank -%}
               media="(min-width: {{ media_query }}px)"
             {%- endif -%}
             sizes="{{ image_sizes }}"
+            {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_webp_sizes }}"
           >
         {%- endif -%}
       {% endunless %}
@@ -213,28 +215,27 @@
       {%- if featured_type == ".jpg" or featured_type == ".jpeg" -%}
         <source
           type="image/jpeg"
-          data-source-srcset="{{ image_jpg_sizes }}"
           {%- if image_mobile.url != blank -%}
             media="(min-width: {{ media_query }}px)"
           {%- endif -%}
           sizes="{{ image_sizes }}"
+          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_jpg_sizes }}"
         >
       {%- endif -%}
 
       {%- if featured_type == ".png" -%}
         <source
           type="image/png"
-          data-source-srcset="{{ image_png_sizes }}"
           {%- if image_mobile.url != blank -%}
             media="(min-width: {{ media_query }}px)"
           {%- endif -%}
           sizes="{{ image_sizes }}"
+          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_png_sizes }}"
         >
       {%- endif -%}
 
       <img
         class="{{ image_main_class }}{% if image_points %} focal-image{% endif %}{% if loading_strategy == "lazy" %} hidden lazyload{%- endif -%}"
-        data-srcset="{{- image_fallback_width -}}"
         {%- if image_points -%}
           data-focal-x="{{- image_focal_x -}}"
           data-focal-y="{{- image_focal_y -}}"
@@ -243,8 +244,9 @@
         fetchpriority="{{- fetch_priority -}}"
         loading="{{- loading_strategy -}}"
         src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
-        height="100%"
-        width="100%"
+        {%- if loading_strategy == "lazy" -%}data-{%- endif -%}srcset="{{- image_fallback_width -}}"
+        height="{%- if custom_height != blank -%}{{- custom_height -}}{%- else -%}100%{%- endif -%}"
+        width="{%- if custom_width != blank -%}{{- custom_width -}}{%- else -%}100%{%- endif -%}"
         alt="{{- image_alt -}}"
         {%- if image_points -%}style="opacity: 0;"{%- endif -%}
       >

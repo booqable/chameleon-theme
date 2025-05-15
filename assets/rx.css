@@ -123,6 +123,12 @@
   text-decoration: none;
 }
 
+.bq-content.rx-content h1:last-child,
+.bq-content.rx-content h2:last-child,
+.bq-content.rx-content h3:last-child {
+  margin-bottom: 0;
+}
+
 .bq-content.rx-content h1 {
   font-size: var(--font-size-h1, 56px);
   font-weight: var(--font-weight-h1);
@@ -295,7 +301,7 @@
 .bq-content.rx-content samp,
 .bq-content.rx-content kbd,
 .bq-content.rx-content code {
-  border-radius: var(--border-radius-rounded, 0);
+  border-radius: var(--border-radius-rounded);
 }
 
 .bq-content.rx-content kbd {

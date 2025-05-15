@@ -1,125 +1,209 @@
 /**
- * Cookie styles loader
+ * Cookie Notice Styles Component
  *
- * This script loads cookie consent styling immediately when the cookie element
+ * Loads cookie consent styling immediately when the cookie element
  * appears in the DOM using MutationObserver for optimal performance.
+ *
+ * @requires js-utils-core.js
  */
 
-// Store current state to prevent unnecessary reapplication
-let ccCurrentPalette = '';
-let ccAppliedStyles = false;
-const ccStylesName = 'cookie-notice-styles.css';
+const CookieConfig = {
+  selector: {
+    container: 'cc-main'
+  },
+  modifier: {
+    paletteOne: 'palette-one',
+    paletteTwo: 'palette-two',
+    paletteThree: 'palette-three'
+  },
+  event: {
+    initialized: 'cookie-consent-ui-initialized'
+  },
+  defaults: {
+    palette: 'one',
+    interval: 1500,
+    maxAttempts: 3
+  }
+}
 
-// Apply the styles to the cookie container
-const applyCookieStyles = (ccMain) => {
-  if (!ccMain) {
-    ccMain = document.getElementById('cc-main');
+const CookieDOM = {
+  elements: {
+    container: null
+  },
+
+  cache: {
+    currentPalette: '',
+    appliedStyles: false
+  },
+
+  init() {
+    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`);
+    return !!this.elements.container;
+  },
+
+  getContainer() {
+    if (this.elements.container) return this.elements.container;
+
+    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`);
+    return this.elements.container;
+  },
+
+  cleanup() {
+    this.elements.container = null;
+  }
+}
+
+const CookieStyler = {
+  applyStyles(container = null) {
+    const ccMain = container || CookieDOM.getContainer();
     if (!ccMain) return false;
+
+    const ccPalette = window?.cookieSettings?.cookiePalette || CookieConfig.defaults.palette;
+
+    if (ccPalette === CookieDOM.cache.currentPalette && CookieDOM.cache.appliedStyles) return true;
+
+    const readPhase = () => {
+      return {
+        palette: ccPalette,
+        styleMap: window?.cookieSettings?.cookieStyleMap || {}
+      }
+    }
+
+    const writePhase = (data) => {
+      ccMain.classList.remove(
+        CookieConfig.modifier.paletteOne,
+        CookieConfig.modifier.paletteTwo,
+        CookieConfig.modifier.paletteThree
+      )
+      ccMain.classList.add(`palette-${data.palette}`);
+
+      for (const [prop, val] of Object.entries(data.styleMap)) {
+        ccMain.style.setProperty(prop, val);
+      }
+
+      CookieDOM.cache.currentPalette = data.palette;
+      CookieDOM.cache.appliedStyles = true;
+      ccMain.style.opacity = '1';
+    }
+
+    $.frameSequence(readPhase, writePhase);
+    return true;
   }
-
-  // Get the palette value from cookieSettings global object (set by Liquid)
-  const ccPalette = window?.cookieSettings?.cookiePalette || 'one';
-
-  // Skip if already applied with the same palette
-  if (ccPalette === ccCurrentPalette && ccAppliedStyles) return true;
-
-  // Apply the correct class
-  ccMain.classList.remove('palette-one', 'palette-two', 'palette-three');
-  ccMain.classList.add(`palette-${ccPalette}`);
-
-  // Apply CSS variables from the style map
-  const ccStyleMap = window?.cookieSettings?.cookieStyleMap || {};
-
-  for (const [prop, val] of Object.entries(ccStyleMap)) {
-    ccMain.style.setProperty(prop, val);
-  }
-
-  // Force a reflow to ensure styles are applied
-  void ccMain.offsetHeight;
-
-  // Update state
-  ccCurrentPalette = ccPalette;
-  ccAppliedStyles = true;
-
-  // Make cookie container visible now that styles are applied
-  setTimeout(() => { ccMain.style.opacity = '1'}, 500);
-
-  return true;
 }
 
-// Load the cookie CSS file with high priority
-const loadCookieStyles = () => {
-  if (document.querySelector(`link[href*="${ccStylesName}"]`)) return;
+const CookieObserver = {
+  observer: null,
 
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = window.theme?.assets_url
-    ? `${window.theme.assets_url}${ccStylesName}`
-    : `/assets/${ccStylesName}`;
-  link.setAttribute('priority', 'high');
+  setup() {
+    if (this.observer) return this.observer;
 
-  document.head.appendChild(link);
-}
+    const handleElement = (el) => {
+      if (!el) return false;
 
-// Set up MutationObserver to watch for cookie container
-const setupMutationObserver = () => {
-  // Create an observer instance
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === 'childList') {
+      CookieStyler.applyStyles(el);
+
+      if (this.observer) this.observer.disconnect();
+
+      return true;
+    }
+
+    const observerCallback = (mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') continue;
+        const target = CookieConfig.selector.container;
+
         for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            // Check if this element is the cookie container
-            if (node.id === 'cc-main') {
-              applyCookieStyles(node);
-              return;
-            }
+          if (!node || node.nodeType !== Node.ELEMENT_NODE) continue;
 
-            // Check if the cookie container is a child of this element
-            const ccMain = node.querySelector('#cc-main');
-            if (ccMain) {
-              applyCookieStyles(ccMain);
-              return;
-            }
+          if (node.id === target) {
+            if (handleElement(node)) return;
+          }
+
+          if (node.querySelector) {
+            const container = node.querySelector(`#${target}`);
+            if (handleElement(container)) return;
           }
         }
       }
     }
-  })
 
-  // Start observing the document body for DOM changes
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  })
+    this.observer = $.mutationObserver(observerCallback);
+    return this.observer;
+  },
 
-  return observer;
+  cleanup() {
+    if (!this.observer) return;
+    this.observer.disconnect();
+    this.observer = null;
+  }
 }
 
-// Initial setup
-loadCookieStyles();
-applyCookieStyles();
+const CookieInterval = {
+  intervalId: null,
 
-// Set up the observer
-const observer = setupMutationObserver();
+  start() {
+    let attempts = 0;
+    const interval = CookieConfig.defaults.interval;
 
-// Backup: Check for cookie container a few times with longer intervals
-let attempts = 0;
-const checkInterval = setInterval(() => {
-  attempts++;
+    const applyStyles = () => {
+      attempts++;
 
-  if (document.getElementById('cc-main')) {
-    applyCookieStyles();
+      const applyStylesHandler = () => {
+        CookieStyler.applyStyles();
+        this.stop();
+        return;
+      }
+      if (CookieDOM.init()) applyStylesHandler();
+
+      // Stop checking after max attempts
+      if (attempts >= CookieConfig.defaults.maxAttempts) this.stop();
+    }
+
+    this.intervalId = setInterval(applyStyles, interval);
+
+    return this.intervalId;
+  },
+
+  stop() {
+    if (!this.intervalId) return;
+    clearInterval(this.intervalId);
+    this.intervalId = null;
   }
+}
 
-  // Stop checking after 3 attempts (fewer attempts, longer interval)
-  if (attempts >= 3) {
-    clearInterval(checkInterval);
+const CookieHandler = {
+  initHandler: null,
+
+  init() {
+    CookieStyler.applyStyles();
+    CookieObserver.setup();
+    CookieInterval.start();
+    this.setupEventListener();
+
+    return this.cleanup.bind(this);
+  },
+
+  setupEventListener() {
+    this.initHandler = () => $.batchDOM(CookieStyler.applyStyles);
+    $.eventListener('add', window, CookieConfig.event.initialized, this.initHandler);
+  },
+
+  cleanup() {
+    if (this.initHandler) {
+      $.eventListener('remove', window, CookieConfig.event.initialized, this.initHandler);
+      this.initHandler = null;
+    }
+
+    CookieObserver.cleanup();
+    CookieInterval.stop();
+    CookieDOM.cleanup();
+
+    return null;
   }
-}, 1500)
+}
 
-// Also try on DOM ready
-document.addEventListener('DOMContentLoaded', () => applyCookieStyles());
+const initCookieStyles = () => {
+  window.cleanupCookiesListeners = CookieHandler.init();
+}
 
-// Apply when cookie consent UI is initialized
-window.addEventListener('cookie-consent-ui-initialized', () => applyCookieStyles());
+initCookieStyles();
