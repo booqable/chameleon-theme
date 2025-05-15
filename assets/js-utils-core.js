@@ -101,6 +101,22 @@ Utils.intersectionObserver = (callback, customOptions = {}) => {
   return new IntersectionObserver(callback, { ...defaultOptions, ...customOptions });
 }
 
+Utils.mutationObserver = (callback, targetNode = document.body, customOptions = {}) => {
+  if (!('MutationObserver' in window)) return null;
+  const defaultOptions = {
+    childList: true,
+    subtree: true,
+    attributes: false,
+    characterData: false
+  }
+  const options = { ...defaultOptions, ...customOptions };
+  
+  const observer = new MutationObserver(callback);
+  observer.observe(targetNode, options);
+  
+  return observer;
+}
+
 Utils.resizeObserver = (callback, customOptions = {}) => {
   const defaultOptions = {
     debounceTime: 150,
