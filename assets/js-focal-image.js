@@ -1,34 +1,46 @@
 /**
- * Focal Images Handler
- * Converts Booqable focal point coordinates to CSS object-position
+ * Focal Image Component
  *
- * Booqable uses a coordinate system between -1 and 1 where:
- * - X: -1 (far left) to 1 (far right) with 0 being center
- * - Y: -1 (top) to 1 (bottom) with 0 being center
+ * Converts Booqable focal point coordinates to CSS object-position.
+ * Uses IntersectionObserver for lazy processing and performance optimization.
  *
- * CSS object-position uses percentages where:
- * - X: 0% (far left) to 100% (far right) with 50% being center
- * - Y: 0% (top) to 100% (bottom) with 50% being center
- *
- * Performance optimizations:
- * - Uses IntersectionObserver to only process images as they enter viewport
- * - Uses batchDOM to batch style changes
- * - Caches computed values for efficiency
+ * @requires js-utils-core.js
  */
-const handleFocalImages = () => {
-  const focalImages = document.querySelectorAll('.focal-image');
 
-  if (!focalImages || !focalImages.length) return;
+const FocalConfig = {
+  selector: {
+    image: '.focal-image'
+  },
+  attr: {
+    focalX: 'data-focal-x',
+    focalY: 'data-focal-y',
+    processed: 'data-focal-processed'
+  },
+  defaultPosition: '50% 50%'
+}
 
-  // Cache for storing calculated position values
-  const cachePositions = new Map();
+const FocalDOM = {
+  elements: {
+    images: null
+  },
 
-  /**
-   * Convert coordinates (-1 to 1) to CSS percentages (0% to 100%)
-   * @param {number} coordinate - Value between -1 and 1
-   * @returns {string} - CSS percentage value
-   */
-  const convertCoordinateToPercentage = (coordinate) => {
+  cache: {
+    positions: new Map()
+  },
+
+  init() {
+    this.elements.images = document.querySelectorAll(FocalConfig.selector.image);
+    return this.elements.images && this.elements.images.length > 0;
+  },
+
+  cleanup() {
+    this.cache.positions.clear();
+    this.elements.images = null;
+  }
+}
+
+const FocalCalculator = {
+  convertToPercentage(coordinate) {
     const value = parseFloat(coordinate) || 0;
 
     // Convert from (-1 to 1) range to (0% to 100%) range
@@ -39,82 +51,119 @@ const handleFocalImages = () => {
     const clampedPercentage = Math.max(0, Math.min(100, percentage));
 
     return `${clampedPercentage}%`;
-  }
+  },
 
-  /**
-   * Calculate and cache position from focal coordinates
-   * Uses Map to efficiently cache previously calculated positions
-   * @param {string|number} focalX - X-axis focal point (-1 to 1)
-   * @param {string|number} focalY - Y-axis focal point (-1 to 1)
-   * @returns {string} CSS object-position value
-   */
-  const calculatePosition = (focalX, focalY) => {
-    // Skip invalid coordinates
-    if (focalX === null || focalY === null) return '50% 50%';
+  calculatePosition(focalX, focalY) {
+    if (focalX === null || focalY === null) return FocalConfig.defaultPosition; // Skip invalid coordinates
 
     const positionKey = `${focalX}_${focalY}`; // Create a unique key for caching
 
-    let position = cachePositions.get(positionKey); // Check if position's already calculated
+    let position = FocalDOM.cache.positions.get(positionKey); // Check if position's already calculated
 
     // If not found in cache, calculate and store it
     if (!position) {
-      const objectPositionX = convertCoordinateToPercentage(focalX);
-      const objectPositionY = convertCoordinateToPercentage(focalY);
+      const objectPositionX = this.convertToPercentage(focalX),
+            objectPositionY = this.convertToPercentage(focalY);
       position = `${objectPositionX} ${objectPositionY}`;
 
-      cachePositions.set(positionKey, position); // Cache the result
+      FocalDOM.cache.positions.set(positionKey, position); // Cache the result
     }
 
     return position;
   }
-
-  const processFocalImage = (image) => {
-    if (image.dataset.focalProcessed === 'true') return;
-
-    const focalX = image.getAttribute('data-focal-x');
-    const focalY = image.getAttribute('data-focal-y');
-
-    if (focalX !== null && focalY !== null) {
-      const position = calculatePosition(focalX, focalY); // Get cached or calculated position
-
-      $.batchDOM(() => {
-        image.style.objectPosition = position;
-        image.style.opacity = 1;
-        image.dataset.focalProcessed = 'true';
-      })
-    }
-  }
-
-  // Use our Utils.intersectionObserver instead of creating one directly
-  const observerCallback = (entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        processFocalImage(entry.target);
-        observer.unobserve(entry.target); // Stop observing this image once processed
-      }
-    })
-  }
-
-  // Check if Utils is available for intersection observer
-  const observer = $.intersectionObserver(observerCallback);
-
-  const focalImageCleanup = () => {
-    window.cleanupFocalImages = () => {
-      if (observer) observer.disconnect();
-      cachePositions.clear();
-    }
-  }
-
-  const focalImageHandler = () => {
-    focalImages.forEach(image => {
-      observer.observe(image);
-    })
-    focalImageCleanup();
-  }
-
-  observer
-    ? focalImageHandler()
-    : focalImages.forEach(processFocalImage);
 }
 
-handleFocalImages();
+const FocalProcessor = {
+  processImage(image) {
+    if (image.getAttribute(FocalConfig.attr.processed) === 'true') return;
+
+    const focalX = image.getAttribute(FocalConfig.attr.focalX),
+          focalY = image.getAttribute(FocalConfig.attr.focalY);
+
+    if (focalX === null || focalY === null) return;
+
+    const position = FocalCalculator.calculatePosition(focalX, focalY);
+
+    const applyFocalPoint = () => {
+      image.style.objectPosition = position;
+      image.style.opacity = 1;
+      image.setAttribute(FocalConfig.attr.processed, 'true');
+    }
+
+    $.batchDOM(applyFocalPoint);
+  }
+}
+
+const FocalVisibility = {
+  observer: null,
+  observerSetup: false,
+
+  setIntersectionObserver() {
+    if (this.observerSetup) return this.observer;
+
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        FocalProcessor.processImage(entry.target);
+        this.observer.unobserve(entry.target);
+      })
+    }
+
+    this.observer = $.intersectionObserver(observerCallback);
+    this.observerSetup = true;
+
+    return this.observer;
+  },
+
+  cleanup() {
+    if (!this.observer) return;
+    this.observer.disconnect();
+    this.observer = null;
+    this.observerSetup = false;
+  }
+}
+
+const handleFocalImages = () => {
+  if (!FocalDOM.init()) return null;
+
+  FocalVisibility.setIntersectionObserver();
+
+  const processImages = () => {
+    const images = FocalDOM.elements.images;
+    images.forEach(image => {
+      FocalVisibility.observer.observe(image);
+    })
+  }
+
+  processImages();
+
+  const cleanup = () => {
+    FocalVisibility.cleanup();
+    FocalDOM.cleanup();
+    return null;
+  }
+
+  return cleanup;
+}
+
+const initFocalImages = () => {
+  window.cleanupFocalImages = handleFocalImages();
+
+  // Ensure cleanup is idempotent
+  const originalCleanup = window.cleanupFocalImages;
+  window.cleanupFocalImages = () => {
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window.cleanupFocalImages = () => {}; // Replace with no-op after cleanup
+  }
+
+  if (window.themeCleanup) {
+    const originalThemeCleanup = window.themeCleanup;
+    window.themeCleanup = () => {
+      if (window.cleanupFocalImages) window.cleanupFocalImages();
+      originalThemeCleanup();
+    }
+  }
+}
+
+initFocalImages();
