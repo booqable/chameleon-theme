@@ -28,7 +28,7 @@ const TextImageDOM = {
 
   init() {
     this.elements.sections = document.querySelectorAll(TextImageConfig.selector.section);
-    return this.elements.sections && this.elements.sections.length > 0;
+    return this.elements.sections.length > 0;
   },
 
   getPreviousSection(section) {
@@ -50,7 +50,7 @@ const TextImageDOM = {
       return this.cache.spacers.get(section);
     }
 
-    const spacer = section.querySelector('.' + TextImageConfig.selector.spacer.substring(1));
+    const spacer = section.querySelector(`.${TextImageConfig.selector.spacer.substring(1)}`);
 
     this.cache.spacers.set(section, spacer);
     return spacer;
@@ -122,7 +122,6 @@ const TextImageRenderer = {
   applyPalette(spacer, sourceElement) {
     if (!spacer || !sourceElement) return;
 
-    // Read phase
     const readPhase = () => {
       const paletteData = this.readPaletteData(spacer, sourceElement);
       if (!paletteData) return null;
@@ -130,7 +129,6 @@ const TextImageRenderer = {
       return { ...paletteData, spacer }
     }
 
-    // Write phase
     const writePhase = (data) => {
       this.writePaletteChanges(data);
     }
