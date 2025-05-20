@@ -1,4 +1,3 @@
-
 /**
  * ImageLoading Component
  *
