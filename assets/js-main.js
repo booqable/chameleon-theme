@@ -1,172 +1,288 @@
-class Main {
-  constructor(block) {
-    this.block = block;
+/**
+ * Main Component
+ *
+ * Handles core functionality for the site:
+ * - Date picker height calculation
+ * - Window resize handling
+ * - Page loaded state management
+ *
+ * Uses utilities like ResizeObserver, Batches DOM, etc. for better performance
+ *
+ * @requires js-utils-core.js
+ * @requires js-utils.js
+ */
 
-    this.selector = {
-      datePicker: "bq-date-picker",
-      datePickerBlock: ".date-picker-instance"
-    }
-
-    this.modifier = {
-      loaded: "loaded",
-      resize: "resize-active"
-    }
-
-    this.cssVar = {
-      datePickerHeight: '--date-picker-height',
-      datePickerBlockHeight: '--date-picker-block-height'
-    }
-
-    this.time = 500;
-    this.timer = undefined;
+const MainConfig = {
+  selector: {
+    body: 'body',
+    datePicker: 'bq-date-picker',
+    datePickerBlock: '.date-picker-instance'
+  },
+  modifier: {
+    loaded: 'loaded',
+    resize: 'resize-active'
+  },
+  cssVar: {
+    datePickerHeight: '--date-picker-height',
+    datePickerBlockHeight: '--date-picker-block-height'
+  },
+  time: {
+    idleTimeout: 2000,
+    resizeDelay: 500,
+    slowConnectionDelay: 1000
   }
+}
+
+const MainDOM = {
+  elements: {
+    body: null,
+    datePicker: null,
+    datePickerBlock: null
+  },
+
+  cacheData: {
+    datePickerHeight: 0,
+    datePickerBlockHeight: 0
+  },
+
+  isResizing: false,
+  resizeTimer: null,
 
   init() {
-    if (!this.block) return false;
+    this.elements.body = document.querySelector(MainConfig.selector.body);
+    this.elements.datePicker = document.querySelector(MainConfig.selector.datePicker);
+    this.elements.datePickerBlock = document.querySelector(MainConfig.selector.datePickerBlock);
+    return this.elements;
+  },
 
-    this.elements();
-    this.events();
-  }
+  setClassLoaded() {
+    if (!this.elements.body) return;
+    $.toggleClass(this.elements.body, MainConfig.modifier.loaded, true);
+  },
 
-  elements() {
-    this.datePicker = document.querySelector(this.selector.datePicker);
-    this.datePickerBlock = document.querySelector(this.selector.datePickerBlock);
-  }
+  setClassResize() {
+    if (!this.elements.body) return;
 
-  events() {
-    this.setLoadedClass();
-    setTimeout(() => this.getDatePickerHeight(), 1000);
+    const target = this.elements.body,
+          mod = MainConfig.modifier.resize;
 
-    // Use ResizeObserver utility if available
-    if (this.isFunc($.resizeObserver)) {
-      // Handle resize for date picker height
-      this.resizeObserverHeight = $.resizeObserver(() => {
-        this.getDatePickerHeight();
-      }, {
-        element: document.documentElement,
-        debounceTime: 150
-      })
-
-      // Handle resize for adding resize class
-      this.resizeObserverClass = $.resizeObserver(() => {
-        this.setResizeClass();
-      }, {
-        element: document.documentElement,
-        debounceTime: 50
-      })
-    } else {
-      // Fallback to window resize event
-      this.heightResizeHandler = this.getDatePickerHeight.bind(this);
-      this.classResizeHandler = this.setResizeClass.bind(this);
-
-      $.eventListener('add', window, 'resize', this.heightResizeHandler);
-      $.eventListener('add', window, 'resize', this.classResizeHandler);
+    const addClassHandler = () => {
+      this.isResizing = true;
+      const addClass = () => $.toggleClass(target, mod, true);
+      $.batchDOM(addClass)
     }
-  }
-
-  isFunc(obj) {
-    return $.is(obj, 'function');
-  }
-
-  getDatePickerHeight() {
-    if (!this.datePicker) return false;
-
-    // Use frameSequence utility to prevent layout thrashing
-    $.frameSequence(
-      // Read phase: measure dimensions
-      () => {
-        return {
-          datePickerHeight: parseInt(this.datePicker?.getBoundingClientRect().height),
-          datePickerBlockHeight: parseInt(this.datePickerBlock?.getBoundingClientRect().height)
-        };
-      },
-      // Write phase: update CSS variables
-      (dimensions) => {
-        if (dimensions.datePickerHeight) {
-          this.setCssVar(this.cssVar.datePickerHeight, dimensions.datePickerHeight);
-        }
-        if (dimensions.datePickerBlockHeight) {
-          this.setCssVar(this.cssVar.datePickerBlockHeight, dimensions.datePickerBlockHeight);
-        }
-      }
-    );
-  }
-
-  setCssVar(key, val) {
-    document.documentElement.style.setProperty(
-      `${key}`,
-      `${val}px`
-    )
-  }
-
-  // adding class while resizing window
-  setResizeClass() {
-    // Use utility for smoother class transitions
-    $.nextFrame(() => {
-      this.block.classList.add(this.modifier.resize);
-      clearTimeout(this.timer);
-
-      this.timer = setTimeout(() => {
-        $.nextFrame(() => {
-          this.block.classList.remove(this.modifier.resize);
-        });
-      }, this.time);
-    });
-  }
-
-  // adding class after loading content
-  setLoadedClass() {
-    // Use utility for smoother class application
-    $.nextFrame(() => {
-      this.block.classList.add(this.modifier.loaded);
-    });
-  }
-
-  // Cleanup method to properly remove observers and event listeners
-  destroy() {
-    // Clean up ResizeObserver instances if they exist
-    if (this.resizeObserverHeight && this.isFunc(this.resizeObserverHeight.cleanup)) {
-      this.resizeObserverHeight.cleanup();
-      this.resizeObserverHeight = null;
+    const removeClassHandler = () => {
+      this.isResizing = false;
+      const removeClass = () => $.toggleClass(target, mod, false);
+      $.batchDOM(removeClass)
     }
 
-    if (this.resizeObserverClass && this.isFunc(this.resizeObserverClass.cleanup)) {
-      this.resizeObserverClass.cleanup();
-      this.resizeObserverClass = null;
+    if (!this.isResizing) addClassHandler();
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
+
+    this.resizeTimer = setTimeout(removeClassHandler, MainConfig.time.resizeDelay)
+  },
+
+  cleanup() {
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = null;
     }
 
-    // Clean up window event listeners if fallback was used
-    if (!$ || !this.isFunc($.resizeObserver)) {
-      if (this.heightResizeHandler) {
-        $.eventListener('remove', window, 'resize', this.heightResizeHandler);
-        this.heightResizeHandler = null;
-      }
-
-      if (this.classResizeHandler) {
-        $.eventListener('remove', window, 'resize', this.classResizeHandler);
-        this.classResizeHandler = null;
-      }
+    // Clean up state
+    if (this.isResizing && this.elements.body) {
+      $.toggleClass(this.elements.body, MainConfig.modifier.resize, false);
+      this.isResizing = false;
     }
 
-    // Clear any timers
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = undefined;
+    // Clear cached data
+    this.cacheData = {
+      datePickerHeight: 0,
+      datePickerBlockHeight: 0
     }
+
+    Object.keys(this.elements).forEach(key => {
+      this.elements[key] = null;
+    })
   }
 }
 
-const main = new Main(document.querySelector('body'));
+const MainHeight = {
+  height: MainConfig.cssVar.datePickerHeight,
+  blockHeight: MainConfig.cssVar.datePickerBlockHeight,
 
-main.init();
+  // Read phase function for frameSequence
+  readDatePickerDimensions() {
+    if (!MainDOM.elements.datePicker) return null;
 
-// Use beforeunload event instead of deprecated unload event
-// Create a global cleanup function that can be called manually during navigation
-window.cleanupMain = () => {
-  if (main) main.destroy();
-};
+    const datePickerHeight = parseInt(MainDOM.elements.datePicker ?
+      $.getDimensions(MainDOM.elements.datePicker).height : 0) || 0;
 
-// Add the event listener only if the browser doesn't support the Navigation API
-if (!('navigation' in window)) {
-  $.eventListener('add', window, 'beforeunload', window.cleanupMain);
+    const datePickerBlockHeight = parseInt(MainDOM.elements.datePickerBlock ?
+      $.getDimensions(MainDOM.elements.datePickerBlock).height : 0) || 0;
+
+    // Only return dimensions that have changed
+    const result = {};
+
+    if (datePickerHeight !== MainDOM.cacheData.datePickerHeight) {
+      result.datePickerHeight = datePickerHeight;
+      MainDOM.cacheData.datePickerHeight = datePickerHeight;
+    }
+
+    if (datePickerBlockHeight !== MainDOM.cacheData.datePickerBlockHeight) {
+      result.datePickerBlockHeight = datePickerBlockHeight;
+      MainDOM.cacheData.datePickerBlockHeight = datePickerBlockHeight;
+    }
+
+    return Object.keys(result).length ? result : null; // If nothing changed, return null to skip write phase
+  },
+
+  // Write phase function for frameSequence
+  writeDatePickerVariables(dimensions) {
+    if (!dimensions) return;
+    const { datePickerHeight, datePickerBlockHeight } = dimensions;
+    const setDatePickerHeight = () => {
+      $.setCssVar({ key: this.height, value: datePickerHeight, unit: 'px' })
+    }
+    const setDatePickerBlockHeight = () => {
+      $.setCssVar({ key: this.blockHeight, value: datePickerBlockHeight, unit: 'px' })
+    }
+
+    if (datePickerHeight !== undefined) setDatePickerHeight();
+    if (datePickerBlockHeight !== undefined) setDatePickerBlockHeight();
+  },
+
+  calculateDatePickerHeight() {
+    if (!MainDOM.elements.datePicker) return;
+
+    // Bind the context to ensure 'this' references the MainHeight
+    const readPhase = this.readDatePickerDimensions.bind(this),
+          writePhase = this.writeDatePickerVariables.bind(this);
+
+    $.frameSequence(readPhase, writePhase);
+  },
+
+  setInitialHeights() {
+    $.setCssVar({ key: this.height, value: 0, unit: 'px' })
+    $.setCssVar({ key: this.blockHeight, value: 0, unit: 'px' })
+  }
 }
+
+const MainResize = {
+  resizeObserver: null,
+
+  setupResizeHandlers() {
+    const handleResize = () => {
+      MainHeight.calculateDatePickerHeight();
+      MainDOM.setClassResize();
+    }
+
+    const handleResizeSettings = {
+      element: document.documentElement,
+      debounceTime: 0
+    }
+
+    this.resizeObserver = $.resizeObserver(handleResize, handleResizeSettings);
+  },
+
+  cleanup() {
+    if (!this.resizeObserver || !$.is(this.resizeObserver.cleanup, 'function')) return;
+    this.resizeObserver.cleanup();
+    this.resizeObserver = null;
+  }
+}
+
+const MainVisibility = {
+  observer: null,
+
+  setupIntersectionObserver() {
+    if (!MainDOM.elements.datePicker) return;
+
+    const handleIntersection = (entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        MainHeight.calculateDatePickerHeight();
+      })
+    }
+
+    this.observer = $.intersectionObserver(handleIntersection);
+    this.observer.observe(MainDOM.elements.datePicker);
+  },
+
+  cleanup() {
+    if (! this.observer) return;
+    this.observer.disconnect();
+    this.observer = null;
+  }
+}
+
+const handleMainLoading = () => {
+  MainHeight.setInitialHeights();
+
+  const body = document.querySelector(MainConfig.selector.body),
+        loaded = MainConfig.modifier.loaded;
+  if (body) $.toggleClass(body, loaded, true);
+}
+
+handleMainLoading();
+
+const handleMain = () => {
+  MainDOM.init();
+
+  const elements = MainDOM.elements;
+
+  if (!elements.body) return null;
+
+  const delay = MainConfig.time.slowConnectionDelay,
+        laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
+        inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
+        setDelay = laggy ? delay * 2 : delay;
+
+  MainDOM.setClassLoaded();
+
+  // Initialize date picker height with connection-aware delay
+  const calculateWithDelay = () => {
+    setTimeout(MainHeight.calculateDatePickerHeight, setDelay)
+  }
+
+  elements.datePicker && inView
+    ? MainHeight.calculateDatePickerHeight()
+    : calculateWithDelay();
+
+  MainResize.setupResizeHandlers();
+  MainVisibility.setupIntersectionObserver();
+
+  const cleanup = () => {
+    MainResize.cleanup();
+    MainVisibility.cleanup();
+    MainDOM.cleanup();
+    return null;
+  }
+
+  return cleanup;
+}
+
+const initMain = () => {
+  window.cleanupMain = handleMain();
+
+  // Ensure cleanup is idempotent
+  const originalCleanup = window.cleanupMain;
+  window.cleanupMain = () => {
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window.cleanupMain = () => {}; // Replace with no-op after cleanup
+  }
+
+  const themeCleanupHandler = () => {
+    const originalThemeCleanup = window.themeCleanup;
+    window.themeCleanup = () => {
+      if (window.cleanupMain) window.cleanupMain();
+      originalThemeCleanup();
+    }
+  }
+  if (window.themeCleanup) themeCleanupHandler();
+}
+
+$.is($.requestIdle, 'function')
+  ? $.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout })
+  : setTimeout(initMain, MainConfig.time.slowConnectionDelay); // Use a short timeout to ensure body is ready

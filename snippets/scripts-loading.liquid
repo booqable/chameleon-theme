@@ -13,14 +13,14 @@
 
     // Setup cleanup handler for page transitions
     window.themeCleanup = () => {
-      if (window.cleanupMain) window.cleanupMain();
-      if (window.cleanupCarousels) window.cleanupCarousels();
       if (window.cleanupImageLoading) window.cleanupImageLoading();
-      if (window.cleanupTouchDevice) window.cleanupTouchDevice();
-      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
       if (window.cleanupFocalImages) window.cleanupFocalImages();
-      if (window.cleanupTabs) window.cleanupTabs();
+      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
+      if (window.cleanupCarousels) window.cleanupCarousels();
       if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
+      if (window.cleanupTouchDevice) window.cleanupTouchDevice();
+      if (window.cleanupMain) window.cleanupMain();
+      if (window.cleanupMaps) window.cleanupMaps();
 
       // These global utility identifiers should be preserved
       // to avoid "undefined" errors in other components

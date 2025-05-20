@@ -1,6 +1,7 @@
 .tabs {
-  display: grid;
-  gap: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .tabs__tab {
@@ -14,10 +15,15 @@
   cursor: pointer;
   border-bottom: 1px solid transparent;
   display: block;
-  padding: 16px;
   position: relative;
   border-radius: var(--border-radius-block-rounded);
   transition: border-radius var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+}
+
+.tabs__trigger-label {
+  padding: 16px;
+  display: block;
+  cursor: pointer;
 }
 
 .tabs__tab .tabs__trigger {
@@ -38,7 +44,6 @@
   transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
-.tabs__trigger.active:before,
 .tabs__trigger:hover:before {
   opacity: 1;
   visibility: visible;
@@ -74,10 +79,6 @@
   height: 100%;
   overflow: clip;
   border-radius: var(--border-radius-block-rounded);
-}
-
-.tabs__content.active {
-  display: block;
 }
 
 .tabs__image-wrapper {
@@ -140,10 +141,6 @@
   border-bottom-width: 1px;
 }
 
-.tabs__contents {
-  height: 100%;
-}
-
 .palette-one .tabs {
   color: var(--color-secondary, #4E5D78);
 }
@@ -167,6 +164,10 @@
 .palette-one .tabs__select-opener,
 .palette-one .tabs__select-drop {
   border-color: var(--color-border, #0B1A2626);
+}
+
+.palette-one .tabs__select-opener path {
+  fill: var(--color-outline, #F4B841);
 }
 
 .palette-two .tabs {
@@ -194,6 +195,10 @@
   border-color: var(--color-border-2, #FFFFFF47);
 }
 
+.palette-two .tabs__select-opener path {
+  fill: var(--color-outline-2, #F4B841);
+}
+
 .palette-three .tabs {
   color: var(--color-secondary-3, #FFFFFF);
 }
@@ -219,10 +224,18 @@
   border-color: var(--color-border-3, #0B1A2626);
 }
 
+.palette-three .tabs__select-opener path {
+  fill: var(--color-outline-3, #0B1A26);
+}
+
 @media (min-width: 768px) {
   .tabs {
-    grid-template-columns: 1.5fr 2fr;
-    direction: var(--direction, ltr);
+    flex-direction: var(--direction, row);
+    gap: 30px;
+  }
+
+  .tabs__select {
+    width: 40%;
   }
 
   .tabs__select-opener {
@@ -248,6 +261,10 @@
     border-bottom-width: 1px;
   }
 
+  .tabs__contents {
+    width: 60%;
+  }
+
   .tabs__image-wrapper {
     aspect-ratio: auto;
   }
@@ -266,19 +283,13 @@
 }
 
 @media (min-width: 992px) {
-  .tabs {
-    grid-template-columns: 1.5fr 2fr;
-    direction : var(--direction, ltr);
-    gap: 30px;
-  }
-
-  .tabs__trigger {
+  .tabs__trigger-label {
     padding: 16px 32px;
   }
 }
 
 @media (min-width: 1200px) {
   .tabs__tab {
-    padding: 0 9% 0 0;
+    padding: var(--tabs-gap);
   }
 }

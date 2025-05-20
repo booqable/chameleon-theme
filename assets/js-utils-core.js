@@ -27,7 +27,8 @@ Utils.slowConnection = () => {
 }
 
 // CSS variable management
-Utils.setCssVar = (key, value, element = document.documentElement, unit = '') => {
+Utils.setCssVar = (args) => {
+  const { key, value, element = document.documentElement, unit = '' } = args;
   element.style.setProperty(key, `${value}${unit}`);
 }
 
@@ -98,6 +99,22 @@ Utils.intersectionObserver = (callback, customOptions = {}) => {
     threshold: 0.01
   }
   return new IntersectionObserver(callback, { ...defaultOptions, ...customOptions });
+}
+
+Utils.mutationObserver = (callback, targetNode = document.body, customOptions = {}) => {
+  if (!('MutationObserver' in window)) return null;
+  const defaultOptions = {
+    childList: true,
+    subtree: true,
+    attributes: false,
+    characterData: false
+  }
+  const options = { ...defaultOptions, ...customOptions };
+  
+  const observer = new MutationObserver(callback);
+  observer.observe(targetNode, options);
+  
+  return observer;
 }
 
 Utils.resizeObserver = (callback, customOptions = {}) => {
