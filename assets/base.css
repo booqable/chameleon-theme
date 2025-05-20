@@ -98,9 +98,28 @@ textarea:-webkit-autofill:active {
 }
 
 /* Styles for iPhone with notch */
-.touch[data-orientation='landscape'] .container {
-  padding-left: calc(44px + var(--horizontal-padding, 16px));
-  padding-right: calc(44px + var(--horizontal-padding, 16px));
+.touch[data-orientation='landscape'] .container,
+.touch[data-orientation='landscape'] div[data-tid="Modal"][class*="Container-"]:has([class*="CartPicker-"]) [class*="Body-"] > [class*="Div-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="Head-"] [class*="Title-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] div[data-tid="Select dates"] [class*="Dates-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="Lines-"] [class*="Line-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="Services-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="CheckoutTotals-"],
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="CheckoutButtons-"] {
+  padding-left: calc(44px + var(--horizontal-padding, 16px)) !important;
+  padding-right: calc(44px + var(--horizontal-padding, 16px)) !important;
+}
+
+.touch[data-orientation='landscape'] div[data-tid="Modal"][class*="Container-"]:has([class*="CartPicker-"]) button[data-tid="Close icon"] {
+  right: calc(40px + var(--horizontal-padding, 16px)) !important;
+}
+
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="Title-"] [class*="Close-"] {
+  right: calc(28px + var(--horizontal-padding, 16px)) !important;
+}
+
+.touch[data-orientation='landscape'] div[data-tid="Mini cart"][class*="MiniCart-"] [class*="Lines-"] > [class*="Cleanstate-"] {
+  margin-top: 32px !important;
 }
 
 /* Mini cart and Date picker styles */
