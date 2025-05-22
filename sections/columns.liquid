@@ -1,13 +1,6 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {%- capture css_urls -%}
-    [
-      "{{ 'columns.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign grid                  = section.settings.grid -%}
@@ -136,6 +129,12 @@
     "tag": "section",
     "class": "columns",
     "description": "Add sections to highhlight features or contact details",
+    "css_assets": [
+      {
+        "file": "columns.css",
+        "preload": false
+      }
+    ],
     "blocks":[
       {
         "type": "column",

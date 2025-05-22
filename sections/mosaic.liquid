@@ -2,14 +2,6 @@
 
 {%- if blocks.size > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'mosaic.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign button_label          = section.settings.button_label -%}
   {%- assign button_url            = section.settings.button_url -%}
   {%- assign layout                = section.settings.layout -%}
@@ -148,6 +140,12 @@
     "description": "Add text with images in various layouts",
     "tag": "section",
     "class": "mosaic",
+    "css_assets": [
+      {
+        "file": "mosaic.css",
+        "preload": false
+      }
+    ],
     "settings": [
       {
         "type": "header",

@@ -1,13 +1,5 @@
 {%- if section.blocks.size > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'collections.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign show_overlay          = section.settings.show_overlay -%}
   {%- assign overlay_color         = section.settings.overlay_color -%}
@@ -93,6 +85,12 @@
     "description": "Add a list of collections to your page",
     "tag": "section",
     "class": "collections",
+    "css_assets": [
+      {
+        "file": "collections.css",
+        "preload": false
+      }
+    ],
     "settings": [
       {
         "type": "header",

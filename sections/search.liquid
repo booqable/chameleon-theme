@@ -1,15 +1,5 @@
 {%- if results_count > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'search.css' | asset_url }}",
-      "{{ 'product-card.css' | asset_url }}",
-      "{{ 'focal-image.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign grid                  = section.settings.grid -%}
   {%- assign limit                 = section.settings.limit -%}
   {%- assign color_palette         = section.settings.color_palette -%}
@@ -128,6 +118,20 @@
     "tag": "section",
     "class": "search",
     "templates": ["search"],
+    "css_assets": [
+      {
+        "file": "search.css",
+        "preload": false
+      },
+      {
+        "file": "product-card.css",
+        "preload": false
+      },
+      {
+        "file": "focal-image.css",
+        "preload": false
+      }
+    ],
     "settings": [
       {
         "type": "header",

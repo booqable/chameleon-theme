@@ -1,13 +1,5 @@
 {%- if section.blocks.size > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'numbered-blocks.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
@@ -171,6 +163,12 @@
     "description": "Add a section of numbered blocks",
     "tag": "section",
     "class": "numbered-blocks",
+    "css_assets": [
+      {
+        "file": "numbered-blocks.css",
+        "preload": false
+      }
+    ],
     "settings": [
       {
         "type": "header",

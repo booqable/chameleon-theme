@@ -2,15 +2,6 @@
 
 {%- if blocks.size > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'accordion.css' | asset_url }}",
-      "{{ 'accordion-block.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign behavior              = section.settings.behavior -%}
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign padding_top           = section.settings.padding_top -%}
@@ -106,6 +97,16 @@
     "description": "Add collapsable sections that allow visitors to reveal information like FAQ's",
     "tag": "section",
     "class": "accordion",
+    "css_assets": [
+      {
+        "file": "accordion.css",
+        "preload": false
+      },
+      {
+        "file": "accordion-block.css",
+        "preload": false
+      }
+    ],
     "max_blocks": 16,
     "settings": [
       {
