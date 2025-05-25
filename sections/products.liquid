@@ -167,20 +167,20 @@
     "class": "products",
     "css_assets": [
       {
-        "file": "products.css",
-        "preload": false
+        "file": "products.css"
       },
       {
-        "file": "product-card.css",
-        "preload": false
+        "file": "product-card.css"
       },
       {
-        "file": "focal-image.css",
-        "preload": false
+        "file": "focal-image.css"
       },
       {
         "file": "carousel.css",
-        "preload": false
+        "include_if": [
+          "settings.show_carousel",
+          "has_multiple_collection_or_blocks"
+        ]
       }
     ],
     "settings": [
