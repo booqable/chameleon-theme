@@ -229,13 +229,23 @@
     "templates": [],
     "css_assets": [
       {
-        "file": "locations.css"
+        "file": "locations.css",
+        "include_if": [
+          "has_blocks"
+        ]
       },
       {
-        "file": "tabs.css"
+        "file": "tabs.css",
+        "include_if": [
+          "has_blocks"
+        ]
       },
       {
-        "file": "map.css"
+        "file": "map.css",
+        "include_if": [
+          "has_blocks",
+          "has_locations"
+        ]
       }
     ],
     "max_blocks": 16,
