@@ -223,10 +223,16 @@
     "class": "testimonials",
     "css_assets": [
       {
-        "file": "testimonials.css"
+        "file": "testimonials.css",
+        "include_if": [
+          "has_blocks"
+        ]
       },
       {
-        "file": "carousel.css"
+        "file": "carousel.css",
+        "include_if": [
+          "has_multiple_blocks"
+        ]
       }
     ],
     "settings": [

@@ -486,10 +486,16 @@
     "description": "Engage visitors by giving great first impression",
     "css_assets": [
       {
-        "file": "images.css"
+        "file": "images.css",
+        "include_if": [
+          "has_blocks"
+        ]
       },
       {
-        "file": "carousel.css"
+        "file": "carousel.css",
+        "include_if": [
+          "has_multiple_blocks"
+        ]
       }
     ],
     "blocks":[
