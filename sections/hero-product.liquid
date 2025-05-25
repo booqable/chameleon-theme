@@ -57,7 +57,10 @@
     "templates": ["product"],
     "css_assets": [
       {
-        "file": "hero.css"
+        "file": "hero.css",
+        "include_if": [
+          "settings.show_datepicker"
+        ]
       }
     ],
     "settings": [

@@ -99,10 +99,16 @@
     "class": "accordion",
     "css_assets": [
       {
-        "file": "accordion.css"
+        "file": "accordion.css",
+        "include_if": [
+          "has_blocks"
+        ]
       },
       {
-        "file": "accordion-block.css"
+        "file": "accordion-block.css",
+        "include_if": [
+          "has_blocks"
+        ]
       }
     ],
     "max_blocks": 16,
