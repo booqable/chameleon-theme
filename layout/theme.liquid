@@ -33,13 +33,12 @@
     <link rel="stylesheet" href="{{ base_url }}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{{ rx_url }}" media="print" onload="this.media='all'">
 
-    {{ sections_assets }}
-
     <noscript>
       <link rel="stylesheet" href="{{ base_url }}">
       <link rel="stylesheet" href="{{ rx_url }}">
     </noscript>
 
+    {{ sections_assets }}
     {{ content_for_header }}
 
     {%- render 'page-social-share-meta',
