@@ -66,6 +66,29 @@ Utils.batchDOM = callback => {
   return $.nextFrame(() => callback());
 }
 
+// Cleanup function with the global theme cleanup system
+Utils.cleanup = (cleanupName, handler) => {
+  if (!cleanupName || !$.is(handler, 'function')) return;
+
+  window[cleanupName] = handler();
+
+  // Ensure cleanup is idempotent
+  const originalCleanup = window[cleanupName];
+  window[cleanupName] = () => {
+    if (!$.is(originalCleanup, 'function')) return;
+    originalCleanup();
+    window[cleanupName] = () => {}; // Replace with no-op after cleanup
+  }
+
+  if (window.themeCleanup) {
+    const originalThemeCleanup = window.themeCleanup;
+    window.themeCleanup = () => {
+      if (window[cleanupName]) window[cleanupName]();
+      originalThemeCleanup();
+    }
+  }
+}
+
 // Event management - most widely used utility
 Utils.eventListener = (method, nodes, event, handler, options) => {
   if (!nodes) return;
@@ -110,10 +133,10 @@ Utils.mutationObserver = (callback, targetNode = document.body, customOptions = 
     characterData: false
   }
   const options = { ...defaultOptions, ...customOptions };
-  
+
   const observer = new MutationObserver(callback);
   observer.observe(targetNode, options);
-  
+
   return observer;
 }
 

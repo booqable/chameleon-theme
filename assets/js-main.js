@@ -263,24 +263,7 @@ const handleMain = () => {
 }
 
 const initMain = () => {
-  window.cleanupMain = handleMain();
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupMain;
-  window.cleanupMain = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupMain = () => {}; // Replace with no-op after cleanup
-  }
-
-  const themeCleanupHandler = () => {
-    const originalThemeCleanup = window.themeCleanup;
-    window.themeCleanup = () => {
-      if (window.cleanupMain) window.cleanupMain();
-      originalThemeCleanup();
-    }
-  }
-  if (window.themeCleanup) themeCleanupHandler();
+  $.cleanup('cleanupMain', handleMain);
 }
 
 $.is($.requestIdle, 'function')

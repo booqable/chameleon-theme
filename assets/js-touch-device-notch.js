@@ -130,24 +130,7 @@ const handleTouchDevice = () => {
 }
 
 const initTouchDevice = () => {
-  window.cleanupTouchDevice = handleTouchDevice();
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupTouchDevice;
-  window.cleanupTouchDevice = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupTouchDevice = () => {}; // Replace with no-op after cleanup
-  }
-
-  const themeCleanupHandler = () => {
-    const originalThemeCleanup = window.themeCleanup;
-    window.themeCleanup = () => {
-      if (window.cleanupTouchDevice) window.cleanupTouchDevice();
-      originalThemeCleanup();
-    }
-  }
-  if (window.themeCleanup) themeCleanupHandler();
+  $.cleanup('cleanupTouchDevice', handleTouchDevice);
 }
 
 initTouchDevice();
