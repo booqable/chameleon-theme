@@ -22,6 +22,10 @@
 {%- assign vimeo                  = settings.social_vimeo_link -%}
 {%- assign app                    = section.blocks | where: "type", "app" | first -%}
 
+{%- if app %}
+  {{ "app.css" | asset_url | stylesheet_tag }}
+{%- endif -%}
+
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
   {%- case padding_top -%}
