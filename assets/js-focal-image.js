@@ -147,23 +147,7 @@ const handleFocalImages = () => {
 }
 
 const initFocalImages = () => {
-  window.cleanupFocalImages = handleFocalImages();
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupFocalImages;
-  window.cleanupFocalImages = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupFocalImages = () => {}; // Replace with no-op after cleanup
-  }
-
-  if (window.themeCleanup) {
-    const originalThemeCleanup = window.themeCleanup;
-    window.themeCleanup = () => {
-      if (window.cleanupFocalImages) window.cleanupFocalImages();
-      originalThemeCleanup();
-    }
-  }
+  $.cleanup('cleanupFocalImages', handleFocalImages);
 }
 
 initFocalImages();

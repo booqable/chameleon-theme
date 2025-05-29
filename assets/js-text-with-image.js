@@ -199,24 +199,7 @@ const handleTextWithImage = () => {
 }
 
 const initTextWithImage = () => {
-  window.cleanupImageSpacer = handleTextWithImage();
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupImageSpacer;
-  window.cleanupImageSpacer = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupImageSpacer = () => {}; // Replace with no-op after cleanup
-  }
-
-  const themeCleanupHandler = () => {
-    const originalThemeCleanup = window.themeCleanup;
-    window.themeCleanup = () => {
-      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
-      originalThemeCleanup();
-    }
-  }
-  if (window.themeCleanup) themeCleanupHandler();
+  $.cleanup('cleanupImageSpacer', handleTextWithImage);
 }
 
 initTextWithImage();
