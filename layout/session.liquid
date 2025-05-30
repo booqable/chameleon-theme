@@ -25,7 +25,7 @@
     {%- render 'critical-css' -%}
 
     {% comment %} Async CSS loading with resource hints {% endcomment %}
-    {%- assign css_files = "base.css,rx.css,header.css,mega-menu.css" | split: "," -%}
+    {%- assign css_files = "base.css,rx.css,header.css,mega-menu.css,top-bar.css" | split: "," -%}
 
     {%- for css_file in css_files -%}
       {%- assign css_url = css_file | asset_url -%}
