@@ -120,13 +120,22 @@
     "templates": ["search"],
     "css_assets": [
       {
-        "file": "search.css"
+        "file": "search.css",
+        "include_if": [
+          "has_search_results"
+        ]
       },
       {
-        "file": "product-card.css"
+        "file": "product-card.css",
+        "include_if": [
+          "has_search_results"
+        ]
       },
       {
-        "file": "focal-image.css"
+        "file": "focal-image.css",
+        "include_if": [
+          "has_search_results"
+        ]
       }
     ],
     "settings": [
