@@ -25,19 +25,6 @@
 {%- if size > 0 -%}
   {%- assign show_carousel = section.settings.show_carousel -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'products.css' | asset_url }}",
-      "{{ 'product-card.css' | asset_url }}",
-      "{{ 'focal-image.css' | asset_url }}"
-      {%- if size > 1 and show_carousel -%}
-        , "{{ "carousel.css" | asset_url }}"
-      {%- endif -%}
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign carousel              = false -%}
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign items_limit           = 12 -%}
@@ -178,6 +165,33 @@
     "description": "Display individual products or items from a collection in a grid or sliding carousel",
     "tag": "section",
     "class": "products",
+    "css_assets": [
+      {
+        "file": "products.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "product-card.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "focal-image.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "carousel.css",
+        "include_if": [
+          "settings.show_carousel",
+          "has_multiple_collection_or_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

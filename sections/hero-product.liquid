@@ -1,13 +1,6 @@
 {%- assign show_datepicker = section.settings.show_datepicker -%}
 
 {%- if show_datepicker -%}
-  {%- capture css_urls -%}
-    [
-      "{{ 'hero.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
   {%- assign color_palette      = section.settings.color_palette -%}
   {%- assign padding_top        = section.settings.padding_top -%}
@@ -62,6 +55,14 @@
     "class": "hero",
     "description": "Engage visitors by giving great first impression",
     "templates": ["product"],
+    "css_assets": [
+      {
+        "file": "hero.css",
+        "include_if": [
+          "settings.show_datepicker"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

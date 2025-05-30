@@ -1,13 +1,5 @@
 {%- unless section.blocks.size == 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'logos.css' | asset_url }}"
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign title                 = section.settings.title -%}
   {%- assign text_position         = section.settings.text_position -%}
   {%- assign text_position_mobile  = section.settings.text_position_mobile -%}
@@ -147,6 +139,14 @@
     "description": "Show logos of your partners or brands you cary",
     "tag": "section",
     "class": "logos",
+    "css_assets": [
+      {
+        "file": "logos.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",
