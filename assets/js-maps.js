@@ -322,24 +322,7 @@ const handleLocation = () => {
 }
 
 const initMaps = () => {
-  window.cleanupMaps = handleLocation();
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupMaps;
-  window.cleanupMaps = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupMaps = () => {}; // Replace with no-op after cleanup
-  }
-
-  const themeCleanupHandler = () => {
-    const originalThemeCleanup = window.themeCleanup;
-    window.themeCleanup = () => {
-      if (window.cleanupMaps) window.cleanupMaps();
-      originalThemeCleanup();
-    }
-  }
-  if (window.themeCleanup) themeCleanupHandler();
+  $.cleanup('cleanupMaps', handleLocation);
 }
 
 window.addEventListener('load', initMaps);
