@@ -2,17 +2,6 @@
 
 {%- if blocks.size > 0 -%}
 
-  {%- capture css_urls -%}
-    [
-      "{{ 'testimonials.css' | asset_url }}"
-      {%- if blocks.size > 1 -%}
-        , "{{ 'carousel.css' | asset_url }}"
-      {%- endif -%}
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
-
   {%- assign show_navigation       = section.settings.show_navigation -%}
   {%- assign show_pagination       = section.settings.show_pagination -%}
   {%- assign color_palette         = section.settings.color_palette -%}
@@ -233,6 +222,20 @@
     "description": "Show testimonials from individual customers in a sliding carousel",
     "tag": "section",
     "class": "testimonials",
+    "css_assets": [
+      {
+        "file": "testimonials.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      },
+      {
+        "file": "carousel.css",
+        "include_if": [
+          "has_multiple_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

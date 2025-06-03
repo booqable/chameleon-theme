@@ -1,18 +1,6 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {% comment %} Load images.css asynchronously for better performance {% endcomment %}
-
-  {%- capture css_urls -%}
-    [
-      "{{ 'images.css' | asset_url }}"
-      {%- if blocks.size > 1 -%}
-        , "{{ 'carousel.css' | asset_url }}"
-      {%- endif -%}
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls, preload: true -%}
 
   {%- assign color_palette            = section.settings.color_palette -%}
   {%- assign full_width               = section.settings.full_width -%}
@@ -101,11 +89,11 @@
   {%- assign default_color = nil -%}
 
   {%- if color_palette == "one" -%}
-    {%- assign default_color = settings.primary_color | default : #0B1A26 -%}
+    {%- assign default_color = settings.primary_color | default : '#0B1A26' -%}
   {%- elsif color_palette == "two" -%}
-    {%- assign default_color = settings.primary_color_2 | default : #FFFFFF -%}
+    {%- assign default_color = settings.primary_color_2 | default : '#FFFFFF' -%}
   {%- elsif color_palette == "three" -%}
-    {%- assign default_color = settings.primary_color_3 | default : #0B1A26 -%}
+    {%- assign default_color = settings.primary_color_3 | default : '#0B1A26' -%}
   {%- endif -%}
 
   {%- if show_datepicker -%}
@@ -497,6 +485,20 @@
     "tag": "section",
     "class": "images",
     "description": "Engage visitors by giving great first impression",
+    "css_assets": [
+      {
+        "file": "images.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      },
+      {
+        "file": "carousel.css",
+        "include_if": [
+          "has_multiple_blocks"
+        ]
+      }
+    ],
     "blocks":[
       {
         "type": "slide",

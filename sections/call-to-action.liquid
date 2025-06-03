@@ -1,10 +1,3 @@
-{%- capture css_urls -%}
-  [
-    "{{ 'call-to-action.css' | asset_url }}"
-  ]
-{%- endcapture -%}
-
-{%- render 'section-styles-loading', css_urls: css_urls -%}
 
 {%- assign title                 = section.settings.title -%}
 {%- assign description           = section.settings.description -%}
@@ -137,6 +130,11 @@
     "description": "Draw visitors' attentionwith a CTA section",
     "tag": "section",
     "class": "cta",
+    "css_assets": [
+      {
+        "file": "call-to-action.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

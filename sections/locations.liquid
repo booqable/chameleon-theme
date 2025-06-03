@@ -15,17 +15,6 @@
 {%- endfor -%}
 
 {%- if section.blocks.size > 0 -%}
-  {%- capture css_urls -%}
-    [
-      "{{ 'locations.css' | asset_url }}",
-      "{{ 'tabs.css' | asset_url }}"
-      {%- if locations_array.size > 0 -%}
-        , "{{ 'map.css' | asset_url }}"
-      {%- endif -%}
-    ]
-  {%- endcapture -%}
-
-  {%- render 'section-styles-loading', css_urls: css_urls -%}
 
   {% style %}
     #section-{{ section.key }} .tabs__trigger:has([id^="tab-"]:checked):before {
@@ -238,6 +227,27 @@
     "class": "locations",
     "description": "Show the addresses of your locations with a map",
     "templates": [],
+    "css_assets": [
+      {
+        "file": "locations.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      },
+      {
+        "file": "tabs.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      },
+      {
+        "file": "map.css",
+        "include_if": [
+          "has_blocks",
+          "has_locations"
+        ]
+      }
+    ],
     "max_blocks": 16,
     "blocks":[
       {

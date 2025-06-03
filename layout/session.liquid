@@ -25,17 +25,18 @@
     {%- render 'critical-css' -%}
 
     {% comment %} Async CSS loading with resource hints {% endcomment %}
-    {% assign base_url = 'base.css' | asset_url %}
-    {% assign rx_url = 'rx.css' | asset_url %}
+    {%- assign css_files = "base.css, rx.css, header.css, mega-menu.css, top-bar.css" | split: ", " -%}
 
-    <link rel="preload" href="{{ base_url }}" as="style">
-    <link rel="preload" href="{{ rx_url }}" as="style">
-    <link rel="stylesheet" href="{{ base_url }}" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="{{ rx_url }}" media="print" onload="this.media='all'">
+    {%- for css_file in css_files -%}
+      {%- assign css_url = css_file | asset_url -%}
+      <link rel="preload" href="{{ css_url }}" as="style">
+      <link rel="stylesheet" href="{{ css_url }}" media="print" onload="this.media='all'">
+    {%- endfor -%}
 
     <noscript>
-      <link rel="stylesheet" href="{{ base_url }}">
-      <link rel="stylesheet" href="{{ rx_url }}">
+      {%- for css_file in css_files -%}
+        <link rel="stylesheet" href="{{ css_file | asset_url }}">
+      {%- endfor -%}
     </noscript>
 
     {{ content_for_header }}

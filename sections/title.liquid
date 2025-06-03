@@ -1,10 +1,3 @@
-{%- capture css_urls -%}
-  [
-    "{{ 'title.css' | asset_url }}"
-  ]
-{%- endcapture -%}
-
-{%- render 'section-styles-loading', css_urls: css_urls -%}
 
 {%- assign tag                   = section.settings.tag -%}
 {%- assign title                 = section.settings.title -%}
@@ -109,6 +102,11 @@
     "description": "Show the section with title and description",
     "tag": "section",
     "class": "title",
+    "css_assets": [
+      {
+        "file": "title.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",
