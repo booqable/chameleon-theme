@@ -15,6 +15,19 @@
   display: none;
 }
 
+.app__preview {
+  height: 200px;
+  border-radius: var(--border-radius-block-rounded);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app__preview span {
+  display: block;
+  padding: 8px 12px;
+}
+
 .accessibe-widget {
   justify-content: flex-start !important;
   margin: 10px 0;
@@ -121,6 +134,21 @@
   background: var(--background-primary, #FFFFFF);
 }
 
+.palette-one .app__preview {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--background-primary, #FFFFFF),
+    var(--background-primary, #FFFFFF) 6px,
+    var(--color-border, #0B1A2626) 6px,
+    var(--color-border, #0B1A2626) 7px
+  ) !important;
+}
+
+.palette-one .app__preview span {
+  background-color: var(--background-primary, #FFFFFF);
+  color: var(--color-primary, #0B1A26);
+}
+
 .palette-one .accessibe-widget .accessibe-widget__wrapper {
   border-color: var(--color-border, #0B1A2626);
 }
@@ -166,6 +194,21 @@
   background: var(--background-primary-2, #0B1A26);
 }
 
+.palette-two .app__preview {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--background-primary-2, #0B1A26),
+    var(--background-primary-2, #0B1A26) 6px,
+    var(--color-border-2, #FFFFFF47) 6px,
+    var(--color-border-2, #FFFFFF47) 7px
+  ) !important;
+}
+
+.palette-two .app__preview span {
+  background-color: var(--background-primary-2, #0B1A26);
+  color: var(--color-primary-2, #FFFFFF);
+}
+
 .palette-two .accessibe-widget .accessibe-widget__wrapper {
   border-color: var(--color-border-2, #FFFFFF47);
 }
@@ -209,6 +252,21 @@
 .palette-three.app__wrapper {
   color: var(--color-primary-3, #0B1A26);
   background: var(--background-primary-3, #F4B841);
+}
+
+.palette-three .app__preview {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--background-primary-3, #F4B841),
+    var(--background-primary-3, #F4B841) 6px,
+    var(--color-border-3, #0B1A2626) 6px,
+    var(--color-border-3, #0B1A2626) 7px
+  ) !important;
+}
+
+.palette-three .app__preview span {
+  background-color: var(--background-primary-3, #F4B841);
+  color: var(--color-primary-3, #0B1A26);
 }
 
 .palette-three .accessibe-widget .accessibe-widget__wrapper {
