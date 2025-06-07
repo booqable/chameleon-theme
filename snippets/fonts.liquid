@@ -1,13 +1,39 @@
-{%- if settings.heading_font != blank or settings.body_font != blank or settings.tagline_font != blank -%}
-  <link rel="preconnect" href="https://fonts.bunny.net">
+{%- if settings.heading_font != blank -%}
+  {% assign heading_font_url = settings.heading_font | font_link | remove: '<link href="' | remove: '" rel="stylesheet" />' %}
+  <link rel="preload" as="style" href="{{ heading_font_url }}">
+{%- endif -%}
+{%- if settings.body_font != blank -%}
+  {% assign body_font_url = settings.body_font | font_link | remove: '<link href="' | remove: '" rel="stylesheet" />' %}
+  <link rel="preload" as="style" href="{{ body_font_url }}">
+{%- endif -%}
+{%- if settings.tagline_font != blank -%}
+  {% assign tagline_font_url = settings.tagline_font | font_link | remove: '<link href="' | remove: '" rel="stylesheet" />' %}
+  <link rel="preload" as="style" href="{{ tagline_font_url }}">
 {%- endif -%}
 
 {%- if settings.heading_font != blank -%}
-  {{- settings.heading_font | font_link -}}
+  <link rel="stylesheet" href="{{ heading_font_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 {%- if settings.body_font != blank -%}
-  {{- settings.body_font | font_link -}}
+  <link rel="stylesheet" href="{{ body_font_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 {%- if settings.tagline_font != blank -%}
-  {{- settings.tagline_font | font_link =}}
+  <link rel="stylesheet" href="{{ tagline_font_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
+
+{%- if settings.heading_font != blank or settings.body_font != blank or settings.tagline_font != blank -%}
+  <noscript>
+    {%- if settings.heading_font != blank -%}
+      {{- settings.heading_font | font_link -}}
+    {%- endif -%}
+    {%- if settings.body_font != blank -%}
+      {{- settings.body_font | font_link -}}
+    {%- endif -%}
+    {%- if settings.tagline_font != blank -%}
+      {{- settings.tagline_font | font_link -}}
+    {%- endif -%}
+  </noscript>
+{%- endif -%}
+
+<link rel="preload" href="https://kit.fontawesome.com/ff3b3de2b5.js" as="script" crossorigin="anonymous">
+<script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous" defer></script>

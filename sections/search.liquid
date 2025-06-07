@@ -1,8 +1,5 @@
 {%- if results_count > 0 -%}
 
-  {{ "search.css" | asset_url | stylesheet_tag }}
-  {{ "product-card.css" | asset_url | stylesheet_tag }}
-
   {%- assign grid                  = section.settings.grid -%}
   {%- assign limit                 = section.settings.limit -%}
   {%- assign color_palette         = section.settings.color_palette -%}
@@ -121,6 +118,26 @@
     "tag": "section",
     "class": "search",
     "templates": ["search"],
+    "css_assets": [
+      {
+        "file": "search.css"
+      },
+      {
+        "file": "product-card.css"
+      },
+      {
+        "file": "focal-image.css"
+      },
+      {
+        "file": "pagination.css"
+      },
+      {
+        "file": "sidebar.css",
+        "include_if": [
+          "has_menu"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

@@ -1,3 +1,4 @@
+
 {%- assign tag                   = section.settings.tag -%}
 {%- assign title                 = section.settings.title -%}
 {%- assign description           = section.settings.description -%}
@@ -101,6 +102,11 @@
     "description": "Show the section with title and description",
     "tag": "section",
     "class": "title",
+    "css_assets": [
+      {
+        "file": "title.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

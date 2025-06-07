@@ -1,7 +1,5 @@
 {%- unless section.blocks.size == 0 -%}
 
-  {{ "logos.css" | asset_url | stylesheet_tag }}
-
   {%- assign title                 = section.settings.title -%}
   {%- assign text_position         = section.settings.text_position -%}
   {%- assign text_position_mobile  = section.settings.text_position_mobile -%}
@@ -110,14 +108,17 @@
         {%- if section.blocks.size >= 1 -%}
           <div class="logos__col logos__logos">
             {%- for block in section.blocks -%}
-              {%- assign image = block.settings.image -%}
+              {%- assign image     = block.settings.image -%}
+              {%- assign image_alt = block.settings.alt -%}
+              {%- assign image_id  = block.id -%}
 
               <div class="logos__image-wrapper" id="{{- block.id -}}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
-                    loading: 'lazy',
-                    class: 'logos__image',
+                    image_alt: image_alt,
+                    image_id: image_id,
+                    image_class: 'logos__image',
                     custom_width: '450',
                     custom_size: '450px'
                   -%}
@@ -138,6 +139,14 @@
     "description": "Show logos of your partners or brands you cary",
     "tag": "section",
     "class": "logos",
+    "css_assets": [
+      {
+        "file": "logos.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",
@@ -325,6 +334,12 @@
             "id": "image",
             "label": "Image",
             "default": "booqable://assets/image-partner-logo-preview-black.png"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           }
         ]
       }
