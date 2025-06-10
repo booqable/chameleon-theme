@@ -45,14 +45,14 @@ const TouchDOM = {
 const TouchRenderer = {
   // Read phase for frameSequence
   readNotchData() {
-    if (!$.isTouchDevice()) return null;
+    if (!$.isTouchDevice()) return null
 
     // Apply throttling to avoid excessive calculations during resize
-    const now = performance.now();
-    if (now - TouchDOM.cacheData.lastResizeTime < TouchConfig.time.throttleThreshold) return null;
-    TouchDOM.cacheData.lastResizeTime = now;
+    const now = performance.now()
+    if (now - TouchDOM.cacheData.lastResizeTime < TouchConfig.time.throttleThreshold) return null
+    TouchDOM.cacheData.lastResizeTime = now
 
-    const styles = window.getComputedStyle(TouchDOM.elements.doc);
+    const styles = window.getComputedStyle(TouchDOM.elements.doc)
     const safeAreas = {
       top: parseInt(styles.getPropertyValue(TouchConfig.cssVars.areaTop)) || 0,
       right: parseInt(styles.getPropertyValue(TouchConfig.cssVars.areaRight)) || 0,
@@ -71,25 +71,25 @@ const TouchRenderer = {
 
   // Write phase for frameSequence
   writeNotchData(data) {
-    if (!data) return;
+    if (!data) return
 
-    $.toggleClass(TouchDOM.elements.doc, TouchConfig.modifiers.touch, true);
+    $.toggleClass(TouchDOM.elements.doc, TouchConfig.modifiers.touch, true)
 
-    if (TouchDOM.cacheData.currentOrientation === data.orientation) return;
+    if (TouchDOM.cacheData.currentOrientation === data.orientation) return
 
     TouchDOM.elements.doc.setAttribute(
       TouchConfig.attr.orientation,
       data.orientation
     )
-    TouchDOM.cacheData.currentOrientation = data.orientation;
+    TouchDOM.cacheData.currentOrientation = data.orientation
   },
 
   detectNotch() {
     // Bind the context to ensure 'this' references are maintained
     const readPhase = this.readNotchData.bind(this),
-          writePhase = this.writeNotchData.bind(this);
+          writePhase = this.writeNotchData.bind(this)
 
-    $.frameSequence(readPhase, writePhase);
+    $.frameSequence(readPhase, writePhase)
   }
 }
 
@@ -97,13 +97,13 @@ const TouchHandler = {
   resizeHandler: null,
 
   setupResizeHandler() {
-    this.resizeHandler = TouchRenderer.detectNotch.bind(TouchRenderer);
-    $.eventListener('add', window, 'resize', this.resizeHandler);
+    this.resizeHandler = TouchRenderer.detectNotch.bind(TouchRenderer)
+    $.eventListener('add', window, 'resize', this.resizeHandler)
   },
 
   init() {
-    TouchRenderer.detectNotch();
-    this.setupResizeHandler();
+    TouchRenderer.detectNotch()
+    this.setupResizeHandler()
 
     return {
       getOrientation: () => TouchDOM.cacheData.currentOrientation,
@@ -113,24 +113,24 @@ const TouchHandler = {
 
   cleanup() {
     if (this.resizeHandler) {
-      $.eventListener('remove', window, 'resize', this.resizeHandler);
-      this.resizeHandler = null;
+      $.eventListener('remove', window, 'resize', this.resizeHandler)
+      this.resizeHandler = null
     }
 
-    TouchDOM.cacheData.currentOrientation = null;
-    TouchDOM.cacheData.lastResizeTime = 0;
+    TouchDOM.cacheData.currentOrientation = null
+    TouchDOM.cacheData.lastResizeTime = 0
 
-    return null;
+    return null
   }
 }
 
 const handleTouchDevice = () => {
-  const instance = TouchHandler.init();
-  return instance ? instance.cleanup : null;
+  const instance = TouchHandler.init()
+  return instance ? instance.cleanup : null
 }
 
 const initTouchDevice = () => {
-  $.cleanup('cleanupTouchDevice', handleTouchDevice);
+  $.cleanup('cleanupTouchDevice', handleTouchDevice)
 }
 
-initTouchDevice();
+initTouchDevice()

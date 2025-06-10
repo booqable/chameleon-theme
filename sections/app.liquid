@@ -1,0 +1,213 @@
+{{ "app.css" | asset_url | stylesheet_tag }}
+
+{%- assign app                   = section.blocks | where: "type", "app" | first -%}
+{%- assign color_palette         = section.settings.color_palette -%}
+{%- assign padding_bottom        = section.settings.padding_bottom -%}
+{%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+{%- assign padding_top           = section.settings.padding_top -%}
+{%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
+
+{% comment %} CSS variables start {% endcomment %}
+{%- capture variables -%}
+  {%- case padding_top -%}
+    {%- when 'none' -%}
+      --padding-top: 0;
+    {%- when 'small' -%}
+      --padding-top: 24px;
+    {%- when 'medium' -%}
+      --padding-top: 68px;
+    {%- when 'large' -%}
+      --padding-top: 112px;
+  {%- endcase -%}
+
+  {%- case padding_bottom -%}
+    {%- when 'none' -%}
+      --padding-bottom: 0;
+    {%- when 'small' -%}
+      --padding-bottom: 24px;
+    {%- when 'medium' -%}
+      --padding-bottom: 68px;
+    {%- when 'large' -%}
+      --padding-bottom: 112px;
+  {%- endcase -%}
+
+  {%- case padding_top_mobile -%}
+    {%- when 'none' -%}
+      --padding-top-mobile: 0;
+    {%- when 'small' -%}
+      --padding-top-mobile: 18px;
+    {%- when 'medium' -%}
+      --padding-top-mobile: 54px;
+    {%- when 'large' -%}
+      --padding-top-mobile: 90px;
+  {%- endcase -%}
+
+  {%- case padding_bottom_mobile -%}
+    {%- when 'none' -%}
+      --padding-bottom-mobile: 0;
+    {%- when 'small' -%}
+      --padding-bottom-mobile: 18px;
+    {%- when 'medium' -%}
+      --padding-bottom-mobile: 54px;
+    {%- when 'large' -%}
+      --padding-bottom-mobile: 90px;
+  {%- endcase -%}
+{%- endcapture -%}
+{% comment %} CSS variables end {% endcomment %}
+
+<div class="app__wrapper {% if color_palette != blank %} palette-{{ color_palette }}{% endif %}{% if padding_top != blank or padding_top_mobile != blank %} app__wrapper--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} app__wrapper--padding-bottom{%- endif -%}" style="{{- variables | escape -}}">
+  <div class="app__container container">
+    {%- if section_preview or app == nil -%}
+      <div class="app__preview">
+        <span>The contents of this section vary by App.</span>
+      </div>
+    {%- else -%}
+      <div class="app__content">
+        {% render 'app', block: app, section: section %}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "App",
+    "tag": "section",
+    "class": "app",
+    "settings": [
+      {
+        "type": "header",
+        "content": "General settings"
+      },
+      {
+        "type": "select",
+        "id": "color_palette",
+        "label": "Color palette",
+        "options": [
+          {
+            "value": "one",
+            "label": "Color set 1"
+          },
+          {
+            "value": "two",
+            "label": "Color set 2"
+          },
+          {
+            "value": "three",
+            "label": "Color set 3"
+          }
+        ],
+        "default": "one"
+      },
+      {
+        "type": "header",
+        "content": "Desktop settings"
+      },
+      {
+        "type": "select",
+        "id": "padding_top",
+        "label": "Padding top",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "large"
+      },
+      {
+        "type": "select",
+        "id": "padding_bottom",
+        "label": "Padding bottom",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "large"
+      },
+      {
+        "type": "header",
+        "content": "Mobile settings"
+      },
+      {
+        "type": "select",
+        "id": "padding_top_mobile",
+        "label": "Padding top",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "medium"
+      },
+      {
+        "type": "select",
+        "id": "padding_bottom_mobile",
+        "label": "Padding bottom",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ],
+        "default": "medium"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "@app"
+      }
+    ]
+  }
+{% endschema %}
