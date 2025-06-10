@@ -1,8 +1,6 @@
 {%- assign show_bar = section.settings.show_bar -%}
 
 {%- if show_bar -%}
-  {{ "top-bar.css" | asset_url | stylesheet_tag }}
-
   {%- assign icon                  = section.settings.icon -%}
   {%- assign bar_text              = section.settings.bar_text -%}
   {%- assign bar_message           = section.settings.bar_message -%}

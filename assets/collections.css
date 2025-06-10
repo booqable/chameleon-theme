@@ -79,6 +79,10 @@
   bottom: 0;
 }
 
+.collections__image-wrapper:has(.image-placeholder) {
+  position: static;
+}
+
 .palette-one.collections__wrapper {
   background: var(--background-primary, #FFFFFF);
 }
@@ -114,7 +118,7 @@
   right: 0;
   bottom: -50px;
   z-index: 1;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .modern-design .collections__heading {
