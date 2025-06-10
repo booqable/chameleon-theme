@@ -37,8 +37,12 @@
       {%- for css_file in css_files -%}
         <link rel="stylesheet" href="{{ css_file | asset_url }}">
       {%- endfor -%}
+      {%- for css_file in css_files -%}
+        <link rel="stylesheet" href="{{ css_file | asset_url }}">
+      {%- endfor -%}
     </noscript>
 
+    {{ sections_assets }}
     {{ sections_assets }}
     {{ content_for_header }}
 

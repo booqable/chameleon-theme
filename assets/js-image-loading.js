@@ -33,47 +33,47 @@ const ImageVisibility = {
   observerSetup: false,
 
   setIntersectionObserver() {
-    if (this.observerSetup) return this.observer;
+    if (this.observerSetup) return this.observer
 
     const observerCallback = (entries) => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        ImageLoader.loadImage(entry.target);
-        this.unobserve(entry.target);
+        if (!entry.isIntersecting) return
+        ImageLoader.loadImage(entry.target)
+        this.unobserve(entry.target)
       })
     }
 
-    this.observer = $.intersectionObserver(observerCallback);
-    this.observerSetup = true;
+    this.observer = $.intersectionObserver(observerCallback)
+    this.observerSetup = true
 
-    return this.observer;
+    return this.observer
   },
 
   cleanup() {
-    if (!this.observer) return;
-    this.observer.disconnect();
-    this.observer = null;
-    this.observerSetup = false;
+    if (!this.observer) return
+    this.observer.disconnect()
+    this.observer = null
+    this.observerSetup = false
   },
 
   observe(element) {
-    if (!this.observer) return;
-    this.observer.observe(element);
+    if (!this.observer) return
+    this.observer.observe(element)
   },
 
   unobserve(element) {
-    if (!this.observer) return;
-    this.observer.unobserve(element);
+    if (!this.observer) return
+    this.observer.unobserve(element)
   },
 
   checkVisibility(img, multiplier) {
-    if ($.inViewport(img)) return { visible: true, inViewport: true };
+    if ($.inViewport(img)) return { visible: true, inViewport: true }
 
     const viewport = ImageDevice.getViewportSize(),
           rect = img.getBoundingClientRect(),
-          isNearViewport = rect.top < viewport.height * multiplier;
+          isNearViewport = rect.top < viewport.height * multiplier
 
-    return { visible: isNearViewport, inViewport: false };
+    return { visible: isNearViewport, inViewport: false }
   }
 }
 
@@ -81,111 +81,111 @@ const ImageDevice = {
   getViewportSize() { return $.viewportSize() },
 
   lowMemory() {
-    return navigator.deviceMemory && navigator.deviceMemory < 4;
+    return navigator.deviceMemory && navigator.deviceMemory < 4
   },
 
   reducedData() {
-    return navigator.connection && navigator.connection.saveData;
+    return navigator.connection && navigator.connection.saveData
   },
 
   isMobile() {
-    return this.getViewportSize().width < ImageConfig.viewport.mobileWidth;
+    return this.getViewportSize().width < ImageConfig.viewport.mobileWidth
   },
 
   getAdaptiveMultiplier() {
     if ($.slowConnection() || this.lowMemory()) {
-      return ImageConfig.viewport.lowMultiplier;
+      return ImageConfig.viewport.lowMultiplier
     }
     return this.isMobile()
       ? ImageConfig.viewport.mobileMultiplier
-      : ImageConfig.viewport.defaultMultiplier;
+      : ImageConfig.viewport.defaultMultiplier
   }
 }
 
 const ImageLoader = {
   decodeImage(image) {
-    if (!('decode' in image)) return;
+    if (!('decode' in image)) return
     image.decode().catch(() => {
       // Silently fail - the image will still display normally
     })
   },
 
   loadSources(mainImage) {
-    const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`);
-    if (!wrapper) return;
+    const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`)
+    if (!wrapper) return
 
     const sources = wrapper.querySelectorAll(`source[${ImageConfig.attr.sourceSrcset}]`),
-          inViewport = $.inViewport(mainImage);
+          inViewport = $.inViewport(mainImage)
 
     sources.forEach(source => {
-      const dataSrc = source.getAttribute(ImageConfig.attr.sourceSrcset);
-      if (!dataSrc) return;
+      const dataSrc = source.getAttribute(ImageConfig.attr.sourceSrcset)
+      if (!dataSrc) return
 
-      source.setAttribute('srcset', dataSrc);
-      source.removeAttribute(ImageConfig.attr.sourceSrcset);
+      source.setAttribute('srcset', dataSrc)
+      source.removeAttribute(ImageConfig.attr.sourceSrcset)
 
       if ('importance' in source) {
-        source.importance = (inViewport && !$.slowConnection()) ? 'high' : 'low';
+        source.importance = (inViewport && !$.slowConnection()) ? 'high' : 'low'
       }
     })
 
-    const mainSrcset = mainImage.getAttribute(ImageConfig.attr.mainSrcset);
-    if (!mainSrcset) return;
+    const mainSrcset = mainImage.getAttribute(ImageConfig.attr.mainSrcset)
+    if (!mainSrcset) return
 
     const setMainImage = () => {
-      mainImage.setAttribute('srcset', mainSrcset);
-      mainImage.removeAttribute(ImageConfig.attr.mainSrcset);
-      mainImage.decoding = inViewport ? 'sync' : 'async';
+      mainImage.setAttribute('srcset', mainSrcset)
+      mainImage.removeAttribute(ImageConfig.attr.mainSrcset)
+      mainImage.decoding = inViewport ? 'sync' : 'async'
 
       if ($.isFetchPriority()) {
-        mainImage.fetchPriority = inViewport ? 'high' : 'low';
+        mainImage.fetchPriority = inViewport ? 'high' : 'low'
       }
 
       if ('importance' in mainImage) {
-        mainImage.importance = inViewport ? 'high' : 'auto';
+        mainImage.importance = inViewport ? 'high' : 'auto'
       }
     }
 
     $.batchDOM(setMainImage)
 
-    if (!inViewport && !mainImage.complete) return;
-    this.decodeImage(mainImage);
+    if (!inViewport && !mainImage.complete) return
+    this.decodeImage(mainImage)
   },
 
   fadeInImage(mainImage, placeholder) {
-    this.loadSources(mainImage);
+    this.loadSources(mainImage)
 
-    $.toggleClass(mainImage, ImageConfig.classes.hidden, false);
-    $.toggleClass(mainImage, ImageConfig.classes.loaded, true);
+    $.toggleClass(mainImage, ImageConfig.classes.hidden, false)
+    $.toggleClass(mainImage, ImageConfig.classes.loaded, true)
 
-    if (!placeholder) return;
+    if (!placeholder) return
 
-    placeholder.style.opacity = '0';
-    const removePlaceholder = () => placeholder.remove();
-    $.eventListener('add', placeholder, 'transitionend', removePlaceholder, { once: true, passive: true });
+    placeholder.style.opacity = '0'
+    const removePlaceholder = () => placeholder.remove()
+    $.eventListener('add', placeholder, 'transitionend', removePlaceholder, { once: true, passive: true })
   },
 
   loadImage(mainImage) {
-    if (!mainImage.classList.contains(ImageConfig.classes.main)) return;
-    if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
+    if (!mainImage.classList.contains(ImageConfig.classes.main)) return
+    if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return
 
     const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`),
           placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`),
-          inViewport = $.inViewport(mainImage);
+          inViewport = $.inViewport(mainImage)
 
     if ($.slowConnection()) {
-      mainImage.decoding = 'async';
-      if ($.isFetchPriority()) mainImage.fetchPriority = 'low';
-      mainImage.setAttribute('importance', 'low');
+      mainImage.decoding = 'async'
+      if ($.isFetchPriority()) mainImage.fetchPriority = 'low'
+      mainImage.setAttribute('importance', 'low')
     } else if (inViewport && $.isFetchPriority()) {
-      mainImage.fetchPriority = 'high';
+      mainImage.fetchPriority = 'high'
     }
 
     if (mainImage.complete) {
-      this.fadeInImage(mainImage, placeholder);
+      this.fadeInImage(mainImage, placeholder)
     } else {
-      const handleLoad = () => this.fadeInImage(mainImage, placeholder);
-      $.eventListener('add', mainImage, 'load', handleLoad, { once: true });
+      const handleLoad = () => this.fadeInImage(mainImage, placeholder)
+      $.eventListener('add', mainImage, 'load', handleLoad, { once: true })
     }
   }
 }
@@ -196,26 +196,26 @@ const ImageLoadingStrategy = {
       `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
     )
 
-    if (!notLoaded.length) return;
+    if (!notLoaded.length) return
 
-    const multiplier = ImageDevice.getAdaptiveMultiplier();
+    const multiplier = ImageDevice.getAdaptiveMultiplier()
 
     const loadingImages = () => {
-      const visibilityResults = [];
+      const visibilityResults = []
 
       notLoaded.forEach(img => {
-        const result = ImageVisibility.checkVisibility(img, multiplier);
-        if (!result.visible) return;
-        visibilityResults.push({ img, inViewport: result.inViewport });
+        const result = ImageVisibility.checkVisibility(img, multiplier)
+        if (!result.visible) return
+        visibilityResults.push({ img, inViewport: result.inViewport })
       })
 
       visibilityResults.forEach(({ img, inViewport }) => {
         if ($.isFetchPriority()) {
-          img.fetchPriority = inViewport ? 'high' : 'auto';
+          img.fetchPriority = inViewport ? 'high' : 'auto'
         }
 
-        ImageLoader.loadImage(img);
-        ImageVisibility.unobserve(img);
+        ImageLoader.loadImage(img)
+        ImageVisibility.unobserve(img)
       })
     }
 
@@ -226,25 +226,25 @@ const ImageLoadingStrategy = {
   readVisible(images) {
     const multiplier = $.slowConnection() ? 2 : (ImageDevice.lowMemory() ? 3 : 4),
           viewport = ImageDevice.getViewportSize(),
-          visibleImages = [];
+          visibleImages = []
 
     images.forEach(img => {
-      const rect = img.getBoundingClientRect();
-      if (rect.top >= viewport.height * multiplier) return;
-      visibleImages.push(img);
+      const rect = img.getBoundingClientRect()
+      if (rect.top >= viewport.height * multiplier) return
+      visibleImages.push(img)
     })
 
-    return visibleImages;
+    return visibleImages
   },
 
   // Write phase: load identified images
   writeVisible(visibleImages) {
-    if (!visibleImages || !visibleImages.length) return;
+    if (!visibleImages || !visibleImages.length) return
 
     const loadingImages = () => {
       visibleImages.forEach(img => {
-        ImageLoader.loadImage(img);
-        ImageVisibility.unobserve(img);
+        ImageLoader.loadImage(img)
+        ImageVisibility.unobserve(img)
       })
     }
 
@@ -254,36 +254,36 @@ const ImageLoadingStrategy = {
   loadLimited(images) {
     // Bind the context to ensure 'this' references the ImageLoadingStrategy
     const readPhase = this.readVisible.bind(this, images),
-          writePhase = this.writeVisible.bind(this);
+          writePhase = this.writeVisible.bind(this)
 
-    $.frameSequence(readPhase, writePhase);
+    $.frameSequence(readPhase, writePhase)
   },
 
   loadInChunks(images) {
     const chunkSize = ImageConfig.viewport.chunkSize,
-          totalImages = images.length;
+          totalImages = images.length
 
     const loadChunk = (startIndex) => {
-      const endIndex = Math.min(startIndex + chunkSize, totalImages);
+      const endIndex = Math.min(startIndex + chunkSize, totalImages)
 
       const loadingImages = () => {
         for (let i = startIndex; i < endIndex; i++) {
-          const img = images[i];
-          ImageLoader.loadImage(img);
-          ImageVisibility.unobserve(img);
+          const img = images[i]
+          ImageLoader.loadImage(img)
+          ImageVisibility.unobserve(img)
         }
       }
 
       $.batchDOM(loadingImages)
 
-      if (endIndex >= totalImages) return;
+      if (endIndex >= totalImages) return
 
       $.is($.requestIdle, 'function')
         ? $.requestIdle(() => loadChunk(endIndex), { timeout: 100 })
-        : setTimeout(() => loadChunk(endIndex), 100);
+        : setTimeout(() => loadChunk(endIndex), 100)
     }
 
-    loadChunk(0);
+    loadChunk(0)
   },
 
   handleWindowLoad() {
@@ -291,14 +291,14 @@ const ImageLoadingStrategy = {
       `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
     )
 
-    if (!notLoaded.length) return;
+    if (!notLoaded.length) return
     const laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
           starved = ImageDevice.lowMemory(),
-          trimmed = ImageDevice.reducedData();
+          trimmed = ImageDevice.reducedData()
 
     laggy || starved || trimmed
       ? this.loadLimited(notLoaded)
-      : this.loadInChunks(notLoaded);
+      : this.loadInChunks(notLoaded)
   }
 }
 
@@ -306,59 +306,59 @@ const ImageHandler = {
   windowLoadHandler: null,
 
   init() {
-    const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`);
-    if (!wrappers.length) return false;
+    const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`)
+    if (!wrappers.length) return false
 
-    ImageVisibility.setIntersectionObserver();
-    this.processImages(wrappers);
-    this.setWindowLoad();
+    ImageVisibility.setIntersectionObserver()
+    this.processImages(wrappers)
+    this.setWindowLoad()
 
-    return this.cleanup.bind(this);
+    return this.cleanup.bind(this)
   },
 
   processImages(wrappers) {
     wrappers.forEach(wrapper => {
       const mainImage = wrapper.querySelector(`.${ImageConfig.classes.main}`),
-            placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`);
+            placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`)
 
-      if (!mainImage || !placeholder) return;
-      if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return;
+      if (!mainImage || !placeholder) return
+      if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return
 
       $.inViewport(mainImage)
         ? ImageLoader.loadImage(mainImage)
-        : ImageVisibility.observe(mainImage);
+        : ImageVisibility.observe(mainImage)
     })
 
     // Process any visible images that weren't covered above
-    ImageLoadingStrategy.prioritizeVisible();
+    ImageLoadingStrategy.prioritizeVisible()
   },
 
   setWindowLoad() {
-    this.windowLoadHandler = () => ImageLoadingStrategy.handleWindowLoad();
-    $.eventListener('add', window, 'load', this.windowLoadHandler, { passive: true });
+    this.windowLoadHandler = () => ImageLoadingStrategy.handleWindowLoad()
+    $.eventListener('add', window, 'load', this.windowLoadHandler, { passive: true })
   },
 
   cleanup() {
     if (this.windowLoadHandler) {
-      $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true });
-      this.windowLoadHandler = null;
+      $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true })
+      this.windowLoadHandler = null
     }
 
-    ImageVisibility.cleanup();
-    return null;
+    ImageVisibility.cleanup()
+    return null
   }
 }
 
 const initImageLoading = () => {
-  window.cleanupImageLoading = ImageHandler.init();
+  window.cleanupImageLoading = ImageHandler.init()
 
   // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupImageLoading;
+  const originalCleanup = window.cleanupImageLoading
   window.cleanupImageLoading = () => {
-    if (!$.is(originalCleanup, 'function')) return;
-    originalCleanup();
-    window.cleanupImageLoading = () => {}; // Replace with no-op after cleanup
+    if (!$.is(originalCleanup, 'function')) return
+    originalCleanup()
+    window.cleanupImageLoading = () => {} // Replace with no-op after cleanup
   }
 }
 
-initImageLoading();
+initImageLoading()

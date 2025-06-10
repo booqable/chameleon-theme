@@ -27,78 +27,78 @@ const TextImageDOM = {
   },
 
   init() {
-    this.elements.sections = document.querySelectorAll(TextImageConfig.selector.section);
-    return this.elements.sections && this.elements.sections.length > 0;
+    this.elements.sections = document.querySelectorAll(TextImageConfig.selector.section)
+    return this.elements.sections && this.elements.sections.length > 0
   },
 
   getPreviousSection(section) {
-    if (!section) return null;
+    if (!section) return null
 
     if (this.cache.prevSections.has(section)) {
-      return this.cache.prevSections.get(section);
+      return this.cache.prevSections.get(section)
     }
 
-    const prevSection = $.getSibling(section, '*', 'prev');
-    this.cache.prevSections.set(section, prevSection);
+    const prevSection = $.getSibling(section, '*', 'prev')
+    this.cache.prevSections.set(section, prevSection)
 
-    return prevSection;
+    return prevSection
   },
 
   getSpacer(section) {
-    if (!section) return null;
+    if (!section) return null
     if (this.cache.spacers.has(section)) {
-      return this.cache.spacers.get(section);
+      return this.cache.spacers.get(section)
     }
 
-    const spacer = section.querySelector(`.${TextImageConfig.selector.spacer.substring(1)}`);
+    const spacer = section.querySelector(`.${TextImageConfig.selector.spacer.substring(1)}`)
 
-    this.cache.spacers.set(section, spacer);
-    return spacer;
+    this.cache.spacers.set(section, spacer)
+    return spacer
   },
 
   cleanup() {
-    this.cache.spacers.clear();
-    this.cache.prevSections.clear();
+    this.cache.spacers.clear()
+    this.cache.prevSections.clear()
 
     Object.keys(this.elements).forEach(key => {
-      this.elements[key] = null;
+      this.elements[key] = null
     })
   }
 }
 
 const TextImageDetector = {
   findElementPalette(el) {
-    if (!el) return null;
+    if (!el) return null
 
     for (const palette of TextImageConfig.palettes) {
-      if (el.classList.contains(palette)) return palette;
+      if (el.classList.contains(palette)) return palette
     }
 
-    return null;
+    return null
   },
 
   findElementSource(prevSection) {
-    if (!prevSection || !prevSection.children || prevSection.children.length === 0) return null;
+    if (!prevSection || !prevSection.children || prevSection.children.length === 0) return null
 
     for (const child of prevSection.children) {
-      const palette = this.findElementPalette(child);
+      const palette = this.findElementPalette(child)
 
-      if (palette) return { element: child, palette };
+      if (palette) return { element: child, palette }
     }
 
-    return null;
+    return null
   }
 }
 
 const TextImageRenderer = {
   // Read phase - gather palette information
   readPaletteData(spacer, sourceElement) {
-    if (!spacer || !sourceElement) return null;
+    if (!spacer || !sourceElement) return null
 
     const prevPalette = TextImageDetector.findElementPalette(sourceElement),
-          currentPalette = TextImageDetector.findElementPalette(spacer);
+          currentPalette = TextImageDetector.findElementPalette(spacer)
 
-    if (!prevPalette) return null;
+    if (!prevPalette) return null
 
     return {
       currentPalette,
@@ -109,33 +109,33 @@ const TextImageRenderer = {
 
   // Write phase - apply palette changes
   writePaletteChanges(data) {
-    if (!data || !data.spacer || !data.needsUpdate) return;
+    if (!data || !data.spacer || !data.needsUpdate) return
 
     if (data.currentPalette) {
-      data.spacer.classList.remove(data.currentPalette);
+      data.spacer.classList.remove(data.currentPalette)
     }
 
-    data.spacer.classList.add(data.prevPalette);
+    data.spacer.classList.add(data.prevPalette)
   },
 
   // Apply palette to a single spacer
   applyPalette(spacer, sourceElement) {
-    if (!spacer || !sourceElement) return;
+    if (!spacer || !sourceElement) return
 
     // Read phase
     const readPhase = () => {
-      const paletteData = this.readPaletteData(spacer, sourceElement);
-      if (!paletteData) return null;
+      const paletteData = this.readPaletteData(spacer, sourceElement)
+      if (!paletteData) return null
 
       return { ...paletteData, spacer }
     }
 
     // Write phase
     const writePhase = (data) => {
-      this.writePaletteChanges(data);
+      this.writePaletteChanges(data)
     }
 
-    $.frameSequence(readPhase, writePhase);
+    $.frameSequence(readPhase, writePhase)
   }
 }
 
@@ -143,21 +143,21 @@ const TextImageProcessor = {
   processSections() {
     // Read phase - gather all relevant data at once
     const readPhase = () => {
-      const sections = TextImageDOM.elements.sections;
-      if (!sections || !sections.length) return null;
+      const sections = TextImageDOM.elements.sections
+      if (!sections || !sections.length) return null
 
       // Process all sections at once to avoid multiple frame sequences
-      const processData = [];
+      const processData = []
 
       Array.from(sections).forEach(section => {
-        const prevSection = TextImageDOM.getPreviousSection(section);
-        if (!prevSection) return;
+        const prevSection = TextImageDOM.getPreviousSection(section)
+        if (!prevSection) return
 
-        const spacer = TextImageDOM.getSpacer(section);
-        if (!spacer) return;
+        const spacer = TextImageDOM.getSpacer(section)
+        if (!spacer) return
 
-        const sourceData = TextImageDetector.findElementSource(prevSection);
-        if (!sourceData) return;
+        const sourceData = TextImageDetector.findElementSource(prevSection)
+        if (!sourceData) return
 
         // Only gather data for valid sections
         processData.push({
@@ -166,40 +166,40 @@ const TextImageProcessor = {
         })
       })
 
-      return processData.length > 0 ? processData : null;
+      return processData.length > 0 ? processData : null
     }
 
     // Write phase - apply palette changes to all spacers
     const writePhase = (sectionsData) => {
-      if (!sectionsData) return;
+      if (!sectionsData) return
 
       // Process all spacers in a single frame
       sectionsData.forEach(data => {
         if (data && data.spacer && data.sourceElement) {
-          TextImageRenderer.applyPalette(data.spacer, data.sourceElement);
+          TextImageRenderer.applyPalette(data.spacer, data.sourceElement)
         }
       })
     }
 
-    $.frameSequence(readPhase, writePhase);
+    $.frameSequence(readPhase, writePhase)
   }
 }
 
 const handleTextWithImage = () => {
-  if (!TextImageDOM.init()) return null;
+  if (!TextImageDOM.init()) return null
 
-  TextImageProcessor.processSections();
+  TextImageProcessor.processSections()
 
   const cleanup = () => {
-    TextImageDOM.cleanup();
-    return null;
+    TextImageDOM.cleanup()
+    return null
   }
 
-  return cleanup;
+  return cleanup
 }
 
 const initTextWithImage = () => {
-  $.cleanup('cleanupImageSpacer', handleTextWithImage);
+  $.cleanup('cleanupImageSpacer', handleTextWithImage)
 }
 
-initTextWithImage();
+initTextWithImage()

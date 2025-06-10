@@ -29,68 +29,68 @@ const FocalDOM = {
   },
 
   init() {
-    this.elements.images = document.querySelectorAll(FocalConfig.selector.image);
-    return this.elements.images && this.elements.images.length > 0;
+    this.elements.images = document.querySelectorAll(FocalConfig.selector.image)
+    return this.elements.images && this.elements.images.length > 0
   },
 
   cleanup() {
-    this.cache.positions.clear();
-    this.elements.images = null;
+    this.cache.positions.clear()
+    this.elements.images = null
   }
 }
 
 const FocalCalculator = {
   convertToPercentage(coordinate) {
-    const value = parseFloat(coordinate) || 0;
+    const value = parseFloat(coordinate) || 0
 
     // Convert from (-1 to 1) range to (0% to 100%) range
     // The formula is: percentage = (coordinate + 1) * 50
-    const percentage = (value + 1) * 50;
+    const percentage = (value + 1) * 50
 
     // Ensure the value stays within 0-100% range
-    const clampedPercentage = Math.max(0, Math.min(100, percentage));
+    const clampedPercentage = Math.max(0, Math.min(100, percentage))
 
-    return `${clampedPercentage}%`;
+    return `${clampedPercentage}%`
   },
 
   calculatePosition(focalX, focalY) {
-    if (focalX === null || focalY === null) return FocalConfig.defaultPosition; // Skip invalid coordinates
+    if (focalX === null || focalY === null) return FocalConfig.defaultPosition // Skip invalid coordinates
 
-    const positionKey = `${focalX}_${focalY}`; // Create a unique key for caching
+    const positionKey = `${focalX}_${focalY}` // Create a unique key for caching
 
-    let position = FocalDOM.cache.positions.get(positionKey); // Check if position's already calculated
+    let position = FocalDOM.cache.positions.get(positionKey) // Check if position's already calculated
 
     // If not found in cache, calculate and store it
     if (!position) {
       const objectPositionX = this.convertToPercentage(focalX),
-            objectPositionY = this.convertToPercentage(focalY);
-      position = `${objectPositionX} ${objectPositionY}`;
+            objectPositionY = this.convertToPercentage(focalY)
+      position = `${objectPositionX} ${objectPositionY}`
 
-      FocalDOM.cache.positions.set(positionKey, position); // Cache the result
+      FocalDOM.cache.positions.set(positionKey, position) // Cache the result
     }
 
-    return position;
+    return position
   }
 }
 
 const FocalProcessor = {
   processImage(image) {
-    if (image.getAttribute(FocalConfig.attr.processed) === 'true') return;
+    if (image.getAttribute(FocalConfig.attr.processed) === 'true') return
 
     const focalX = image.getAttribute(FocalConfig.attr.focalX),
-          focalY = image.getAttribute(FocalConfig.attr.focalY);
+          focalY = image.getAttribute(FocalConfig.attr.focalY)
 
-    if (focalX === null || focalY === null) return;
+    if (focalX === null || focalY === null) return
 
-    const position = FocalCalculator.calculatePosition(focalX, focalY);
+    const position = FocalCalculator.calculatePosition(focalX, focalY)
 
     const applyFocalPoint = () => {
-      image.style.objectPosition = position;
-      image.style.opacity = 1;
-      image.setAttribute(FocalConfig.attr.processed, 'true');
+      image.style.objectPosition = position
+      image.style.opacity = 1
+      image.setAttribute(FocalConfig.attr.processed, 'true')
     }
 
-    $.batchDOM(applyFocalPoint);
+    $.batchDOM(applyFocalPoint)
   }
 }
 
@@ -99,55 +99,55 @@ const FocalVisibility = {
   observerSetup: false,
 
   setIntersectionObserver() {
-    if (this.observerSetup) return this.observer;
+    if (this.observerSetup) return this.observer
 
     const observerCallback = (entries) => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        FocalProcessor.processImage(entry.target);
-        this.observer.unobserve(entry.target);
+        if (!entry.isIntersecting) return
+        FocalProcessor.processImage(entry.target)
+        this.observer.unobserve(entry.target)
       })
     }
 
-    this.observer = $.intersectionObserver(observerCallback);
-    this.observerSetup = true;
+    this.observer = $.intersectionObserver(observerCallback)
+    this.observerSetup = true
 
-    return this.observer;
+    return this.observer
   },
 
   cleanup() {
-    if (!this.observer) return;
-    this.observer.disconnect();
-    this.observer = null;
-    this.observerSetup = false;
+    if (!this.observer) return
+    this.observer.disconnect()
+    this.observer = null
+    this.observerSetup = false
   }
 }
 
 const handleFocalImages = () => {
-  if (!FocalDOM.init()) return null;
+  if (!FocalDOM.init()) return null
 
-  FocalVisibility.setIntersectionObserver();
+  FocalVisibility.setIntersectionObserver()
 
   const processImages = () => {
-    const images = FocalDOM.elements.images;
+    const images = FocalDOM.elements.images
     images.forEach(image => {
-      FocalVisibility.observer.observe(image);
+      FocalVisibility.observer.observe(image)
     })
   }
 
-  processImages();
+  processImages()
 
   const cleanup = () => {
-    FocalVisibility.cleanup();
-    FocalDOM.cleanup();
-    return null;
+    FocalVisibility.cleanup()
+    FocalDOM.cleanup()
+    return null
   }
 
-  return cleanup;
+  return cleanup
 }
 
 const initFocalImages = () => {
-  $.cleanup('cleanupFocalImages', handleFocalImages);
+  $.cleanup('cleanupFocalImages', handleFocalImages)
 }
 
-initFocalImages();
+initFocalImages()

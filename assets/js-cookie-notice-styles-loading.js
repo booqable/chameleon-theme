@@ -37,30 +37,30 @@ const CookieDOM = {
   },
 
   init() {
-    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`);
-    return !!this.elements.container;
+    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`)
+    return !!this.elements.container
   },
 
   getContainer() {
-    if (this.elements.container) return this.elements.container;
+    if (this.elements.container) return this.elements.container
 
-    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`);
-    return this.elements.container;
+    this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`)
+    return this.elements.container
   },
 
   cleanup() {
-    this.elements.container = null;
+    this.elements.container = null
   }
 }
 
 const CookieStyler = {
   applyStyles(container = null) {
-    const ccMain = container || CookieDOM.getContainer();
-    if (!ccMain) return false;
+    const ccMain = container || CookieDOM.getContainer()
+    if (!ccMain) return false
 
-    const ccPalette = window?.cookieSettings?.cookiePalette || CookieConfig.defaults.palette;
+    const ccPalette = window?.cookieSettings?.cookiePalette || CookieConfig.defaults.palette
 
-    if (ccPalette === CookieDOM.cache.currentPalette && CookieDOM.cache.appliedStyles) return true;
+    if (ccPalette === CookieDOM.cache.currentPalette && CookieDOM.cache.appliedStyles) return true
 
     const readPhase = () => {
       return {
@@ -75,19 +75,19 @@ const CookieStyler = {
         CookieConfig.modifier.paletteTwo,
         CookieConfig.modifier.paletteThree
       )
-      ccMain.classList.add(`palette-${data.palette}`);
+      ccMain.classList.add(`palette-${data.palette}`)
 
       for (const [prop, val] of Object.entries(data.styleMap)) {
-        ccMain.style.setProperty(prop, val);
+        ccMain.style.setProperty(prop, val)
       }
 
-      CookieDOM.cache.currentPalette = data.palette;
-      CookieDOM.cache.appliedStyles = true;
-      ccMain.style.opacity = '1';
+      CookieDOM.cache.currentPalette = data.palette
+      CookieDOM.cache.appliedStyles = true
+      ccMain.style.opacity = '1'
     }
 
-    $.frameSequence(readPhase, writePhase);
-    return true;
+    $.frameSequence(readPhase, writePhase)
+    return true
   }
 }
 
@@ -95,46 +95,46 @@ const CookieObserver = {
   observer: null,
 
   setup() {
-    if (this.observer) return this.observer;
+    if (this.observer) return this.observer
 
     const handleElement = (el) => {
-      if (!el) return false;
+      if (!el) return false
 
-      CookieStyler.applyStyles(el);
+      CookieStyler.applyStyles(el)
 
-      if (this.observer) this.observer.disconnect();
+      if (this.observer) this.observer.disconnect()
 
-      return true;
+      return true
     }
 
     const observerCallback = (mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type !== 'childList') continue;
-        const target = CookieConfig.selector.container;
+        if (mutation.type !== 'childList') continue
+        const target = CookieConfig.selector.container
 
         for (const node of mutation.addedNodes) {
-          if (!node || node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (!node || node.nodeType !== Node.ELEMENT_NODE) continue
 
           if (node.id === target) {
-            if (handleElement(node)) return;
+            if (handleElement(node)) return
           }
 
           if (node.querySelector) {
-            const container = node.querySelector(`#${target}`);
-            if (handleElement(container)) return;
+            const container = node.querySelector(`#${target}`)
+            if (handleElement(container)) return
           }
         }
       }
     }
 
-    this.observer = $.mutationObserver(observerCallback);
-    return this.observer;
+    this.observer = $.mutationObserver(observerCallback)
+    return this.observer
   },
 
   cleanup() {
-    if (!this.observer) return;
-    this.observer.disconnect();
-    this.observer = null;
+    if (!this.observer) return
+    this.observer.disconnect()
+    this.observer = null
   }
 }
 
@@ -142,32 +142,32 @@ const CookieInterval = {
   intervalId: null,
 
   start() {
-    let attempts = 0;
-    const interval = CookieConfig.defaults.interval;
+    let attempts = 0
+    const interval = CookieConfig.defaults.interval
 
     const applyStyles = () => {
-      attempts++;
+      attempts++
 
       const applyStylesHandler = () => {
-        CookieStyler.applyStyles();
-        this.stop();
-        return;
+        CookieStyler.applyStyles()
+        this.stop()
+        return
       }
-      if (CookieDOM.init()) applyStylesHandler();
+      if (CookieDOM.init()) applyStylesHandler()
 
       // Stop checking after max attempts
-      if (attempts >= CookieConfig.defaults.maxAttempts) this.stop();
+      if (attempts >= CookieConfig.defaults.maxAttempts) this.stop()
     }
 
-    this.intervalId = setInterval(applyStyles, interval);
+    this.intervalId = setInterval(applyStyles, interval)
 
-    return this.intervalId;
+    return this.intervalId
   },
 
   stop() {
-    if (!this.intervalId) return;
-    clearInterval(this.intervalId);
-    this.intervalId = null;
+    if (!this.intervalId) return
+    clearInterval(this.intervalId)
+    this.intervalId = null
   }
 }
 
@@ -175,35 +175,35 @@ const CookieHandler = {
   initHandler: null,
 
   init() {
-    CookieStyler.applyStyles();
-    CookieObserver.setup();
-    CookieInterval.start();
-    this.setupEventListener();
+    CookieStyler.applyStyles()
+    CookieObserver.setup()
+    CookieInterval.start()
+    this.setupEventListener()
 
-    return this.cleanup.bind(this);
+    return this.cleanup.bind(this)
   },
 
   setupEventListener() {
-    this.initHandler = () => $.batchDOM(CookieStyler.applyStyles);
-    $.eventListener('add', window, CookieConfig.event.initialized, this.initHandler);
+    this.initHandler = () => $.batchDOM(CookieStyler.applyStyles)
+    $.eventListener('add', window, CookieConfig.event.initialized, this.initHandler)
   },
 
   cleanup() {
     if (this.initHandler) {
-      $.eventListener('remove', window, CookieConfig.event.initialized, this.initHandler);
-      this.initHandler = null;
+      $.eventListener('remove', window, CookieConfig.event.initialized, this.initHandler)
+      this.initHandler = null
     }
 
-    CookieObserver.cleanup();
-    CookieInterval.stop();
-    CookieDOM.cleanup();
+    CookieObserver.cleanup()
+    CookieInterval.stop()
+    CookieDOM.cleanup()
 
-    return null;
+    return null
   }
 }
 
 const initCookieStyles = () => {
-  window.cleanupCookiesListeners = CookieHandler.init();
+  window.cleanupCookiesListeners = CookieHandler.init()
 }
 
-initCookieStyles();
+initCookieStyles()
