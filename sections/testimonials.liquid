@@ -20,11 +20,6 @@
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
-    {%- if carousel -%}
-      --slide-width: 100%;
-      --slide-width-mobile: 100%;
-    {%- endif -%}
-
     {%- case padding_top -%}
       {%- when 'none' -%}
         --padding-top: 0;
@@ -84,6 +79,13 @@
         --align-items: flex-start;
       {%- endcase -%}
   {%- endcapture -%}
+
+  {%- if carousel -%}
+    {%- capture slide_variables -%}
+      --slide-width: 100%;
+      --slide-width-mobile: 100%;
+    {%- endcapture -%}
+  {%- endif -%}
   {% comment %} CSS variables end {% endcomment %}
 
   <div
@@ -94,7 +96,7 @@
       {%- if carousel -%}
         {%- assign timer_val = timer | plus: 0 -%}
 
-        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} aria-label="Gallery">
+        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery">
           <div class="carousel__wrapper">
       {%- endif -%}
 

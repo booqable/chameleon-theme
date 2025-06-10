@@ -30,13 +30,6 @@
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
-    {%- if carousel -%}
-      --slide-width: 100%;
-      --slide-width-mobile: 100%;
-    {%- else -%}
-      --overlay-color: {{- overlay_color -}};
-    {%- endif -%}
-
     {%- case height -%}
       {%- when 'small' -%}
         --height: 640px;
@@ -84,6 +77,15 @@
         --padding-bottom-mobile: 40px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- capture slide_variables -%}
+    {%- if carousel -%}
+      --slide-width: 100%;
+      --slide-width-mobile: 100%;
+    {%- else -%}
+      --overlay-color: {{- overlay_color -}};
+    {%- endif -%}
+  {%- endcapture -%}
   {% comment %} CSS variables end {% endcomment %}
 
   {%- assign default_color = nil -%}
@@ -117,7 +119,7 @@
     {%- if carousel -%}
     {%- assign timer_val = timer | plus: 0 -%}
 
-    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-dafault-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} aria-label="Gallery">
+    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-dafault-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery">
         <div class="carousel__wrapper">
     {%- endif -%}
 

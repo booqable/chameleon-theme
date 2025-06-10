@@ -90,6 +90,13 @@
         --padding-bottom-mobile: 60px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- if carousel -%}
+    {%- capture slide_variables -%}
+      --slide-width: 294px;
+      --slide-width-mobile: 298px;
+    {%- endcapture -%}
+  {%- endif -%}
   {% comment %} CSS variables end {% endcomment %}
 
   <div
@@ -101,7 +108,7 @@
         {%- assign timer_val = timer | plus: 0 -%}
       {%- endif -%}
 
-      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} aria-label="Gallery"{%- endif -%}>
+      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery"{%- endif -%}>
         {%- if carousel -%}
           <div class="carousel__wrapper">
         {%- endif -%}
