@@ -1,11 +1,11 @@
 /**
  * Carousel Component
  *
- * Handles carousel functionality with slide/fade effects, pagination, and touch support.
- * Supports autorotation, responsive behavior, and overlay color management.
+ * High-performance carousel with transform translate approach.
+ * Supports navigation buttons, pagination dots, and auto-scroll with hover pause.
+ * Uses CSS variables for responsive slide widths and gap calculation.
  *
  * @requires js-utils-core.js
- * @requires js-utils.js
  */
 
 const CarouselConfig = {
@@ -14,1056 +14,1179 @@ const CarouselConfig = {
     wrapper: '.carousel__wrapper',
     item: '.carousel__item',
     navigation: '.carousel__navigation',
-    button: '.carousel__btn',
-    prev: '.carousel__btn.prev',
-    next: '.carousel__btn.next',
     pagination: '.carousel__pagination',
-    dot: '.carousel__dot',
-    timer: '.carousel__timer',
-    counter: '.carousel__count'
+    prevBtn: '.carousel__btn.prev',
+    nextBtn: '.carousel__btn.next',
+    dot: '.carousel__dot'
   },
   classes: {
-    dot: 'carousel__dot',
-    edges: 'carousel__edges',
-    fade: 'carousel__fade-effect',
-    full: 'carousel__full-width',
-    init: 'initialized',
-    next: 'next',
-    pause: 'carousel__pause',
-    prev: 'prev',
-    show: 'show'
-  },
-  modifier: {
-    active: 'active',
     hidden: 'hidden',
-    hide: 'hide',
-    show: 'show'
+    active: 'active',
+    initialized: 'initialized',
+    paused: 'carousel__pause',
+    swiping: 'carousel__swiping',
+    reduced: 'carousel__reduced-motion'
   },
   attr: {
+    timer: 'data-carousel-timer',
     index: 'data-index',
-    defaultColor: 'data-dafault-color',
-    overlayColor: 'data-overlay-color'
+    ariaLabel: 'aria-label',
+    ariaLive: 'aria-live',
+    ariaAtomic: 'aria-atomic',
+    tabIndex: 'tabindex'
   },
-  cssVar: {
-    gap: 'gap',
-    overlay: '--overlay-color',
-    overlay08: '--overlay-color-08',
-    overlay45: '--overlay-color-45',
-    slideWidth: '--slide-width',
-    slideWidthMobile: '--slide-width-mobile'
+  viewport: {
+    mobileBreakpoint: 992
   },
-  event: {
-    click: 'click',
-    prev: 'click',
-    next: 'click',
-    start: 'touchstart',
-    end: 'touchend',
-    enter: 'mouseenter',
-    leave: 'mouseleave'
+  animation: {
+    reducedDuration: 150
   },
-  time: {
-    idleTimeout: 2000,
-    slowConnectionDelay: 1000,
-    wheelDebounce: 100
+  touch: {
+    threshold: 50,
+    resistance: 0.25,
+    maxVelocity: 2000,
+    momentumDeceleration: 0.0006
   },
-  media: {
-    mobile: 992 // Based on css media query breakpoint
+  cache: {
+    maxSize: 50,
+    ttl: 30000 // 30 seconds
+  },
+  accessibility: {
+    announceDelay: 100,
+    focusDelay: 300
+  }
+}
+
+const CarouselCache = {
+  data: new Map(),
+
+  set(key, value) {
+    try {
+      // Clean up expired entries if cache is getting large
+      if (this.data.size >= CarouselConfig.cache.maxSize) {
+        this.cleanup()
+      }
+
+      this.data.set(key, {
+        value,
+        timestamp: Date.now()
+      })
+    } catch (error) {
+      console.warn('CarouselCache: Failed to set cache entry', error)
+    }
+  },
+
+  get(key) {
+    try {
+      const entry = this.data.get(key)
+      if (!entry) return undefined
+
+      // Check if entry is expired
+      if (Date.now() - entry.timestamp > CarouselConfig.cache.ttl) {
+        this.data.delete(key)
+        return undefined
+      }
+
+      return entry.value
+    } catch (error) {
+      console.warn('CarouselCache: Failed to get cache entry', error)
+      return undefined
+    }
+  },
+
+  delete(key) {
+    try {
+      this.data.delete(key)
+    } catch (error) {
+      console.warn('CarouselCache: Failed to delete cache entry', error)
+    }
+  },
+
+  cleanup() {
+    try {
+      const now = Date.now()
+      for (const [key, entry] of this.data.entries()) {
+        if (now - entry.timestamp > CarouselConfig.cache.ttl) {
+          this.data.delete(key)
+        }
+      }
+    } catch (error) {
+      console.warn('CarouselCache: Failed to cleanup cache', error)
+    }
+  },
+
+  clear() {
+    try {
+      this.data.clear()
+    } catch (error) {
+      console.warn('CarouselCache: Failed to clear cache', error)
+    }
   }
 }
 
 const CarouselDOM = {
   elements: {
-    block: null,
-    wrap: null,
-    navi: null,
-    pagi: null,
-    item: null,
-    items: null,
-    btns: null,
-    dots: null,
-    count: null,
-    timers: null
+    carousels: null
   },
 
-  state: {
-    infinite: true,
-    interval: null,
-    isWheeling: false,
-    touchend: null,
-    touchstart: null,
-    wheelTimeout: null
-  },
-
-  init(el) {
-    this.elements.block = el
-    this.elements.wrap = el.querySelector(CarouselConfig.selector.wrapper)
-    this.elements.navi = el.querySelector(CarouselConfig.selector.navigation)
-    this.elements.pagi = el.querySelector(CarouselConfig.selector.pagination)
-    this.elements.item = el.querySelector(CarouselConfig.selector.item)
-    this.elements.items = el.querySelectorAll(CarouselConfig.selector.item)
-    this.elements.btns = el.querySelectorAll(CarouselConfig.selector.button)
-    this.elements.dots = el.querySelectorAll(CarouselConfig.selector.dot)
-    this.elements.count = el.querySelector(CarouselConfig.selector.counter)
-    this.elements.timers = el.querySelectorAll(CarouselConfig.selector.timer)
-    if (this.elements.timers.length === 0 && el.dataset.carouselTimer) {
-      this.elements.timers = [{ value: parseInt(el.dataset.carouselTimer) }]
+  init() {
+    try {
+      this.elements.carousels = document.querySelectorAll(CarouselConfig.selector.carousel)
+      return this.elements.carousels && this.elements.carousels.length > 0
+    } catch (error) {
+      console.error('CarouselDOM: Failed to initialize', error)
+      return false
     }
-
-    return this.elements
-  },
-
-  initCarousel() {
-    if (this.elements.items.length < 2) return false
-    $.toggleClass(this.elements.block, CarouselConfig.classes.init, true)
-  },
-
-  getSiblingElement(element, selector, direction) {
-    if (!element) return false
-
-    const directionMap = {
-      'prev': 'prev',
-      'next': 'next'
-    }
-
-    return $.getSibling(element, selector, directionMap[direction])
-  },
-
-  trigger(element, eventType) {
-    if (!element) return false
-    $.triggerEvent(element, eventType)
-  },
-
-  scrollToPosition(options) {
-    const { element, left, top } = options
-
-    // Use $.batchDOM for scroll operations as they don't benefit from read/write separation
-    const scrollHandler = () => {
-      element.scrollTo({
-        left: left,
-        top: top,
-        behavior: 'smooth'
-      })
-    }
-
-    $.batchDOM(scrollHandler)
   },
 
   cleanup() {
-    if (this.state.interval) {
-      clearInterval(this.state.interval)
-      this.state.interval = null
+    try {
+      CarouselCache.clear()
+      this.elements.carousels = null
+    } catch (error) {
+      console.warn('CarouselDOM: Failed to cleanup', error)
     }
-
-    if (this.state.wheelTimeout) {
-      clearTimeout(this.state.wheelTimeout)
-      this.state.wheelTimeout = null
-    }
-
-    this.state = {
-      interval: null,
-      touchstart: null,
-      touchend: null,
-      wheelTimeout: null,
-      isWheeling: false,
-      infinite: true
-    }
-
-    Object.keys(this.elements).forEach(key => {
-      this.elements[key] = null
-    })
   }
 }
 
-const CarouselPagination = {
-  updateCounter(index) {
-    const count = CarouselDOM.elements.count
-    if (!count) return false
-    if (index === 0 || typeof index === 'undefined') return false
+const CarouselCalculator = {
+  getSlideWidth(carousel) {
+    try {
+      if (!carousel) return 294 // Safe fallback
 
-    const readPhase = () => {
-      let num = ''
-      if (index < 10) num = 0
-      return { num, index }
+      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint
+      const cacheKey = `slideWidth-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
+      let cachedWidth = CarouselCache.get(cacheKey)
+
+      if (cachedWidth) return cachedWidth
+
+      const slideWidthVar = isMobile ? '--slide-width-mobile' : '--slide-width'
+      const computedStyle = getComputedStyle(carousel)
+      const slideWidthValue = computedStyle.getPropertyValue(slideWidthVar)
+      const slideWidth = parseInt(slideWidthValue) || (isMobile ? 298 : 294)
+
+      // Validate the result
+      if (slideWidth <= 0 || slideWidth > 2000) {
+        console.warn('CarouselCalculator: Invalid slide width detected', slideWidth)
+        return isMobile ? 298 : 294
+      }
+
+      CarouselCache.set(cacheKey, slideWidth)
+      return slideWidth
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to get slide width', error)
+      return window.innerWidth < CarouselConfig.viewport.mobileBreakpoint ? 298 : 294
     }
-
-    const writePhase = (data) => {
-      if (!data) return
-      const { num, index } = data
-      count.innerHTML = `${num}${index}`
-    }
-
-    $.frameSequence(readPhase, writePhase)
   },
 
-  getCurrentDot() {
-    const dots = CarouselDOM.elements.dots
-    let index = 1
-    const visibleDots = [...dots].filter(dot =>
-      !dot.classList.contains(CarouselConfig.modifier.hidden)
-    )
+  getGap(carousel) {
+    try {
+      if (!carousel) return 16 // Safe fallback
 
-    visibleDots.forEach(dot => {
-      if (dot.classList.contains(CarouselConfig.modifier.active)) {
-        index = parseInt(dot.getAttribute(CarouselConfig.attr.index))
+      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint
+      const cacheKey = `gap-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
+      let cachedGap = CarouselCache.get(cacheKey)
+
+      if (cachedGap !== undefined) return cachedGap
+
+      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
+      if (!wrapper) return 16
+
+      const computedStyle = getComputedStyle(wrapper)
+      const gap = parseInt(computedStyle.gap) || 16
+
+      // Validate the result
+      if (gap < 0 || gap > 200) {
+        console.warn('CarouselCalculator: Invalid gap detected', gap)
+        return 16
       }
-    })
 
-
-    return { index, dots: visibleDots }
+      CarouselCache.set(cacheKey, gap)
+      return gap
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to get gap', error)
+      return 16
+    }
   },
 
-  updatePagination(event, index) {
-    const target = event?.target
-    const isDot = target?.classList.contains(CarouselConfig.classes.dot)
-    const dots = CarouselDOM.elements.dots
+  getHorizontalPadding(carousel) {
+    try {
+      if (!carousel) return 0
 
-    if (!isDot && typeof index === 'undefined') return false
+      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
+      if (!wrapper) return 0
 
-    let finalIndex = index
-    if (typeof finalIndex === 'undefined' && isDot) {
-      finalIndex = parseInt(target.getAttribute(CarouselConfig.attr.index))
+      const computedStyle = getComputedStyle(wrapper)
+      const paddingLeft = parseInt(computedStyle.paddingLeft) || 0
+      const paddingRight = parseInt(computedStyle.paddingRight) || 0
+      const totalPadding = paddingLeft + paddingRight
+
+      // Validate the result
+      if (totalPadding < 0 || totalPadding > 500) {
+        console.warn('CarouselCalculator: Invalid padding detected', totalPadding)
+        return 0
+      }
+
+      return totalPadding
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to get horizontal padding', error)
+      return 0
     }
-
-    const readPhase = () => {
-      const dotData = []
-
-      dots.forEach(dot => {
-        const activeIndex = parseInt(dot.getAttribute(CarouselConfig.attr.index))
-        dotData.push({ dot, activeIndex })
-      })
-
-      return { dotData, finalIndex, isDot, target }
-    }
-
-    const writePhase = (data) => {
-      if (!data) return
-      const { dotData, finalIndex, isDot, target } = data
-
-
-      dotData.forEach(({ dot, activeIndex }) => {
-        $.toggleClass(dot, CarouselConfig.modifier.active, false)
-
-        if (isDot && dot === target) {
-          $.toggleClass(target, CarouselConfig.modifier.active, true)
-        }
-        if (activeIndex === finalIndex) {
-          $.toggleClass(dot, CarouselConfig.modifier.active, true)
-        }
-      })
-    }
-
-    $.frameSequence(readPhase, writePhase)
-    this.updateCounter(finalIndex)
-    return finalIndex
   },
 
-  hidePaginationDots() {
-    const elements = CarouselDOM.elements
-    if (!elements.dots) return false
+  getVisibleSlidesCount(carousel) {
+    const carouselWidth = carousel.offsetWidth
+    const slideWidth = this.getSlideWidth(carousel)
+    const gap = this.getGap(carousel)
+    const horizontalPadding = this.getHorizontalPadding(carousel)
 
-    const readPhase = () => {
-      const client = elements.wrap.clientWidth
-      const scroll = elements.wrap.scrollWidth
-      const width = CarouselUtils.getSlideWidth(elements.block)
-      const totalItems = elements.items.length
-      const gap = CarouselUtils.getGapValue(elements.wrap)
+    // Calculate available width inside the wrapper, accounting for padding
+    const availableWidth = carouselWidth - horizontalPadding + gap
+    const slideAndGapWidth = slideWidth + gap
+    const visibleCount = Math.floor(availableWidth / slideAndGapWidth)
 
-      // Calculate total content width precisely (same logic as hideControls)
-      const totalContentWidth = (totalItems * width) + ((totalItems - 1) * gap)
-      const hasContentOverflow = totalContentWidth > client
-      const shouldHideAllControls = !hasContentOverflow
+    // Ensure at least 1 slide is visible, but not more than total slides
+    const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+    return Math.max(1, Math.min(visibleCount, items.length))
+  },
 
-      if (shouldHideAllControls) {
-        return { hideAll: true }
+  getMaxTranslateIndex(carousel, totalSlides) {
+    try {
+      const carouselWidth = carousel.offsetWidth
+      const slideWidth = this.getSlideWidth(carousel)
+      const gap = this.getGap(carousel)
+      const horizontalPadding = this.getHorizontalPadding(carousel)
+
+      // Available width inside the wrapper (accounting for padding)
+      const availableWidth = carouselWidth - horizontalPadding
+
+      // Total width needed for all slides including gaps
+      const totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
+
+      // If all content fits in the available space, no translation needed
+      if (totalContentWidth <= availableWidth) {
+        return 0
       }
 
-      const actualScrollDistance = scroll - client
+      // Calculate how many slides can start a "viewport window"
+      // A slide can start a viewport if there's enough content after it to fill the viewport
+      const slideAndGapWidth = slideWidth + gap
 
-      if (actualScrollDistance > 0) {
-        // If there's scrollable content, calculate positions based on slide width
-        const scrollPositions = Math.max(2, Math.ceil(actualScrollDistance / width) + 1)
-        return { scrollPositions, totalItems, hideAll: false }
-      } else {
-        // No scrollable content
-        return { scrollPositions: 1, totalItems, hideAll: false }
-      }
+      // Find the last slide that can be the "first visible slide" in a viewport
+      // This happens when: slidePosition + availableWidth >= totalContentWidth
+      // Solving for slidePosition: slidePosition >= totalContentWidth - availableWidth
+      const minLastSlidePosition = totalContentWidth - availableWidth
+      const maxStartingSlideIndex = Math.ceil(minLastSlidePosition / slideAndGapWidth)
+
+      // Ensure we don't exceed the actual number of slides
+      const maxIndex = Math.min(maxStartingSlideIndex, totalSlides - 1)
+
+      return Math.max(0, maxIndex)
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to calculate max translate index', error)
+      return 0
     }
+  },
 
-    const writePhase = (data) => {
-      if (!data) return
+  getTranslateValue(carousel, targetIndex) {
+    try {
+      const slideWidth = this.getSlideWidth(carousel)
+      const gap = this.getGap(carousel)
+      const carouselWidth = carousel.offsetWidth
+      const horizontalPadding = this.getHorizontalPadding(carousel)
+      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+      const totalSlides = items.length
 
-      if (data.hideAll) {
-        elements.dots.forEach(dot => {
-          $.toggleClass(dot, CarouselConfig.modifier.hidden, true)
-        })
-        return
+      // If targetIndex is 0, always return 0 (no translation needed)
+      if (targetIndex === 0) {
+        return 0
       }
 
-      const { scrollPositions } = data
+      // Available width inside the wrapper (accounting for padding)
+      const availableWidth = carouselWidth - horizontalPadding
+      const slideAndGapWidth = slideWidth + gap
 
-      elements.dots.forEach(dot => {
-        const index = parseInt(dot.getAttribute(CarouselConfig.attr.index))
+      // Total width needed for all slides including gaps
+      const totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
 
-        // Show dots that correspond to valid scroll positions
-        const shouldShow = index <= scrollPositions
-        $.toggleClass(dot, CarouselConfig.modifier.hidden, !shouldShow)
-      })
+      // If all content fits, no translation needed
+      if (totalContentWidth <= availableWidth) {
+        return 0
+      }
+
+      // Standard translation (slide by slide)
+      const standardTranslate = -(slideAndGapWidth * targetIndex)
+
+      // Check if this would over-translate (leave empty space on the right)
+      const contentEndPosition = totalContentWidth + standardTranslate
+
+      if (contentEndPosition < availableWidth) {
+        // We've translated too far - align content to the right edge instead
+        const rightAlignedTranslate = -(totalContentWidth - availableWidth)
+        return rightAlignedTranslate
+      }
+
+      return standardTranslate
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to calculate translate value', error)
+      return 0
     }
+  },
 
-    $.frameSequence(readPhase, writePhase)
+  shouldShowControls(carousel) {
+    try {
+      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+      if (!items.length) return false
+
+      // Detect if ANY content overflows (even 1px)
+      const carouselWidth = carousel.offsetWidth
+      const slideWidth = this.getSlideWidth(carousel)
+      const gap = this.getGap(carousel)
+      const horizontalPadding = this.getHorizontalPadding(carousel)
+
+      // Available width inside the wrapper
+      const availableWidth = carouselWidth - horizontalPadding
+
+      // Total width needed for all slides including gaps
+      const totalContentWidth = (slideWidth * items.length) + (gap * (items.length - 1))
+
+      // Show controls if ANY part of content doesn't fit (even 1px overflow)
+      return totalContentWidth > availableWidth
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to determine control visibility', error)
+      return true // Default to showing controls on error
+    }
   }
 }
 
-const CarouselUtils = {
-  getGapValue(el) {
-    const styles = window.getComputedStyle(el),
-          gap = styles.getPropertyValue(CarouselConfig.cssVar.gap)
-    return parseInt(gap) || 0
-  },
-
-  getSlideWidth(el) {
-    const styles = window.getComputedStyle(el),
-          isMobile = $.viewportSize().width < CarouselConfig.media.mobile,
-          property = isMobile ? CarouselConfig.cssVar.slideWidthMobile : CarouselConfig.cssVar.slideWidth,
-          slideWidth = styles.getPropertyValue(property)
-    return parseInt(slideWidth)
-  }
-}
-
-const CarouselEffects = {
-  updateFadeClass(index) {
-    const block = CarouselDOM.elements.block
-    const items = CarouselDOM.elements.items
-    const isFade = block.classList.contains(CarouselConfig.classes.fade)
-
-    if (!isFade || !index || index > items.length) return false
-
-    const readPhase = () => {
-      const itemUpdates = []
-
-      items.forEach((item, itemIndex) => {
-        const isActive = itemIndex + 1 === index
-        itemUpdates.push({ item, isActive })
-      })
-
-      return { itemUpdates }
+const CarouselRenderer = {
+  setTransform(wrapper, translateX) {
+    // Pure write operation - use batchDOM
+    const applyTransform = () => {
+      wrapper.style.transform = `translateX(${translateX}px)`
     }
 
-    const writePhase = (data) => {
-      if (!data) return
-      const { itemUpdates } = data
+    $.batchDOM(applyTransform)
+  },
 
-      itemUpdates.forEach(({ item, isActive }) => {
-        $.toggleClass(item, CarouselConfig.modifier.show, isActive)
-        $.toggleClass(item, CarouselConfig.modifier.hide, !isActive)
+  updateDots(carousel, activeIndex) {
+    // Read-then-write operation - use frameSequence
+    const readDots = () => {
+      return carousel.querySelectorAll(CarouselConfig.selector.dot)
+    }
+
+    const writeDots = (dots) => {
+      if (!dots.length) return
+      dots.forEach((dot, index) => {
+        $.toggleClass(dot, CarouselConfig.classes.active, index === activeIndex)
       })
     }
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(readDots, writeDots)
   },
 
-  updateOverlay(index) {
-    const block = CarouselDOM.elements.block
-    const items = CarouselDOM.elements.items
-    const isEdge = block.classList.contains(CarouselConfig.classes.edges)
-
-    if (!isEdge || !index || index > items.length) return false
-
-    const defaultColor = block.getAttribute(CarouselConfig.attr.defaultColor)
-
-    items.forEach((item, itemIndex) => {
-      const overlayColor = item.getAttribute(CarouselConfig.attr.overlayColor)
-
-      if (itemIndex + 1 === index) {
-        if (overlayColor) {
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay, value: overlayColor })
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay08, value: `${overlayColor}24` })
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay45, value: `${overlayColor}73` })
-        } else {
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay, value: defaultColor })
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay08, value: `${defaultColor}24` })
-          $.setCssVar({ key: CarouselConfig.cssVar.overlay45, value: `${defaultColor}73` })
-        }
-      }
-    })
-  },
-
-  hideControls(elements) {
-    if (!elements.navi && !elements.pagi) return false
-
-    const readPhase = () => {
-      const wrap = elements.wrap,
-            clientX = wrap.clientWidth,
-            clientY = wrap.clientHeight,
-            scrollY = wrap.scrollHeight,
-            totalItems = elements.items.length,
-            itemWidth = CarouselUtils.getSlideWidth(elements.block)
-
-      // Get dynamic gap value from CSS
-      const gap = CarouselUtils.getGapValue(wrap)
-
-      // Temporarily scroll to start to get accurate scrollWidth measurement
-      const originalScrollLeft = wrap.scrollLeft
-      wrap.scrollLeft = 0
-
-      // Restore original scroll position
-      wrap.scrollLeft = originalScrollLeft
-
-      // Calculate total content width precisely
-      // Total width = (number of items * item width) + (gaps between items)
-      const totalContentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap)
-
-      // Check if content exceeds viewport width (immediate overflow detection)
-      const hasContentOverflow = totalContentWidth > clientX
-      const hasVerticalScroll = scrollY > clientY + 1
-
-      // Hide controls only when ALL content fits completely within viewport
-      const shouldHide = !hasContentOverflow && !hasVerticalScroll
-
-
-      return { shouldHide }
-    }
-
-    const writePhase = (data) => {
-      if (!data) return
-
-      const { shouldHide } = data
-
-      // Hide/show navigation and pagination
-      if (elements.navi) {
-        $.toggleClass(elements.navi, CarouselConfig.modifier.hidden, shouldHide)
-      }
-      if (elements.pagi) {
-        $.toggleClass(elements.pagi, CarouselConfig.modifier.hidden, shouldHide)
-      }
-
-      // If hiding controls, also reset all active dot states
-      if (shouldHide && elements.dots) {
-        elements.dots.forEach(dot => {
-          $.toggleClass(dot, CarouselConfig.modifier.active, false)
-        })
-      }
-    }
-
-    $.frameSequence(readPhase, writePhase)
-  }
-}
-
-const CarouselNavigation = {
-  calculateSlideEffect(options) {
-    const { currentScroll, clientVal, gap, maxScrollPositions, size, totalItems, trigger } = options
-    const currentPosition = Math.round(currentScroll / size) + 1
-
-    let i, condition, lastIndex, nextIndex, scrollToLast, scrollToNext, scrollToVal
-
-    switch (trigger) {
-      case 'prev':
-        condition = currentScroll <= 0
-        lastIndex = maxScrollPositions
-        nextIndex = Math.max(1, currentPosition - 1)
-        scrollToLast = (maxScrollPositions - 1) * size
-        scrollToNext = Math.max(0, currentScroll - size)
-        break
-
-      case 'next':
-        const maxScrollDistance = maxScrollPositions * size + gap * (totalItems - 1)
-        const tolerance = size * 0.1
-
-        console.log("maxScrollPositions ", maxScrollPositions)
-        console.log("maxScrollDistance ", maxScrollDistance)
-
-        condition = currentScroll >= maxScrollDistance
-        lastIndex = 1
-        nextIndex = Math.min(maxScrollPositions, currentPosition + 1)
-        scrollToLast = 0
-        scrollToNext = Math.min(maxScrollDistance, currentScroll + size)
-        break
-    }
-
-    i = condition && CarouselDOM.state.infinite ? lastIndex : nextIndex
-    scrollToVal = condition && CarouselDOM.state.infinite ? scrollToLast : scrollToNext
-
-    return { index: i, scrollTo: scrollToVal }
-  },
-
-  calculateFadeEffect(options) {
-    const { items, index, last, nextNumber, nextIndex } = options
-    let i
-
-    items.forEach((item, itemIndex) => {
-      if (item.classList.contains(CarouselConfig.classes.show)) {
-        const condition = itemIndex + (nextNumber ?? 0),
-              next = itemIndex + (nextIndex ?? 0)
-
-        i = condition === index ? last : next
-      }
-    })
-
-    return i
-  },
-
-  handleNavigation(event, time) {
-    const target = event?.target,
-          isPrev = target?.classList.contains(CarouselConfig.classes.prev),
-          isNext = target?.classList.contains(CarouselConfig.classes.next),
-          isDot = target?.classList.contains(CarouselConfig.classes.dot)
-
-    if (!isPrev && !isNext && !isDot && !time) return false
-
-    const readPhase = () => {
-      const elements = CarouselDOM.elements,
-            wrap = elements.wrap
-
-      const element = isDot || isPrev || isNext
-            ? $.getSibling(target?.parentElement, CarouselConfig.selector.wrapper, 'prev')
-            : wrap
-
-      const clientX = element.clientWidth,
-            scrollX = element.scrollWidth,
-            gap = CarouselUtils.getGapValue(element),
-            left = element.scrollLeft,
-            isFade = block.classList.contains(CarouselConfig.classes.fade),
-            isFull = block.classList.contains(CarouselConfig.classes.full),
-            itemWidth = CarouselUtils.getSlideWidth(elements.block),
-            totalItems = elements.items.length,
-            contentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap),
-            index = parseInt(target?.getAttribute(CarouselConfig.attr.index))
-
+  showControls(carousel) {
+    // Read-then-write operation - use frameSequence
+    const readControls = () => {
       return {
-        contentWidth,
-        clientX,
-        element,
-        index,
-        isFade,
-        isFull,
-        itemWidth,
-        gap,
-        left,
-        scrollX,
-        totalItems
+        navigation: carousel.querySelector(CarouselConfig.selector.navigation),
+        pagination: carousel.querySelector(CarouselConfig.selector.pagination)
       }
     }
 
-    const writePhase = (data) => {
-      if (!data) return
+    const writeControls = (controls) => {
+      if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, false)
+      if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, false)
+    }
 
-      const { contentWidth, clientX, element, index, isFade, isFull, itemWidth, gap, left, scrollX, totalItems } = data
-      const children = element.children,
-            inView = Math.floor(clientX / itemWidth),
-            inView1 = Math.floor(clientX / (itemWidth + gap)),
-            visibleItems = inView > 1 ? inView1 : inView,
-            maxScrollPositions = totalItems - visibleItems + 1
+    $.frameSequence(readControls, writeControls)
+  },
 
-      let calculatedIndex, valueLeft = 0;
-
-      if (isFull) scrollX = contentWidth
-
-      if (isPrev) {
-        if (!isFade) {
-          const options = {
-            currentScroll: left,
-            // clientVal: clientX,
-            // scrollVal: scrollX,
-            // scrollToVal: valueLeft,
-            maxScrollPositions: maxScrollPositions,
-            size: itemWidth,
-            totalItems: totalItems,
-            trigger: 'prev'
-          }
-
-          const result = this.calculateSlideEffect(options)
-          valueLeft = result.scrollTo
-          calculatedIndex = result.index
-        } else {
-          const options = {
-            items: children,
-            index: 0,
-            last: totalItems
-          }
-
-          calculatedIndex = this.calculateFadeEffect(options)
-        }
-      }
-
-      if (isNext || time) {
-        if (!isFade) {
-          const options = {
-            currentScroll: left,
-            // clientVal: clientX,
-            gap: gap,
-            maxScrollPositions: maxScrollPositions,
-            size: itemWidth,
-            totalItems: totalItems,
-            trigger: 'next'
-          }
-
-          const result = this.calculateSlideEffect(options)
-          valueLeft = result.scrollTo
-          calculatedIndex = result.index
-
-          // Mobile fallback: if we're at or near the end, force infinite loop
-          // const nearEnd = left >= scrollX - clientX - (itemWidth * 0.5)
-          // if (nearEnd && CarouselDOM.state.infinite) {
-          //   valueLeft = 0
-          //   calculatedIndex = 1
-          // }
-        } else {
-          const options = {
-            items: children,
-            index: totalItems,
-            last: 1,
-            nextNumber: 1,
-            nextIndex: 2
-          }
-
-          calculatedIndex = this.calculateFadeEffect(options)
-        }
-      }
-
-      if (isDot && !isFade) {
-        valueLeft = itemWidth * (index - 1)
-        calculatedIndex = index
-      }
-
-      console.log(
-        {
-          clientX: clientX,
-          itemWidth: itemWidth,
-          totalItems: totalItems,
-          calculatedIndex: calculatedIndex,
-          visibleItems: visibleItems,
-          maxScrollPositions: maxScrollPositions
-        }
-      )
-
-      if (calculatedIndex < 1) calculatedIndex = 1
-      if (calculatedIndex > maxScrollPositions) calculatedIndex = maxScrollPositions
-
-      const finalIndex = CarouselPagination.updatePagination(event, calculatedIndex)
-      CarouselEffects.updateFadeClass(finalIndex)
-      CarouselEffects.updateOverlay(finalIndex)
-
-      if (!isFade) {
-        CarouselDOM.scrollToPosition({
-          element: element,
-          left: valueLeft,
-          top: 0
-        })
+  hideControls(carousel) {
+    // Read-then-write operation - use frameSequence
+    const readControls = () => {
+      return {
+        navigation: carousel.querySelector(CarouselConfig.selector.navigation),
+        pagination: carousel.querySelector(CarouselConfig.selector.pagination)
       }
     }
 
-    $.frameSequence(readPhase, writePhase)
+    const writeControls = (controls) => {
+      if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, true)
+      if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, true)
+    }
 
-    // const elements = CarouselDOM.elements,
-    //       block = elements.block,
-    //       isFade = block.classList.contains(CarouselConfig.classes.fade),
-    //       isFull = block.classList.contains(CarouselConfig.classes.full),
-    //       width = CarouselUtils.getSlideWidth(block),
-    //       index = parseInt(target?.getAttribute(CarouselConfig.attr.index))
-
-    //       // console.log('Carousel Navigation Init:', { elements, block, isFade, isFull, width, index });
-
-
-    // let element, left, scrollX, clientX, children, valueLeft = 0
-
-    // element = isDot || isPrev || isNext
-    //   ? $.getSibling(target?.parentElement, CarouselConfig.selector.wrapper, 'prev')
-    //   : this.wrap
-
-    // left = element.scrollLeft
-    // scrollX = element.scrollWidth
-    // clientX = element.clientWidth
-    // children = [...element.children]
-
-    // console.log('Carousel Navigation Calculations:', { element, left, scrollX, clientX, children });
-
-
-    // if (isFull) scrollX = width * children.length
-
-    let calculatedIndex
-
-    // if (isPrev) {
-    //   if (!isFade) {
-    //     const options = {
-    //       currentScroll: left,
-    //       clientVal: clientX,
-    //       size: width,
-    //       trigger: 'prev'
-    //     }
-
-    //     const result = this.calculateSlideEffect(options)
-    //     valueLeft = result.scrollTo
-    //     calculatedIndex = result.index
-    //   } else {
-    //     const options = {
-    //       items: children,
-    //       index: 0,
-    //       last: elements.items.length
-    //     }
-
-    //     calculatedIndex = this.calculateFadeEffect(options)
-    //   }
-    // }
-
-    // if (isNext || time) {
-    //   if (!isFade) {
-    //     const options = {
-    //       currentScroll: left,
-    //       clientVal: clientX,
-    //       size: width,
-    //       trigger: 'next'
-    //     }
-
-    //     const result = this.calculateSlideEffect(options)
-    //     valueLeft = result.scrollTo
-    //     calculatedIndex = result.index
-
-    //     // Mobile fallback: if we're at or near the end, force infinite loop
-    //     const nearEnd = left >= scrollX - clientX - (width * 0.5)
-    //     if (nearEnd && CarouselDOM.state.infinite) {
-    //       valueLeft = 0
-    //       calculatedIndex = 1
-    //     }
-    //   } else {
-    //     const options = {
-    //       items: children,
-    //       index: elements.items.length,
-    //       last: 1,
-    //       nextNumber: 1,
-    //       nextIndex: 2
-    //     }
-
-    //     calculatedIndex = this.calculateFadeEffect(options)
-    //   }
-    // }
-
-    // if (isDot && !isFade) {
-    //   valueLeft = width * (index - 1)
-    //   calculatedIndex = index
-    // }
-
-    // Validate calculated index is within bounds
-    // const totalItems = elements.items.length
-    // const visibleItems = Math.floor(clientX / width)
-    // const maxScrollPositions = totalItems - visibleItems + 1
-
-    // Ensure calculatedIndex is within valid range
-    // if (calculatedIndex < 1) calculatedIndex = 1
-    // if (calculatedIndex > maxScrollPositions) calculatedIndex = maxScrollPositions
-
-    // const finalIndex = CarouselPagination.updatePagination(event, calculatedIndex)
-
-    // CarouselEffects.updateFadeClass(finalIndex)
-    // CarouselEffects.updateOverlay(finalIndex)
-
-    // if (!isFade) {
-    //   CarouselDOM.scrollToPosition({
-    //     element: element,
-    //     left: valueLeft,
-    //     top: 0
-    //   })
-    // }
+    $.frameSequence(readControls, writeControls)
   }
 }
 
 const CarouselTouch = {
-  handleTouchscreenPoints(event) {
-    const wrap = event?.target.closest(CarouselConfig.selector.wrapper)
-    const { dots } = CarouselPagination.getCurrentDot()
+  handleWheelEvent(instance, event) {
+    try {
+      // Only handle horizontal scrolling or when shift is held for vertical trackpads
+      const isHorizontalScroll = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+      const isShiftVerticalScroll = event.shiftKey && Math.abs(event.deltaY) > 0
 
-    if (!dots.length && !wrap) return false
+      if (!isHorizontalScroll && !isShiftVerticalScroll) return
 
-    if (event.type === CarouselConfig.event.start) {
-      CarouselDOM.state.touchstart = event.changedTouches[0].screenX
-    }
+      // Prevent default scrolling behavior
+      event.preventDefault()
 
-    if (event.type === CarouselConfig.event.end) {
-      CarouselDOM.state.touchend = event.changedTouches[0].screenX
-      this.handleTouchscreenDirection(wrap)
-    }
-  },
+      // Determine scroll direction and amount
+      let deltaX = isHorizontalScroll ? event.deltaX : event.deltaY
 
-  handleTouchscreenDirection(wrap) {
-    const readPhase = () => {
-      const left = wrap?.scrollLeft
-      const scroll = wrap?.scrollWidth
-      const client = wrap?.clientWidth
-      const next = wrap?.parentElement.querySelector(CarouselConfig.selector.next)
-      const prev = wrap?.parentElement.querySelector(CarouselConfig.selector.prev)
-      const isFade = wrap?.parentElement.classList.contains(CarouselConfig.classes.fade)
-      const leftSwipe = CarouselDOM.state.touchstart > CarouselDOM.state.touchend
-      const rightSwipe = CarouselDOM.state.touchend > CarouselDOM.state.touchstart
-      const { dots, index } = CarouselPagination.getCurrentDot()
+      // Normalize wheel delta (different browsers/devices have different scales)
+      const normalizedDelta = Math.sign(deltaX) * Math.min(Math.abs(deltaX), 100)
 
-      return { left, scroll, client, next, prev, isFade, leftSwipe, rightSwipe, dots, index }
-    }
-
-    const writePhase = (data) => {
-      if (!data) return
-
-      const { left, scroll, client, next, prev, isFade, leftSwipe, rightSwipe, dots, index } = data
-
-      if (!isFade) {
-        if (left >= 0 && left <= scroll - client) {
-          CarouselDOM.state.infinite = false
-
-          if (leftSwipe) $.triggerEvent(next, 'click')
-          if (rightSwipe) $.triggerEvent(prev, 'click')
-
-          CarouselDOM.state.infinite = true
-        }
-      } else {
-        if (leftSwipe && index < dots.length) {
-          const newIndex = CarouselPagination.updatePagination(undefined, index + 1)
-          CarouselEffects.updateFadeClass(newIndex)
-          CarouselEffects.updateOverlay(newIndex)
-        }
-        if (rightSwipe && index > 1) {
-          const newIndex = CarouselPagination.updatePagination(undefined, index - 1)
-          CarouselEffects.updateFadeClass(newIndex)
-          CarouselEffects.updateOverlay(newIndex)
+      // Debounce rapid wheel events
+      const now = Date.now()
+      if (!instance.wheelState) {
+        instance.wheelState = {
+          lastWheelTime: 0,
+          accumulatedDelta: 0,
+          debounceTimer: null
         }
       }
-    }
 
-    $.frameSequence(readPhase, writePhase)
+      // Accumulate delta for smoother experience
+      instance.wheelState.accumulatedDelta += normalizedDelta
+      instance.wheelState.lastWheelTime = now
+
+      // Clear existing debounce timer
+      if (instance.wheelState.debounceTimer) {
+        clearTimeout(instance.wheelState.debounceTimer)
+      }
+
+      // Set new debounce timer to process accumulated scroll
+      instance.wheelState.debounceTimer = setTimeout(() => {
+        const threshold = 50 // Minimum accumulated delta to trigger navigation
+
+        if (Math.abs(instance.wheelState.accumulatedDelta) > threshold) {
+          if (instance.wheelState.accumulatedDelta > 0) {
+            // Scroll right/down - go to next slide
+            if (instance.currentIndex < instance.maxIndex) {
+              instance.goToNext()
+            }
+          } else {
+            // Scroll left/up - go to previous slide
+            if (instance.currentIndex > 0) {
+              instance.goToPrev()
+            }
+          }
+        }
+
+        // Reset accumulated delta
+        instance.wheelState.accumulatedDelta = 0
+      }, 100) // Debounce delay
+
+      // Pause auto-scroll during wheel interaction
+      instance.pauseAutoScroll()
+
+      // Resume auto-scroll after a delay
+      if (instance.wheelResumeTimer) {
+        clearTimeout(instance.wheelResumeTimer)
+      }
+      instance.wheelResumeTimer = setTimeout(() => {
+        instance.resumeAutoScroll()
+      }, 50) // Resume after 100ms of no wheel activity
+
+    } catch (error) {
+      console.error('CarouselTouch: Failed to handle wheel event', error)
+    }
   },
 
-  handleTouchpadPoints: $.debounce(function(event) {
-    const wrap = event?.target.closest(CarouselConfig.selector.wrapper)
-    const { dots } = CarouselPagination.getCurrentDot()
+  handleTouchStart(instance, event) {
+    try {
+      const touch = event.touches[0]
+      instance.touch = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        currentX: touch.clientX,
+        startTime: Date.now(),
+        isDragging: false,
+        initialTransform: instance.getCurrentTransform()
+      }
 
-    if (!dots.length && !wrap) return false
+      // Add swiping class for CSS transitions
+      $.toggleClass(instance.carousel, CarouselConfig.classes.swiping, true)
 
-    const readPhase = () => {
-      let { index } = CarouselPagination.getCurrentDot()
-      const delta = event.deltaX
-
-      if (delta === -1 && index > 1) index = index - 1
-      if (delta === 1 && index < dots.length) index = index + 1
-
-      return { index }
+      // Pause auto-scroll during touch
+      instance.pauseAutoScroll()
+    } catch (error) {
+      console.error('CarouselTouch: Failed to handle touch start', error)
     }
+  },
 
-    const writePhase = (data) => {
-      if (!data) return
+  handleTouchMove(instance, event) {
+    try {
+      if (!instance.touch) return
 
-      const { index } = data
-      const newIndex = CarouselPagination.updatePagination(undefined, index)
-      CarouselEffects.updateFadeClass(newIndex)
-      CarouselEffects.updateOverlay(newIndex)
+      const touch = event.touches[0]
+      const deltaX = touch.clientX - instance.touch.startX
+      const deltaY = touch.clientY - instance.touch.startY
+
+      // Check if we're swiping horizontally (not vertically)
+      if (!instance.touch.isDragging && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        instance.touch.isDragging = true
+        event.preventDefault()
+      }
+
+      if (instance.touch.isDragging) {
+        instance.touch.currentX = touch.clientX
+
+        // Apply resistance at boundaries
+        let resistance = 1
+        const atStart = instance.currentIndex === 0 && deltaX > 0
+        const atEnd = instance.currentIndex === instance.maxIndex && deltaX < 0
+
+        if (atStart || atEnd) {
+          resistance = CarouselConfig.touch.resistance
+        }
+
+        const constrainedDelta = deltaX * resistance
+        const newTransform = instance.touch.initialTransform + constrainedDelta
+
+        // Apply transform immediately for smooth tracking
+        instance.wrapper.style.transform = `translateX(${newTransform}px)`
+        instance.wrapper.style.transition = 'none'
+      }
+    } catch (error) {
+      console.error('CarouselTouch: Failed to handle touch move', error)
     }
+  },
 
-    $.frameSequence(readPhase, writePhase)
-  }, (() => {
-    // Adjust debounce time based on connection speed with Safari fallback
-    const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
-    return laggy ? CarouselConfig.time.wheelDebounce * 2 : CarouselConfig.time.wheelDebounce
-  })())
+  handleTouchEnd(instance, event) {
+    try {
+      if (!instance.touch) return
+
+      const deltaX = instance.touch.currentX - instance.touch.startX
+      const deltaTime = Date.now() - instance.touch.startTime
+      const velocity = Math.abs(deltaX) / deltaTime
+
+      // Remove swiping class
+      $.toggleClass(instance.carousel, CarouselConfig.classes.swiping, false)
+
+      // Restore transition
+      instance.wrapper.style.transition = ''
+
+      if (instance.touch.isDragging) {
+        // Determine if we should change slides
+        const threshold = CarouselConfig.touch.threshold
+        const shouldChange = Math.abs(deltaX) > threshold || velocity > 0.5
+
+        if (shouldChange) {
+          if (deltaX > 0 && instance.currentIndex > 0) {
+            instance.goToPrev()
+          } else if (deltaX < 0 && instance.currentIndex < instance.maxIndex) {
+            instance.goToNext()
+          } else {
+            // Snap back to current position
+            instance.goToSlide(instance.currentIndex)
+          }
+        } else {
+          // Snap back to current position
+          instance.goToSlide(instance.currentIndex)
+        }
+
+        event.preventDefault()
+      }
+
+      // Resume auto-scroll
+      instance.resumeAutoScroll()
+      instance.touch = null
+    } catch (error) {
+      console.error('CarouselTouch: Failed to handle touch end', error)
+    }
+  }
 }
 
-const CarouselTimer = {
-  startTimer() {
-    const elements = CarouselDOM.elements
+const CarouselAccessibility = {
+  setupAccessibility(instance) {
+    try {
+      // Check for reduced motion preference
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        $.toggleClass(instance.carousel, CarouselConfig.classes.reduced, true)
+        // Reduce animation duration
+        instance.wrapper.style.setProperty('--carousel-duration', `${CarouselConfig.animation.reducedDuration}ms`)
+      }
 
-    if (!elements.timers || elements.timers.length === 0) {
-      return false
+      // Setup ARIA attributes
+      instance.carousel.setAttribute(CarouselConfig.attr.ariaLabel, 'Carousel')
+
+      // Setup live region for announcements
+      this.setupLiveRegion(instance)
+
+      // Setup keyboard navigation
+      this.setupKeyboardNavigation(instance)
+
+      // Setup focus management
+      this.setupFocusManagement(instance)
+    } catch (error) {
+      console.error('CarouselAccessibility: Failed to setup accessibility', error)
     }
-
-    elements.timers.forEach(timer => {
-      let time = timer.value * 1000
-
-      if (!time) {
-        return false
-      }
-
-      // Adjust timing based on connection speed for better UX
-      const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
-      if (laggy) {
-        time = time * 1.5 // Increase interval on slow connections
-      }
-
-      CarouselDOM.state.interval = setInterval(() => {
-        CarouselNavigation.handleNavigation(undefined, time)
-      }, time)
-    })
   },
 
-  setupPauseAutoRotate() {
-    const block = CarouselDOM.elements.block
-    const isPause = block.classList.contains(CarouselConfig.classes.pause)
-
-    if (!isPause) {
-      return false
+  setupLiveRegion(instance) {
+    try {
+      // Create or find live region for announcements
+      let liveRegion = instance.carousel.querySelector('.carousel__live-region')
+      if (!liveRegion) {
+        liveRegion = document.createElement('div')
+        liveRegion.className = 'carousel__live-region'
+        liveRegion.setAttribute(CarouselConfig.attr.ariaLive, 'polite')
+        liveRegion.setAttribute(CarouselConfig.attr.ariaAtomic, 'true')
+        liveRegion.style.cssText = 'position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;'
+        instance.carousel.appendChild(liveRegion)
+      }
+      instance.liveRegion = liveRegion
+    } catch (error) {
+      console.error('CarouselAccessibility: Failed to setup live region', error)
     }
-    if (!CarouselDOM.elements.items.length) {
-      return false
-    }
+  },
 
-    const eventHandler = (event) => {
-      if (event.type === 'mouseenter' || event.type === 'touchstart') {
-        if (CarouselDOM.state.interval) {
-          clearInterval(CarouselDOM.state.interval)
-          CarouselDOM.state.interval = null
+  announceSlideChange(instance) {
+    try {
+      if (!instance.liveRegion) return
+
+      const currentSlide = instance.currentIndex + 1
+      const totalSlides = instance.totalSlides
+      const message = `Slide ${currentSlide} of ${totalSlides}`
+
+      // Delay announcement to avoid overwhelming screen readers
+      setTimeout(() => {
+        instance.liveRegion.textContent = message
+      }, CarouselConfig.accessibility.announceDelay)
+    } catch (error) {
+      console.error('CarouselAccessibility: Failed to announce slide change', error)
+    }
+  },
+
+  setupKeyboardNavigation(instance) {
+    try {
+      instance.carousel.setAttribute(CarouselConfig.attr.tabIndex, '0')
+
+      instance.keyboardHandler = (event) => {
+        switch (event.key) {
+          case 'ArrowLeft':
+            event.preventDefault()
+            instance.goToPrev()
+            break
+          case 'ArrowRight':
+            event.preventDefault()
+            instance.goToNext()
+            break
+          case 'Home':
+            event.preventDefault()
+            instance.goToSlide(0)
+            break
+          case 'End':
+            event.preventDefault()
+            instance.goToSlide(instance.maxIndex)
+            break
+          case ' ':
+          case 'Enter':
+            event.preventDefault()
+            // Toggle auto-scroll
+            if (instance.isPaused) {
+              instance.resumeAutoScroll()
+            } else {
+              instance.pauseAutoScroll()
+            }
+            break
         }
       }
-      if (event.type === 'mouseleave' || event.type === 'touchend') {
-        this.startTimer()
-      }
+
+      $.eventListener('add', instance.carousel, 'keydown', instance.keyboardHandler)
+    } catch (error) {
+      console.error('CarouselAccessibility: Failed to setup keyboard navigation', error)
     }
+  },
 
-    $.eventListener('add', block, 'mouseenter', eventHandler, { passive: true })
-    $.eventListener('add', block, 'mouseleave', eventHandler, { passive: true })
-    $.eventListener('add', block, 'touchstart', eventHandler, { passive: true })
-    $.eventListener('add', block, 'touchend', eventHandler, { passive: true })
-  }
-}
+  setupFocusManagement(instance) {
+    try {
+      // Ensure navigation buttons are properly focusable
+      if (instance.prevBtn) {
+        instance.prevBtn.setAttribute(CarouselConfig.attr.tabIndex, '0')
+      }
+      if (instance.nextBtn) {
+        instance.nextBtn.setAttribute(CarouselConfig.attr.tabIndex, '0')
+      }
 
-const handleCarousel = el => {
-  if (!el) return null
-
-  const elements = CarouselDOM.init(el)
-  if (!elements.block) return null
-
-  CarouselDOM.initCarousel()
-
-  const navigationHandler = e => {
-    CarouselNavigation.handleNavigation(e, undefined)
-  }
-
-  const touchscreenHandler = e => {
-    CarouselTouch.handleTouchscreenPoints(e)
-  }
-
-  const touchpadHandler = e => {
-    CarouselTouch.handleTouchpadPoints(e)
-  }
-
-  const handleResponsiveChanges = () => {
-    CarouselEffects.hideControls(elements)
-    CarouselPagination.hidePaginationDots()
-
-    // Check if all controls should be hidden after the above calls
-    const element = elements.wrap
-    const clientX = element.clientWidth
-    const totalItems = elements.items.length
-    // Use CSS-defined slide width instead of computed width to avoid fractional issues
-    const itemWidth = CarouselUtils.getSlideWidth(elements.block)
-    const gap = CarouselUtils.getGapValue(element)
-
-    // Calculate total content width precisely (consistent with hideControls)
-    const totalContentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap)
-    const hasContentOverflow = totalContentWidth > clientX
-    const shouldHideAllControls = !hasContentOverflow
-
-
-    // If controls should be hidden, reset pagination state and return
-    if (shouldHideAllControls) {
-
-      // Reset all dots to inactive state when controls are hidden
-      elements.dots.forEach(dot => {
-        $.toggleClass(dot, CarouselConfig.modifier.active, false)
+      // Setup focus on dots
+      instance.dots.forEach((dot, index) => {
+        dot.setAttribute(CarouselConfig.attr.tabIndex, '0')
+        dot.setAttribute(CarouselConfig.attr.ariaLabel, `Go to slide ${index + 1}`)
       })
-
-      return
+    } catch (error) {
+      console.error('CarouselAccessibility: Failed to setup focus management', error)
     }
-
-    // Only do responsive recalculation if controls should be visible
-    const currentScroll = element.scrollLeft
-    const currentPosition = Math.round(currentScroll / itemWidth) + 1
-
-    // Update pagination to reflect current scroll position
-    const visibleDots = [...elements.dots].filter(dot =>
-      !dot.classList.contains(CarouselConfig.modifier.hidden)
-    )
-    const maxValidPosition = visibleDots.length
-    const validPosition = Math.min(currentPosition, maxValidPosition)
-
-    CarouselPagination.updatePagination(null, validPosition)
   }
+}
 
-  CarouselTimer.startTimer()
-  CarouselTimer.setupPauseAutoRotate()
-  handleResponsiveChanges()
-  CarouselEffects.updateOverlay(1)
+const CarouselDetection = {
+  observer: null,
+  observerSetup: false,
+  resizeHandler: null,
 
-  elements.dots.forEach(dot => {
-    $.eventListener('add', dot, 'click', navigationHandler)
-  })
+  setResizeObserver() {
+    if (this.observerSetup) return this.observer
 
-  elements.btns.forEach(btn => {
-    $.eventListener('add', btn, 'click', navigationHandler)
-  })
-  $.eventListener('add', document, 'wheel', touchpadHandler, { passive: true })
-  $.eventListener('add', document, 'touchstart', touchscreenHandler, { passive: true })
-  $.eventListener('add', document, 'touchend', touchscreenHandler, { passive: true })
-  // Use ResizeObserver for better performance with connection-aware settings
-  const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
-  const resizeObserver = $.resizeObserver(() => {
-    handleResponsiveChanges()
-  }, {
-    element: elements.wrap,
-    debounceTime: laggy ? 300 : 150 // Longer debounce on slow connections
-  })
+    const handleResize = () => {
+      // Clear all cached values on resize
+      CarouselCache.clear()
 
-  const cleanup = () => {
-    elements.dots.forEach(dot => {
-      $.eventListener('remove', dot, 'click', navigationHandler)
-    })
-
-    elements.btns.forEach(btn => {
-      $.eventListener('remove', btn, 'click', navigationHandler)
-    })
-    $.eventListener('remove', document, 'wheel', touchpadHandler, { passive: true })
-    $.eventListener('remove', document, 'touchstart', touchscreenHandler, { passive: true })
-    $.eventListener('remove', document, 'touchend', touchscreenHandler, { passive: true })
-
-    if (resizeObserver && $.is(resizeObserver.cleanup, 'function')) {
-      resizeObserver.cleanup()
+      CarouselController.instances.forEach(instance => {
+        instance.handleResize()
+      })
     }
 
+    // Use both ResizeObserver and window resize for better mobile support
+    const { observer, cleanup: resizeObserverCleanup } = $.resizeObserver(handleResize, {
+      debounceTime: 100
+    })
+
+    this.resizeHandler = $.debounce(handleResize, 150)
+    $.eventListener('add', window, 'resize', this.resizeHandler, { passive: true })
+
+    this.observer = observer
+    this.observerSetup = true
+    this.resizeObserverCleanup = resizeObserverCleanup
+
+    return this.observer
+  },
+
+  cleanup() {
+    if (this.resizeObserverCleanup) {
+      this.resizeObserverCleanup()
+    }
+
+    if (this.resizeHandler) {
+      $.eventListener('remove', window, 'resize', this.resizeHandler, { passive: true })
+      this.resizeHandler = null
+    }
+
+    this.observer = null
+    this.observerSetup = false
+  }
+}
+
+const CarouselController = {
+  instances: [],
+
+  createInstance(carousel) {
+    const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
+    const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+    const prevBtn = carousel.querySelector(CarouselConfig.selector.prevBtn)
+    const nextBtn = carousel.querySelector(CarouselConfig.selector.nextBtn)
+    const dots = carousel.querySelectorAll(CarouselConfig.selector.dot)
+    const timerAttr = carousel.getAttribute(CarouselConfig.attr.timer)
+
+    if (!wrapper || !items.length) return null
+
+    const visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel)
+    const maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
+
+    const instance = {
+      carousel,
+      wrapper,
+      items,
+      prevBtn,
+      nextBtn,
+      dots,
+      currentIndex: 0,
+      maxIndex: maxTranslateIndex,
+      totalSlides: items.length,
+      visibleSlides,
+      timer: timerAttr ? parseInt(timerAttr) * 1000 : 0,
+      autoScrollTimer: null,
+      isPaused: false,
+      eventHandlers: {
+        prev: null,
+        next: null,
+        dots: [],
+        mouseenter: null,
+        mouseleave: null,
+        touchstart: null,
+        touchmove: null,
+        touchend: null,
+        wheel: null
+      },
+      touch: null,
+      wheelState: null,
+      wheelResumeTimer: null,
+      keyboardHandler: null,
+      liveRegion: null,
+
+      init() {
+        try {
+          this.setupEventHandlers()
+          this.setupTouchHandlers()
+          this.setupPagination()
+          this.updateVisibility()
+          this.startAutoScroll()
+          CarouselAccessibility.setupAccessibility(this)
+          this.markInitialized()
+        } catch (error) {
+          console.error('Carousel: Failed to initialize', error)
+        }
+      },
+
+      getCurrentTransform() {
+        try {
+          const transform = this.wrapper.style.transform
+          if (!transform || transform === 'none') return 0
+
+          const matrix = transform.match(/translateX?\(([^)]+)\)/)
+          if (matrix && matrix[1]) {
+            return parseFloat(matrix[1]) || 0
+          }
+          return 0
+        } catch (error) {
+          console.error('Carousel: Failed to get current transform', error)
+          return 0
+        }
+      },
+
+      setupTouchHandlers() {
+        try {
+          // Touch event handlers
+          this.eventHandlers.touchstart = (event) => CarouselTouch.handleTouchStart(this, event)
+          this.eventHandlers.touchmove = (event) => CarouselTouch.handleTouchMove(this, event)
+          this.eventHandlers.touchend = (event) => CarouselTouch.handleTouchEnd(this, event)
+
+          $.eventListener('add', this.wrapper, 'touchstart', this.eventHandlers.touchstart, { passive: false })
+          $.eventListener('add', this.wrapper, 'touchmove', this.eventHandlers.touchmove, { passive: false })
+          $.eventListener('add', this.wrapper, 'touchend', this.eventHandlers.touchend, { passive: false })
+
+          // Wheel event handler for trackpad/mouse wheel
+          this.eventHandlers.wheel = (event) => CarouselTouch.handleWheelEvent(this, event)
+          $.eventListener('add', this.carousel, 'wheel', this.eventHandlers.wheel, { passive: false })
+        } catch (error) {
+          console.error('Carousel: Failed to setup touch handlers', error)
+        }
+      },
+
+      setupEventHandlers() {
+        if (this.prevBtn) {
+          this.eventHandlers.prev = () => this.goToPrev()
+          $.eventListener('add', this.prevBtn, 'click', this.eventHandlers.prev)
+        }
+
+        if (this.nextBtn) {
+          this.eventHandlers.next = () => this.goToNext()
+          $.eventListener('add', this.nextBtn, 'click', this.eventHandlers.next)
+        }
+
+        if (this.timer > 0) {
+          this.eventHandlers.mouseenter = () => this.pauseAutoScroll()
+          this.eventHandlers.mouseleave = () => this.resumeAutoScroll()
+          this.eventHandlers.touchstart = () => this.pauseAutoScroll()
+          this.eventHandlers.touchend = () => this.resumeAutoScroll()
+
+          $.eventListener('add', this.carousel, 'mouseenter', this.eventHandlers.mouseenter)
+          $.eventListener('add', this.carousel, 'mouseleave', this.eventHandlers.mouseleave)
+          $.eventListener('add', this.carousel, 'touchstart', this.eventHandlers.touchstart, { passive: true })
+          $.eventListener('add', this.carousel, 'touchend', this.eventHandlers.touchend, { passive: true })
+        }
+      },
+
+      setupPagination() {
+        // Read-then-write operation for pagination setup
+        const readPagination = () => {
+          // Calculate the current max index for this viewport
+          const currentMaxIndex = CarouselCalculator.getMaxTranslateIndex(this.carousel, this.totalSlides)
+
+          // Read DOM elements and current state
+          return {
+            dots: this.dots,
+            maxIndex: currentMaxIndex,
+            existingHandlers: [...this.eventHandlers.dots]
+          }
+        }
+
+        const writePagination = (data) => {
+          const { dots, maxIndex, existingHandlers } = data
+
+          // Update instance maxIndex
+          this.maxIndex = maxIndex
+
+          // Remove existing dot event handlers first
+          dots.forEach((dot, index) => {
+            if (existingHandlers[index]) {
+              $.eventListener('remove', dot, 'click', existingHandlers[index])
+              this.eventHandlers.dots[index] = null
+            }
+          })
+
+          // Setup new handlers for valid positions only
+          dots.forEach((dot, index) => {
+            if (index <= maxIndex) {
+              const handler = () => this.goToSlide(index)
+              this.eventHandlers.dots[index] = handler
+              $.eventListener('add', dot, 'click', handler)
+              $.toggleClass(dot, CarouselConfig.classes.hidden, false)
+            } else {
+              $.toggleClass(dot, CarouselConfig.classes.hidden, true)
+            }
+          })
+        }
+
+        $.frameSequence(readPagination, writePagination)
+      },
+
+      goToPrev() {
+        this.goToSlide(this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
+      },
+
+      goToNext() {
+        this.goToSlide(this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
+      },
+
+      goToSlide(targetIndex) {
+        try {
+          if (targetIndex === this.currentIndex) return
+
+          const newIndex = Math.max(0, Math.min(targetIndex, this.maxIndex))
+          if (newIndex === this.currentIndex) return
+
+          this.currentIndex = newIndex
+
+          const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
+          CarouselRenderer.setTransform(this.wrapper, translateX)
+          CarouselRenderer.updateDots(this.carousel, this.currentIndex)
+
+          // Announce slide change for accessibility
+          CarouselAccessibility.announceSlideChange(this)
+        } catch (error) {
+          console.error('Carousel: Failed to go to slide', error)
+        }
+      },
+
+      startAutoScroll() {
+        if (this.timer <= 0) return
+
+        this.autoScrollTimer = setInterval(() => {
+          if (!this.isPaused) {
+            this.goToNext()
+          }
+        }, this.timer)
+      },
+
+      pauseAutoScroll() {
+        this.isPaused = true
+      },
+
+      resumeAutoScroll() {
+        this.isPaused = false
+      },
+
+      stopAutoScroll() {
+        if (this.autoScrollTimer) {
+          clearInterval(this.autoScrollTimer)
+          this.autoScrollTimer = null
+        }
+      },
+
+      updateVisibility() {
+        // Read-then-write operation for visibility check
+        const readVisibility = () => {
+          return CarouselCalculator.shouldShowControls(this.carousel)
+        }
+
+        const writeVisibility = (shouldShow) => {
+          if (shouldShow) {
+            CarouselRenderer.showControls(this.carousel)
+          } else {
+            CarouselRenderer.hideControls(this.carousel)
+          }
+        }
+
+        $.frameSequence(readVisibility, writeVisibility)
+      },
+
+      handleResize() {
+        // Read-then-write operation for resize handling
+        const readResize = () => {
+          // Force cache invalidation for this specific carousel (both mobile and desktop)
+          const carouselId = this.carousel.dataset.carouselId
+          CarouselCache.delete(`slideWidth-${carouselId}-mobile`)
+          CarouselCache.delete(`slideWidth-${carouselId}-desktop`)
+          CarouselCache.delete(`gap-${carouselId}-mobile`)
+          CarouselCache.delete(`gap-${carouselId}-desktop`)
+
+          // Read current state and calculate new bounds
+          const oldVisibleSlides = this.visibleSlides
+          const oldMaxIndex = this.maxIndex
+          const newVisibleSlides = CarouselCalculator.getVisibleSlidesCount(this.carousel)
+          const newMaxIndex = CarouselCalculator.getMaxTranslateIndex(this.carousel, this.totalSlides)
+          const boundsChanged = (oldVisibleSlides !== newVisibleSlides || oldMaxIndex !== newMaxIndex)
+
+          return {
+            newVisibleSlides,
+            newMaxIndex,
+            boundsChanged,
+            currentIndex: this.currentIndex
+          }
+        }
+
+        const writeResize = (data) => {
+          const { newVisibleSlides, newMaxIndex, boundsChanged, currentIndex } = data
+
+          // Update instance properties
+          this.visibleSlides = newVisibleSlides
+          this.maxIndex = newMaxIndex
+
+          // If controls are no longer needed (all content fits), reset to beginning
+          if (newMaxIndex === 0) {
+            this.currentIndex = 0
+            // Stop auto-scroll when no navigation is needed (performance optimization)
+            this.stopAutoScroll()
+          } else {
+            // Ensure current index is within new bounds
+            if (currentIndex > newMaxIndex) {
+              this.currentIndex = newMaxIndex
+            }
+            // Restart auto-scroll if it was configured and we need navigation
+            if (this.timer > 0 && !this.autoScrollTimer) {
+              this.startAutoScroll()
+            }
+          }
+
+          // Update pagination for new bounds (always update if bounds changed)
+          if (boundsChanged) {
+            this.setupPagination()
+          }
+
+          this.updateVisibility()
+
+          const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
+          CarouselRenderer.setTransform(this.wrapper, translateX)
+          CarouselRenderer.updateDots(this.carousel, this.currentIndex)
+        }
+
+        $.frameSequence(readResize, writeResize)
+      },
+
+      markInitialized() {
+        // Pure write operation - use batchDOM
+        const applyInitialized = () => {
+          $.toggleClass(this.carousel, CarouselConfig.classes.initialized, true)
+        }
+
+        $.batchDOM(applyInitialized)
+      },
+
+      cleanup() {
+        try {
+          this.stopAutoScroll()
+
+          // Remove navigation event handlers
+          if (this.eventHandlers.prev && this.prevBtn) {
+            $.eventListener('remove', this.prevBtn, 'click', this.eventHandlers.prev)
+          }
+
+          if (this.eventHandlers.next && this.nextBtn) {
+            $.eventListener('remove', this.nextBtn, 'click', this.eventHandlers.next)
+          }
+
+          // Remove dot event handlers
+          this.dots.forEach((dot, index) => {
+            if (this.eventHandlers.dots[index]) {
+              $.eventListener('remove', dot, 'click', this.eventHandlers.dots[index])
+            }
+          })
+
+          // Remove hover/touch handlers for auto-scroll
+          if (this.timer > 0) {
+            if (this.eventHandlers.mouseenter) {
+              $.eventListener('remove', this.carousel, 'mouseenter', this.eventHandlers.mouseenter)
+            }
+            if (this.eventHandlers.mouseleave) {
+              $.eventListener('remove', this.carousel, 'mouseleave', this.eventHandlers.mouseleave)
+            }
+          }
+
+          // Remove touch gesture handlers
+          if (this.eventHandlers.touchstart) {
+            $.eventListener('remove', this.wrapper, 'touchstart', this.eventHandlers.touchstart, { passive: false })
+          }
+          if (this.eventHandlers.touchmove) {
+            $.eventListener('remove', this.wrapper, 'touchmove', this.eventHandlers.touchmove, { passive: false })
+          }
+          if (this.eventHandlers.touchend) {
+            $.eventListener('remove', this.wrapper, 'touchend', this.eventHandlers.touchend, { passive: false })
+          }
+
+          // Remove wheel event handler
+          if (this.eventHandlers.wheel) {
+            $.eventListener('remove', this.carousel, 'wheel', this.eventHandlers.wheel, { passive: false })
+          }
+
+          // Clean up wheel timers
+          if (this.wheelState && this.wheelState.debounceTimer) {
+            clearTimeout(this.wheelState.debounceTimer)
+          }
+          if (this.wheelResumeTimer) {
+            clearTimeout(this.wheelResumeTimer)
+          }
+
+          // Remove keyboard handler
+          if (this.keyboardHandler) {
+            $.eventListener('remove', this.carousel, 'keydown', this.keyboardHandler)
+          }
+
+          // Remove live region
+          if (this.liveRegion && this.liveRegion.parentNode) {
+            this.liveRegion.parentNode.removeChild(this.liveRegion)
+          }
+
+          return null
+        } catch (error) {
+          console.error('Carousel: Failed to cleanup', error)
+          return null
+        }
+      }
+    }
+
+    return instance
+  },
+
+  init() {
+    if (!CarouselDOM.init()) return null
+
+    CarouselDetection.setResizeObserver()
+
+    const carousels = CarouselDOM.elements.carousels
+    carousels.forEach((carousel, index) => {
+      carousel.dataset.carouselId = `carousel-${index}`
+      const instance = this.createInstance(carousel)
+      if (instance) {
+        this.instances.push(instance)
+        instance.init()
+      }
+    })
+
+    return this.cleanup.bind(this)
+  },
+
+  cleanup() {
+    this.instances.forEach(instance => {
+      if (instance.cleanup) instance.cleanup()
+    })
+    this.instances = []
+
+    CarouselDetection.cleanup()
     CarouselDOM.cleanup()
     return null
   }
-
-  return cleanup
-}
-
-const initAllCarousels = () => {
-  const nodes = document.querySelectorAll(CarouselConfig.selector.carousel)
-  if (!nodes.length) return null
-
-  const cleanupHandlers = []
-
-  nodes.forEach(node => {
-    const cleanup = handleCarousel(node)
-    if (!cleanup) return null
-    cleanupHandlers.push(cleanup)
-  })
-
-  const handleCleanup = () => {
-    cleanupHandlers.forEach(cleanup => {
-      if ($.is(cleanup, 'function')) cleanup()
-    })
-    cleanupHandlers.length = 0
-    return null
-  }
-
-  return handleCleanup
 }
 
 const handleCarousels = () => {
-  $.cleanup('cleanupCarousels', initAllCarousels)
+  return CarouselController.init()
 }
 
-const initCarousel = () => {
-  const delay = CarouselConfig.time.slowConnectionDelay,
-        laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
-        setDelay = laggy ? delay * 2 : delay
-
-  $.is($.requestIdle, 'function')
-    ? $.requestIdle(handleCarousels, { timeout: CarouselConfig.time.idleTimeout })
-    : setTimeout(handleCarousels, setDelay)
+const initCarousels = () => {
+  $.cleanup('cleanupCarousels', handleCarousels)
 }
 
-initCarousel()
+initCarousels()

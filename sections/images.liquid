@@ -120,6 +120,7 @@
     {%- assign timer_val = timer | plus: 0 -%}
 
     <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-dafault-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery">
+      <div class="carousel__list">
         <div class="carousel__wrapper">
     {%- endif -%}
 
@@ -135,6 +136,7 @@
             {%- assign text_position        = block.settings.text_position -%}
             {%- assign text_position_mobile = block.settings.text_position_mobile -%}
             {%- assign video_url            = block.settings.video_url | strip -%}
+            {%- assign index                = forloop.index -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
             {%- assign image_alt            = block.settings.image_alt -%}
@@ -322,7 +324,7 @@
             {% comment %} CSS variables end {% endcomment %}
 
             {%- if carousel -%}
-              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{%- endif -%}>
+              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} data-index="{{- index -}}" aria-label="Slide {{ index }}">
                 <div class="carousel__inner">
             {%- endif -%}
                   <div
@@ -440,6 +442,7 @@
 
     {%- if carousel -%}
         </div>
+      </div>
 
         <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
           <span class="carousel__btn prev" aria-label="Prev slide">

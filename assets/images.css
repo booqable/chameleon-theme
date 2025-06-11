@@ -45,10 +45,10 @@
 }
 
 .images .carousel__wrapper {
-  padding-bottom: 0;
+  padding: 0;
   width: 100%;
   margin: 0;
-  scroll-padding: 0;
+  gap: 0;
 }
 
 .images__wrapper-full-width .images__vision-wrapper {

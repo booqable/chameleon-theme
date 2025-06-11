@@ -7,36 +7,15 @@
   width: calc(100% + 2 * var(--horizontal-padding));
 }
 
-.carousel *::-webkit-scrollbar,
-.carousel__wrapper::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none; /* Completely hide scrollbar */
-}
-
-.carousel,
-.carousel__wrapper {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-
 .carousel__wrapper {
   height: 100%;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-snap-stop: always;
-  scroll-padding: 0 var(--horizontal-padding);
-  scroll-behavior: smooth !important;
+  padding: 0 var(--horizontal-padding);
   display: flex;
   gap: 16px;
   align-items: stretch;
-  scrollbar-width: none;
-  scrollbar-color: transparent transparent;
   /* Optimize with hardware acceleration while ensuring smooth native scrolling */
-  will-change: scroll-position;
-  -webkit-overflow-scrolling: touch; /* Enable momentum scrolling on iOS */
-  transform: translateZ(0);
+  will-change: transform;
+  transition: transform calc(var(--animation-duration, 200ms) + 200ms) var(--transition-function-ease-in-out);
   backface-visibility: hidden;
 }
 
@@ -54,22 +33,6 @@
   max-width: var(--slide-width-mobile);
   transition: all calc(var(--animation-duration, 200ms) + 200ms) var(--transition-function-ease-in-out);
   padding: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-.carousel__item:first-child,
-.carousel__item:last-child {
-  min-width: calc(var(--slide-width-mobile) + var(--horizontal-padding));
-  max-width: calc(var(--slide-width-mobile) + var(--horizontal-padding));
-}
-
-.carousel__item:first-child {
-  padding-left: var(--horizontal-padding);
-}
-
-.carousel__item:last-child {
-  padding-right: var(--horizontal-padding);
 }
 
 /* Performance optimization for off-screen slides */
@@ -458,12 +421,6 @@
     contain-intrinsic-size: var(--slide-width) 400px;
   }
 
-  .carousel__item:first-child,
-  .carousel__item:last-child {
-    min-width: calc(var(--slide-width) + var(--horizontal-padding));
-    max-width: calc(var(--slide-width) + var(--horizontal-padding));
-  }
-
   .carousel__full-width .carousel__inner {
     padding-right: 24px;
   }
@@ -533,14 +490,7 @@
   }
 
   .carousel__wrapper {
-    scroll-padding: 0;
-  }
-
-  .carousel__item:first-child,
-  .carousel__item:last-child {
     padding: 0;
-    min-width: var(--slide-width);
-    max-width: var(--slide-width);
   }
 
   .carousel__navigation {
