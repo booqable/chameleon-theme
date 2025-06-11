@@ -444,38 +444,38 @@
         </div>
       </div>
 
-        <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
-          <span class="carousel__btn prev" aria-label="Prev slide">
-            Previous slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-          <span class="carousel__btn next" aria-label="Next slide">
-            Next slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-        </div>
-
-        <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
-          {%- for block in blocks -%}
-            {%- assign first = forloop.first -%}
-            {%- assign index = forloop.index -%}
-
-            <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
-              Go to slide {{ index -}}
-            </span>
-          {%- endfor -%}
-        </div>
-
-        <div class="carousel__counter">
-          {%- for block in blocks -%}
-            {%- assign length = forloop.length -%}
-          {%- endfor -%}
-
-          <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
-          <span class="carousel__divider">|</span>
-          <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
-        </div>
+      <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
+        <span class="carousel__btn prev" aria-label="Prev slide">
+          Previous slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
+        <span class="carousel__btn next" aria-label="Next slide">
+          Next slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
       </div>
+
+      <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
+        {%- for block in blocks -%}
+          {%- assign first = forloop.first -%}
+          {%- assign index = forloop.index -%}
+
+          <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
+            Go to slide {{ index -}}
+          </span>
+        {%- endfor -%}
+      </div>
+
+      <div class="carousel__counter">
+        {%- for block in blocks -%}
+          {%- assign length = forloop.length -%}
+        {%- endfor -%}
+
+        <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
+        <span class="carousel__divider">|</span>
+        <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
+      </div>
+    </div>
     {%- endif -%}
 
     {%- if datepicker_position == "bottom" -%}
