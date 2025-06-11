@@ -1,853 +1,1069 @@
 /**
-  * Handle carousel functionality with optimized performance
-  * @param {HTMLElement} carousel - The carousel DOM element
-  * @returns {Object|null} - Public API for the carousel
-*/
+ * Carousel Component
+ *
+ * Handles carousel functionality with slide/fade effects, pagination, and touch support.
+ * Supports autorotation, responsive behavior, and overlay color management.
+ *
+ * @requires js-utils-core.js
+ * @requires js-utils.js
+ */
 
-const handleCarousel = (carousel) => {
-  if (!carousel) return null;
+const CarouselConfig = {
+  selector: {
+    carousel: '.carousel',
+    wrapper: '.carousel__wrapper',
+    item: '.carousel__item',
+    navigation: '.carousel__navigation',
+    button: '.carousel__btn',
+    prev: '.carousel__btn.prev',
+    next: '.carousel__btn.next',
+    pagination: '.carousel__pagination',
+    dot: '.carousel__dot',
+    timer: '.carousel__timer',
+    counter: '.carousel__count'
+  },
+  classes: {
+    dot: 'carousel__dot',
+    edges: 'carousel__edges',
+    fade: 'carousel__fade-effect',
+    full: 'carousel__full-width',
+    init: 'initialized',
+    next: 'next',
+    pause: 'carousel__pause',
+    prev: 'prev',
+    show: 'show'
+  },
+  modifier: {
+    active: 'active',
+    hidden: 'hidden',
+    hide: 'hide',
+    show: 'show'
+  },
+  attr: {
+    index: 'data-index',
+    defaultColor: 'data-dafault-color',
+    overlayColor: 'data-overlay-color'
+  },
+  cssVar: {
+    gap: 'gap',
+    overlay: '--overlay-color',
+    overlay08: '--overlay-color-08',
+    overlay45: '--overlay-color-45',
+    slideWidth: '--slide-width',
+    slideWidthMobile: '--slide-width-mobile'
+  },
+  event: {
+    click: 'click',
+    prev: 'click',
+    next: 'click',
+    start: 'touchstart',
+    end: 'touchend',
+    enter: 'mouseenter',
+    leave: 'mouseleave'
+  },
+  time: {
+    idleTimeout: 2000,
+    slowConnectionDelay: 1000,
+    wheelDebounce: 100
+  },
+  media: {
+    mobile: 992 // Based on css media query breakpoint
+  }
+}
 
-  const config = {
-    selector: {
-      btn: '.carousel__btn',
-      dot: '.carousel__dot',
-      count: '.carousel__count',
-      item: '.carousel__item',
-      next: '.carousel__btn.next',
-      prev: '.carousel__btn.prev',
-      navigation: '.carousel__navigation',
-      pagination: '.carousel__pagination',
-      wrapper: '.carousel__wrapper'
-    },
-    class: {
-      show: 'show',
-      fade: 'carousel__fade-effect',
-      full: 'carousel__full-width',
-      edges: 'carousel__edges',
-      pause: 'carousel__pause',
-      off: 'carousel__item--offscreen',
-      dot: 'carousel__dot',
-      prev: 'prev',
-      next: 'next',
-      init: 'initialized'
-    },
-    modifier: {
-      active: 'active',
-      hidden: 'hidden',
-      show: 'show',
-      hide: 'hide'
-    },
-    attr: {
-      index: 'data-index',
-      defaultColor: 'data-dafault-color',
-      overlayColor: 'data-overlay-color',
-      timer: 'data-carousel-timer'
-    },
-    cssVar: {
-      animation: '--animation-duration',
-      overlay: '--overlay-color',
-      overlay08: '--overlay-color-08',
-      overlay45: '--overlay-color-45'
+const CarouselDOM = {
+  elements: {
+    block: null,
+    wrap: null,
+    navi: null,
+    pagi: null,
+    item: null,
+    items: null,
+    btns: null,
+    dots: null,
+    count: null,
+    timers: null
+  },
+
+  state: {
+    infinite: true,
+    interval: null,
+    isWheeling: false,
+    touchend: null,
+    touchstart: null,
+    wheelTimeout: null
+  },
+
+  init(el) {
+    this.elements.block = el
+    this.elements.wrap = el.querySelector(CarouselConfig.selector.wrapper)
+    this.elements.navi = el.querySelector(CarouselConfig.selector.navigation)
+    this.elements.pagi = el.querySelector(CarouselConfig.selector.pagination)
+    this.elements.item = el.querySelector(CarouselConfig.selector.item)
+    this.elements.items = el.querySelectorAll(CarouselConfig.selector.item)
+    this.elements.btns = el.querySelectorAll(CarouselConfig.selector.button)
+    this.elements.dots = el.querySelectorAll(CarouselConfig.selector.dot)
+    this.elements.count = el.querySelector(CarouselConfig.selector.counter)
+    this.elements.timers = el.querySelectorAll(CarouselConfig.selector.timer)
+    if (this.elements.timers.length === 0 && el.dataset.carouselTimer) {
+      this.elements.timers = [{ value: parseInt(el.dataset.carouselTimer) }]
     }
+
+    return this.elements
+  },
+
+  initCarousel() {
+    if (this.elements.items.length < 2) return false
+    $.toggleClass(this.elements.block, CarouselConfig.classes.init, true)
+  },
+
+  getSiblingElement(element, selector, direction) {
+    if (!element) return false
+
+    const directionMap = {
+      'prev': 'prev',
+      'next': 'next'
+    }
+
+    return $.getSibling(element, selector, directionMap[direction])
+  },
+
+  trigger(element, eventType) {
+    if (!element) return false
+    $.triggerEvent(element, eventType)
+  },
+
+  scrollToPosition(options) {
+    const { element, left, top } = options
+
+    // Use $.batchDOM for scroll operations as they don't benefit from read/write separation
+    const scrollHandler = () => {
+      element.scrollTo({
+        left: left,
+        top: top,
+        behavior: 'smooth'
+      })
+    }
+
+    $.batchDOM(scrollHandler)
+  },
+
+  cleanup() {
+    if (this.state.interval) {
+      clearInterval(this.state.interval)
+      this.state.interval = null
+    }
+
+    if (this.state.wheelTimeout) {
+      clearTimeout(this.state.wheelTimeout)
+      this.state.wheelTimeout = null
+    }
+
+    this.state = {
+      interval: null,
+      touchstart: null,
+      touchend: null,
+      wheelTimeout: null,
+      isWheeling: false,
+      infinite: true
+    }
+
+    Object.keys(this.elements).forEach(key => {
+      this.elements[key] = null
+    })
   }
+}
 
-  let clickHandler = null,
-      currentScrollTarget = null,
-      defaultDuration = 200, // Default animation duration
-      infinite = true,
-      interval = null,
-      isScrolling = false, // Track when a scroll transition is occurring
-      isWheeling = false,
-      lastWindowWidth = window.innerWidth, // Track window width for resize optimization
-      overlayTimer = null, // Track the last overlay timer to clear it if needed
-      pauseEventHandler = null, // Store pause event handler for cleanup
-      resizeObserverUtil = null,
-      scrollHandler = null,
-      slideWidth = 0, // Cache slide width to avoid recalculation
-      touchstart = null,
-      touchStartHandler = null,
-      touchend = null,
-      touchEndHandler = null,
-      wheelHandler = null,
-      windowResizeHandler = null, // Store window resize handler for cleanup
-      wheelTimeout = null;
+const CarouselPagination = {
+  updateCounter(index) {
+    const count = CarouselDOM.elements.count
+    if (!count) return false
+    if (index === 0 || typeof index === 'undefined') return false
 
-  const elements = {
-    btns: carousel.querySelectorAll(config.selector.btn),
-    count: carousel.querySelector(config.selector.count),
-    dots: carousel.querySelectorAll(config.selector.dot),
-    item: carousel.querySelector(config.selector.item),
-    items: carousel.querySelectorAll(config.selector.item),
-    navi: carousel.querySelector(config.selector.navigation),
-    pagi: carousel.querySelector(config.selector.pagination),
-    wrap: carousel.querySelector(config.selector.wrapper)
-  }
+    const readPhase = () => {
+      let num = ''
+      if (index < 10) num = 0
+      return { num, index }
+    }
 
-  const isFunc = obj => typeof obj === 'function';
-  const isUndefined = el => typeof el === 'undefined';
+    const writePhase = (data) => {
+      if (!data) return
+      const { num, index } = data
+      count.innerHTML = `${num}${index}`
+    }
 
-  const startTimer = () => {
-    const val = carousel.getAttribute(config.attr.timer);
-    if (!val) return;
+    $.frameSequence(readPhase, writePhase)
+  },
 
-    const time = parseInt(val, 10) * 1000;
+  getCurrentDot() {
+    const dots = CarouselDOM.elements.dots
+    let index = 1
+    const visibleDots = [...dots].filter(dot =>
+      !dot.classList.contains(CarouselConfig.modifier.hidden)
+    )
 
-    autoRotate(time);
-  }
+    visibleDots.forEach(dot => {
+      if (dot.classList.contains(CarouselConfig.modifier.active)) {
+        index = parseInt(dot.getAttribute(CarouselConfig.attr.index))
+      }
+    })
 
-  const autoRotate = (time) => {
-    if (!time) return;
 
-    interval = setInterval(() => handleNavigation(undefined, time), time);
-  }
+    return { index, dots: visibleDots }
+  },
 
-  const autoRotatePause = () => {
-    const isPause = carousel.classList.contains(config.class.pause);
-    if (!isPause || !elements.items.length) return;
+  updatePagination(event, index) {
+    const target = event?.target
+    const isDot = target?.classList.contains(CarouselConfig.classes.dot)
+    const dots = CarouselDOM.elements.dots
 
-    // Store the handler for proper removal later
-    pauseEventHandler = (e) => {
-      if (e.type === 'mouseenter' || e.type === 'touchstart') {
-        clearInterval(interval);
-      } else if (e.type === 'mouseleave' || e.type === 'touchend') {
-        startTimer();
+    if (!isDot && typeof index === 'undefined') return false
+
+    let finalIndex = index
+    if (typeof finalIndex === 'undefined' && isDot) {
+      finalIndex = parseInt(target.getAttribute(CarouselConfig.attr.index))
+    }
+
+    const readPhase = () => {
+      const dotData = []
+
+      dots.forEach(dot => {
+        const activeIndex = parseInt(dot.getAttribute(CarouselConfig.attr.index))
+        dotData.push({ dot, activeIndex })
+      })
+
+      return { dotData, finalIndex, isDot, target }
+    }
+
+    const writePhase = (data) => {
+      if (!data) return
+      const { dotData, finalIndex, isDot, target } = data
+
+
+      dotData.forEach(({ dot, activeIndex }) => {
+        $.toggleClass(dot, CarouselConfig.modifier.active, false)
+
+        if (isDot && dot === target) {
+          $.toggleClass(target, CarouselConfig.modifier.active, true)
+        }
+        if (activeIndex === finalIndex) {
+          $.toggleClass(dot, CarouselConfig.modifier.active, true)
+        }
+      })
+    }
+
+    $.frameSequence(readPhase, writePhase)
+    this.updateCounter(finalIndex)
+    return finalIndex
+  },
+
+  hidePaginationDots() {
+    const elements = CarouselDOM.elements
+    if (!elements.dots) return false
+
+    const readPhase = () => {
+      const client = elements.wrap.clientWidth
+      const scroll = elements.wrap.scrollWidth
+      const width = CarouselUtils.getSlideWidth(elements.block)
+      const totalItems = elements.items.length
+      const gap = CarouselUtils.getGapValue(elements.wrap)
+
+      // Calculate total content width precisely (same logic as hideControls)
+      const totalContentWidth = (totalItems * width) + ((totalItems - 1) * gap)
+      const hasContentOverflow = totalContentWidth > client
+      const shouldHideAllControls = !hasContentOverflow
+
+      if (shouldHideAllControls) {
+        return { hideAll: true }
+      }
+
+      const actualScrollDistance = scroll - client
+
+      if (actualScrollDistance > 0) {
+        // If there's scrollable content, calculate positions based on slide width
+        const scrollPositions = Math.max(2, Math.ceil(actualScrollDistance / width) + 1)
+        return { scrollPositions, totalItems, hideAll: false }
+      } else {
+        // No scrollable content
+        return { scrollPositions: 1, totalItems, hideAll: false }
       }
     }
 
-    LazyUtils.addEventListenerNode(carousel, 'mouseenter', pauseEventHandler);
-    LazyUtils.addEventListenerNode(carousel, 'mouseleave', pauseEventHandler);
-    LazyUtils.addEventListenerNode(carousel, 'touchstart', pauseEventHandler);
-    LazyUtils.addEventListenerNode(carousel, 'touchend', pauseEventHandler);
-  }
+    const writePhase = (data) => {
+      if (!data) return
 
-  const handleNavigation = (event, time) => {
+      if (data.hideAll) {
+        elements.dots.forEach(dot => {
+          $.toggleClass(dot, CarouselConfig.modifier.hidden, true)
+        })
+        return
+      }
+
+      const { scrollPositions } = data
+
+      elements.dots.forEach(dot => {
+        const index = parseInt(dot.getAttribute(CarouselConfig.attr.index))
+
+        // Show dots that correspond to valid scroll positions
+        const shouldShow = index <= scrollPositions
+        $.toggleClass(dot, CarouselConfig.modifier.hidden, !shouldShow)
+      })
+    }
+
+    $.frameSequence(readPhase, writePhase)
+  }
+}
+
+const CarouselUtils = {
+  getGapValue(el) {
+    const styles = window.getComputedStyle(el),
+          gap = styles.getPropertyValue(CarouselConfig.cssVar.gap)
+    return parseInt(gap) || 0
+  },
+
+  getSlideWidth(el) {
+    const styles = window.getComputedStyle(el),
+          isMobile = $.viewportSize().width < CarouselConfig.media.mobile,
+          property = isMobile ? CarouselConfig.cssVar.slideWidthMobile : CarouselConfig.cssVar.slideWidth,
+          slideWidth = styles.getPropertyValue(property)
+    return parseInt(slideWidth)
+  }
+}
+
+const CarouselEffects = {
+  updateFadeClass(index) {
+    const block = CarouselDOM.elements.block
+    const items = CarouselDOM.elements.items
+    const isFade = block.classList.contains(CarouselConfig.classes.fade)
+
+    if (!isFade || !index || index > items.length) return false
+
+    const readPhase = () => {
+      const itemUpdates = []
+
+      items.forEach((item, itemIndex) => {
+        const isActive = itemIndex + 1 === index
+        itemUpdates.push({ item, isActive })
+      })
+
+      return { itemUpdates }
+    }
+
+    const writePhase = (data) => {
+      if (!data) return
+      const { itemUpdates } = data
+
+      itemUpdates.forEach(({ item, isActive }) => {
+        $.toggleClass(item, CarouselConfig.modifier.show, isActive)
+        $.toggleClass(item, CarouselConfig.modifier.hide, !isActive)
+      })
+    }
+
+    $.frameSequence(readPhase, writePhase)
+  },
+
+  updateOverlay(index) {
+    const block = CarouselDOM.elements.block
+    const items = CarouselDOM.elements.items
+    const isEdge = block.classList.contains(CarouselConfig.classes.edges)
+
+    if (!isEdge || !index || index > items.length) return false
+
+    const defaultColor = block.getAttribute(CarouselConfig.attr.defaultColor)
+
+    items.forEach((item, itemIndex) => {
+      const overlayColor = item.getAttribute(CarouselConfig.attr.overlayColor)
+
+      if (itemIndex + 1 === index) {
+        if (overlayColor) {
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay, value: overlayColor })
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay08, value: `${overlayColor}24` })
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay45, value: `${overlayColor}73` })
+        } else {
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay, value: defaultColor })
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay08, value: `${defaultColor}24` })
+          $.setCssVar({ key: CarouselConfig.cssVar.overlay45, value: `${defaultColor}73` })
+        }
+      }
+    })
+  },
+
+  hideControls(elements) {
+    if (!elements.navi && !elements.pagi) return false
+
+    const readPhase = () => {
+      const wrap = elements.wrap,
+            clientX = wrap.clientWidth,
+            clientY = wrap.clientHeight,
+            scrollY = wrap.scrollHeight,
+            totalItems = elements.items.length,
+            itemWidth = CarouselUtils.getSlideWidth(elements.block)
+
+      // Get dynamic gap value from CSS
+      const gap = CarouselUtils.getGapValue(wrap)
+
+      // Temporarily scroll to start to get accurate scrollWidth measurement
+      const originalScrollLeft = wrap.scrollLeft
+      wrap.scrollLeft = 0
+
+      // Restore original scroll position
+      wrap.scrollLeft = originalScrollLeft
+
+      // Calculate total content width precisely
+      // Total width = (number of items * item width) + (gaps between items)
+      const totalContentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap)
+
+      // Check if content exceeds viewport width (immediate overflow detection)
+      const hasContentOverflow = totalContentWidth > clientX
+      const hasVerticalScroll = scrollY > clientY + 1
+
+      // Hide controls only when ALL content fits completely within viewport
+      const shouldHide = !hasContentOverflow && !hasVerticalScroll
+
+
+      return { shouldHide }
+    }
+
+    const writePhase = (data) => {
+      if (!data) return
+
+      const { shouldHide } = data
+
+      // Hide/show navigation and pagination
+      if (elements.navi) {
+        $.toggleClass(elements.navi, CarouselConfig.modifier.hidden, shouldHide)
+      }
+      if (elements.pagi) {
+        $.toggleClass(elements.pagi, CarouselConfig.modifier.hidden, shouldHide)
+      }
+
+      // If hiding controls, also reset all active dot states
+      if (shouldHide && elements.dots) {
+        elements.dots.forEach(dot => {
+          $.toggleClass(dot, CarouselConfig.modifier.active, false)
+        })
+      }
+    }
+
+    $.frameSequence(readPhase, writePhase)
+  }
+}
+
+const CarouselNavigation = {
+  calculateSlideEffect(options) {
+    const { currentScroll, clientVal, gap, maxScrollPositions, size, totalItems, trigger } = options
+    const currentPosition = Math.round(currentScroll / size) + 1
+
+    let i, condition, lastIndex, nextIndex, scrollToLast, scrollToNext, scrollToVal
+
+    switch (trigger) {
+      case 'prev':
+        condition = currentScroll <= 0
+        lastIndex = maxScrollPositions
+        nextIndex = Math.max(1, currentPosition - 1)
+        scrollToLast = (maxScrollPositions - 1) * size
+        scrollToNext = Math.max(0, currentScroll - size)
+        break
+
+      case 'next':
+        const maxScrollDistance = maxScrollPositions * size + gap * (totalItems - 1)
+        const tolerance = size * 0.1
+
+        console.log("maxScrollPositions ", maxScrollPositions)
+        console.log("maxScrollDistance ", maxScrollDistance)
+
+        condition = currentScroll >= maxScrollDistance
+        lastIndex = 1
+        nextIndex = Math.min(maxScrollPositions, currentPosition + 1)
+        scrollToLast = 0
+        scrollToNext = Math.min(maxScrollDistance, currentScroll + size)
+        break
+    }
+
+    i = condition && CarouselDOM.state.infinite ? lastIndex : nextIndex
+    scrollToVal = condition && CarouselDOM.state.infinite ? scrollToLast : scrollToNext
+
+    return { index: i, scrollTo: scrollToVal }
+  },
+
+  calculateFadeEffect(options) {
+    const { items, index, last, nextNumber, nextIndex } = options
+    let i
+
+    items.forEach((item, itemIndex) => {
+      if (item.classList.contains(CarouselConfig.classes.show)) {
+        const condition = itemIndex + (nextNumber ?? 0),
+              next = itemIndex + (nextIndex ?? 0)
+
+        i = condition === index ? last : next
+      }
+    })
+
+    return i
+  },
+
+  handleNavigation(event, time) {
     const target = event?.target,
-          isPrev = target?.classList.contains(config.class.prev),
-          isNext = target?.classList.contains(config.class.next),
-          isDot = target?.classList.contains(config.class.dot);
+          isPrev = target?.classList.contains(CarouselConfig.classes.prev),
+          isNext = target?.classList.contains(CarouselConfig.classes.next),
+          isDot = target?.classList.contains(CarouselConfig.classes.dot)
 
-    if (!isPrev && !isNext && !isDot && !time) return;
+    if (!isPrev && !isNext && !isDot && !time) return false
 
-    const isFade = carousel.classList.contains(config.class.fade),
-          isFull = carousel.classList.contains(config.class.full),
-          index = parseInt(target?.getAttribute(config.attr.index)),
-          width = slideWidth || elements.item.getBoundingClientRect().width; // Use cached slideWidth instead of recalculating width if available
+    const readPhase = () => {
+      const elements = CarouselDOM.elements,
+            wrap = elements.wrap
 
-    if (!slideWidth) slideWidth = width; // Update cache if not set
+      const element = isDot || isPrev || isNext
+            ? $.getSibling(target?.parentElement, CarouselConfig.selector.wrapper, 'prev')
+            : wrap
 
-    let element, valueLeft = 0;
+      const clientX = element.clientWidth,
+            scrollX = element.scrollWidth,
+            gap = CarouselUtils.getGapValue(element),
+            left = element.scrollLeft,
+            isFade = block.classList.contains(CarouselConfig.classes.fade),
+            isFull = block.classList.contains(CarouselConfig.classes.full),
+            itemWidth = CarouselUtils.getSlideWidth(elements.block),
+            totalItems = elements.items.length,
+            contentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap),
+            index = parseInt(target?.getAttribute(CarouselConfig.attr.index))
 
-    // Determine which element to scroll
-    element = isDot || isPrev || isNext
-      ? getSiblingElement(target?.parentElement, config.selector.wrapper, 'prev')
-      : elements.wrap;
+      return {
+        contentWidth,
+        clientX,
+        element,
+        index,
+        isFade,
+        isFull,
+        itemWidth,
+        gap,
+        left,
+        scrollX,
+        totalItems
+      }
+    }
 
-    if (!element) return;
+    const writePhase = (data) => {
+      if (!data) return
 
-    const left = element.scrollLeft,
-          scrollX = element.scrollWidth,
-          clientX = element.clientWidth,
-          children = [...element.children];
+      const { contentWidth, clientX, element, index, isFade, isFull, itemWidth, gap, left, scrollX, totalItems } = data
+      const children = element.children,
+            inView = Math.floor(clientX / itemWidth),
+            inView1 = Math.floor(clientX / (itemWidth + gap)),
+            visibleItems = inView > 1 ? inView1 : inView,
+            maxScrollPositions = totalItems - visibleItems + 1
 
-    const handleSlidingLeft = () => {
+      let calculatedIndex, valueLeft = 0;
+
+      if (isFull) scrollX = contentWidth
+
+      if (isPrev) {
+        if (!isFade) {
+          const options = {
+            currentScroll: left,
+            // clientVal: clientX,
+            // scrollVal: scrollX,
+            // scrollToVal: valueLeft,
+            maxScrollPositions: maxScrollPositions,
+            size: itemWidth,
+            totalItems: totalItems,
+            trigger: 'prev'
+          }
+
+          const result = this.calculateSlideEffect(options)
+          valueLeft = result.scrollTo
+          calculatedIndex = result.index
+        } else {
+          const options = {
+            items: children,
+            index: 0,
+            last: totalItems
+          }
+
+          calculatedIndex = this.calculateFadeEffect(options)
+        }
+      }
+
+      if (isNext || time) {
+        if (!isFade) {
+          const options = {
+            currentScroll: left,
+            // clientVal: clientX,
+            gap: gap,
+            maxScrollPositions: maxScrollPositions,
+            size: itemWidth,
+            totalItems: totalItems,
+            trigger: 'next'
+          }
+
+          const result = this.calculateSlideEffect(options)
+          valueLeft = result.scrollTo
+          calculatedIndex = result.index
+
+          // Mobile fallback: if we're at or near the end, force infinite loop
+          // const nearEnd = left >= scrollX - clientX - (itemWidth * 0.5)
+          // if (nearEnd && CarouselDOM.state.infinite) {
+          //   valueLeft = 0
+          //   calculatedIndex = 1
+          // }
+        } else {
+          const options = {
+            items: children,
+            index: totalItems,
+            last: 1,
+            nextNumber: 1,
+            nextIndex: 2
+          }
+
+          calculatedIndex = this.calculateFadeEffect(options)
+        }
+      }
+
+      if (isDot && !isFade) {
+        valueLeft = itemWidth * (index - 1)
+        calculatedIndex = index
+      }
+
+      console.log(
+        {
+          clientX: clientX,
+          itemWidth: itemWidth,
+          totalItems: totalItems,
+          calculatedIndex: calculatedIndex,
+          visibleItems: visibleItems,
+          maxScrollPositions: maxScrollPositions
+        }
+      )
+
+      if (calculatedIndex < 1) calculatedIndex = 1
+      if (calculatedIndex > maxScrollPositions) calculatedIndex = maxScrollPositions
+
+      const finalIndex = CarouselPagination.updatePagination(event, calculatedIndex)
+      CarouselEffects.updateFadeClass(finalIndex)
+      CarouselEffects.updateOverlay(finalIndex)
+
       if (!isFade) {
-        valueLeft = calculateSlidePosition({
-          currentScroll: left,
-          clientVal: clientX,
-          scrollVal: isFull ? width * children.length : scrollX,
-          size: width,
-          trigger: 'prev'
-        })
-      } else {
-        handleFadeEffect({
-          items: children,
-          index: 0,
-          last: elements.items.length
+        CarouselDOM.scrollToPosition({
+          element: element,
+          left: valueLeft,
+          top: 0
         })
       }
     }
 
-    const handleSlidingRight = () => {
+    $.frameSequence(readPhase, writePhase)
+
+    // const elements = CarouselDOM.elements,
+    //       block = elements.block,
+    //       isFade = block.classList.contains(CarouselConfig.classes.fade),
+    //       isFull = block.classList.contains(CarouselConfig.classes.full),
+    //       width = CarouselUtils.getSlideWidth(block),
+    //       index = parseInt(target?.getAttribute(CarouselConfig.attr.index))
+
+    //       // console.log('Carousel Navigation Init:', { elements, block, isFade, isFull, width, index });
+
+
+    // let element, left, scrollX, clientX, children, valueLeft = 0
+
+    // element = isDot || isPrev || isNext
+    //   ? $.getSibling(target?.parentElement, CarouselConfig.selector.wrapper, 'prev')
+    //   : this.wrap
+
+    // left = element.scrollLeft
+    // scrollX = element.scrollWidth
+    // clientX = element.clientWidth
+    // children = [...element.children]
+
+    // console.log('Carousel Navigation Calculations:', { element, left, scrollX, clientX, children });
+
+
+    // if (isFull) scrollX = width * children.length
+
+    let calculatedIndex
+
+    // if (isPrev) {
+    //   if (!isFade) {
+    //     const options = {
+    //       currentScroll: left,
+    //       clientVal: clientX,
+    //       size: width,
+    //       trigger: 'prev'
+    //     }
+
+    //     const result = this.calculateSlideEffect(options)
+    //     valueLeft = result.scrollTo
+    //     calculatedIndex = result.index
+    //   } else {
+    //     const options = {
+    //       items: children,
+    //       index: 0,
+    //       last: elements.items.length
+    //     }
+
+    //     calculatedIndex = this.calculateFadeEffect(options)
+    //   }
+    // }
+
+    // if (isNext || time) {
+    //   if (!isFade) {
+    //     const options = {
+    //       currentScroll: left,
+    //       clientVal: clientX,
+    //       size: width,
+    //       trigger: 'next'
+    //     }
+
+    //     const result = this.calculateSlideEffect(options)
+    //     valueLeft = result.scrollTo
+    //     calculatedIndex = result.index
+
+    //     // Mobile fallback: if we're at or near the end, force infinite loop
+    //     const nearEnd = left >= scrollX - clientX - (width * 0.5)
+    //     if (nearEnd && CarouselDOM.state.infinite) {
+    //       valueLeft = 0
+    //       calculatedIndex = 1
+    //     }
+    //   } else {
+    //     const options = {
+    //       items: children,
+    //       index: elements.items.length,
+    //       last: 1,
+    //       nextNumber: 1,
+    //       nextIndex: 2
+    //     }
+
+    //     calculatedIndex = this.calculateFadeEffect(options)
+    //   }
+    // }
+
+    // if (isDot && !isFade) {
+    //   valueLeft = width * (index - 1)
+    //   calculatedIndex = index
+    // }
+
+    // Validate calculated index is within bounds
+    // const totalItems = elements.items.length
+    // const visibleItems = Math.floor(clientX / width)
+    // const maxScrollPositions = totalItems - visibleItems + 1
+
+    // Ensure calculatedIndex is within valid range
+    // if (calculatedIndex < 1) calculatedIndex = 1
+    // if (calculatedIndex > maxScrollPositions) calculatedIndex = maxScrollPositions
+
+    // const finalIndex = CarouselPagination.updatePagination(event, calculatedIndex)
+
+    // CarouselEffects.updateFadeClass(finalIndex)
+    // CarouselEffects.updateOverlay(finalIndex)
+
+    // if (!isFade) {
+    //   CarouselDOM.scrollToPosition({
+    //     element: element,
+    //     left: valueLeft,
+    //     top: 0
+    //   })
+    // }
+  }
+}
+
+const CarouselTouch = {
+  handleTouchscreenPoints(event) {
+    const wrap = event?.target.closest(CarouselConfig.selector.wrapper)
+    const { dots } = CarouselPagination.getCurrentDot()
+
+    if (!dots.length && !wrap) return false
+
+    if (event.type === CarouselConfig.event.start) {
+      CarouselDOM.state.touchstart = event.changedTouches[0].screenX
+    }
+
+    if (event.type === CarouselConfig.event.end) {
+      CarouselDOM.state.touchend = event.changedTouches[0].screenX
+      this.handleTouchscreenDirection(wrap)
+    }
+  },
+
+  handleTouchscreenDirection(wrap) {
+    const readPhase = () => {
+      const left = wrap?.scrollLeft
+      const scroll = wrap?.scrollWidth
+      const client = wrap?.clientWidth
+      const next = wrap?.parentElement.querySelector(CarouselConfig.selector.next)
+      const prev = wrap?.parentElement.querySelector(CarouselConfig.selector.prev)
+      const isFade = wrap?.parentElement.classList.contains(CarouselConfig.classes.fade)
+      const leftSwipe = CarouselDOM.state.touchstart > CarouselDOM.state.touchend
+      const rightSwipe = CarouselDOM.state.touchend > CarouselDOM.state.touchstart
+      const { dots, index } = CarouselPagination.getCurrentDot()
+
+      return { left, scroll, client, next, prev, isFade, leftSwipe, rightSwipe, dots, index }
+    }
+
+    const writePhase = (data) => {
+      if (!data) return
+
+      const { left, scroll, client, next, prev, isFade, leftSwipe, rightSwipe, dots, index } = data
+
       if (!isFade) {
-        valueLeft = calculateSlidePosition({
-          currentScroll: left,
-          clientVal: clientX,
-          scrollVal: isFull ? width * children.length : scrollX,
-          size: width,
-          trigger: 'next'
-        })
+        if (left >= 0 && left <= scroll - client) {
+          CarouselDOM.state.infinite = false
+
+          if (leftSwipe) $.triggerEvent(next, 'click')
+          if (rightSwipe) $.triggerEvent(prev, 'click')
+
+          CarouselDOM.state.infinite = true
+        }
       } else {
-        handleFadeEffect({
-          items: children,
-          index: elements.items.length,
-          last: 1,
-          nextNumber: 1,
-          nextIndex: 2
-        })
-      }
-    }
-
-    if (isPrev) handleSlidingLeft();
-
-    if (isNext || time) handleSlidingRight();
-
-    if (isDot && !isFade) valueLeft = width * (index - 1);
-
-    if (!isFade) smoothScrollTo(element, valueLeft, 0);
-  }
-
-  const calculateSlidePosition = (options) => {
-    const { currentScroll, scrollVal, clientVal, size, trigger } = options;
-    let condition, lastIndex, nextIndex, scrollToVal;
-
-    const slideLeft = () => {
-      condition = currentScroll === 0;
-      lastIndex = Math.ceil((scrollVal - clientVal) / size + 1);
-      nextIndex = Math.ceil(currentScroll / size);
-      scrollToVal = condition && infinite ? scrollVal : currentScroll - size;
-    }
-
-    const slideRight = () => {
-      condition = currentScroll >= scrollVal - clientVal - 16;
-      lastIndex = 1;
-      nextIndex = parseInt(currentScroll / size + 2);
-      scrollToVal = condition && infinite ? 0 : currentScroll + size;
-    }
-
-    trigger === 'prev' ? slideLeft() : slideRight()
-
-    const i = condition && infinite ? lastIndex : nextIndex;
-
-    handlePagination(undefined, i);
-    return scrollToVal;
-  }
-
-  const handleFadeEffect = (options) => {
-    const { items, index, last, nextNumber = 0, nextIndex = 0 } = options;
-    let i;
-
-    for (const [itemIndex, item] of items.entries()) {
-      if (item.classList.contains(config.class.show)) {
-        const condition = itemIndex + nextNumber,
-              next = itemIndex + nextIndex;
-        i = condition === index ? last : next;
-        break;
-      }
-    }
-
-    handlePagination(undefined, i);
-    updateFadeClass(i);
-  }
-
-  const updateFadeClass = (index) => {
-    if (!carousel.classList.contains(config.class.fade) || !index || index > elements.items.length) return;
-    const show = config.modifier.show,
-          hide = config.modifier.hide;
-
-    elements.items.forEach((item, itemIndex) => {
-      item.classList.replace(show, hide);
-      if (itemIndex + 1 === index) item.classList.replace(hide, show);
-    })
-  }
-
-  const handlePagination = (e, i) => {
-    const target = e?.target,
-          isDot = target?.classList.contains(config.class.dot);
-
-    if (!isDot && isUndefined(i)) return;
-    if (!elements.dots.length) return;
-
-    for (const dot of elements.dots) {
-      const activeIndex = parseInt(dot.getAttribute(config.attr.index));
-      dot.classList.remove(config.modifier.active);
-
-      const addActiveClass = () => dot.classList.add(config.modifier.active);
-
-      if (isDot && dot === target || activeIndex === i) addActiveClass();
-    }
-
-    const targetIndex = parseInt(target.getAttribute(config.attr.index));
-
-    if (isUndefined(i) && target) i = targetIndex; // If index is undefined, get it from the target
-
-    updateCounter(i);
-    updateFadeClass(i);
-    setOverlay(i);
-  }
-
-  const updatePaginationDots = () => {
-    if (!elements.dots.length || !elements.wrap || !getCurrentDot()) return;
-
-    const { index: activeIndex, dots: visibleDots } = getCurrentDot(); // Get current dots state with max visible dots calculation
-    if (visibleDots === 0) return;
-
-    const width = slideWidth, // Cache slide width
-          dotsToHide = [],
-          dotsToShow = [];
-
-    elements.dots.forEach(dot => {
-      const index = parseInt(dot.getAttribute(config.attr.index)),
-            isHidden = dot.classList.contains(config.modifier.hidden);
-
-      if (index <= visibleDots && isHidden) {
-        dotsToShow.push(dot);
-      } else if (index > visibleDots && !isHidden) {
-        dotsToHide.push(dot);
-      }
-    })
-
-    // Batch DOM operations for better performance
-    dotsToHide.forEach(dot => dot.classList.add(config.modifier.hidden));
-    dotsToShow.forEach(dot => dot.classList.remove(config.modifier.hidden));
-
-    // Check if active dot is now hidden
-    if (activeIndex > visibleDots && visibleDots > 0) {
-      const slidePosition = width * (visibleDots - 1); // Calculate position to scroll to (based on dot index)
-
-      // Activate the dot and scroll to the related slide
-      handlePagination(undefined, visibleDots);
-      smoothScrollTo(elements.wrap, slidePosition, 0);
-    }
-  }
-
-  const updateControls = () => {
-    if (!elements.navi && !elements.pagi || !elements.wrap) return;
-
-    // More reliable overflow detection using scroll dimensions
-    const tolerance = 1; // Allow a small tolerance (1px) for rounding errors in some browsers
-    const hasNoOverflow = (elements.wrap.clientWidth + tolerance >= elements.wrap.scrollWidth) &&
-                          (elements.wrap.clientHeight + tolerance >= elements.wrap.scrollHeight);
-
-    // Update navigation visibility
-    if (elements.navi) {
-      hasNoOverflow
-        ? elements.navi.classList.add(config.modifier.hidden)
-        : elements.navi.classList.remove(config.modifier.hidden)
-    }
-
-    // Update pagination visibility
-    if (elements.pagi) {
-      hasNoOverflow
-        ? elements.pagi.classList.add(config.modifier.hidden)
-        : elements.pagi.classList.remove(config.modifier.hidden)
-    }
-  }
-
-  const updateCounter = (i) => {
-    if (!elements.count || i === 0 || isUndefined(i)) return;
-
-    elements.count.innerHTML = i < 10 ? `0${i}` : `${i}`;
-  }
-
-  const handleTouchscreenMovement = (event) => {
-    event.stopPropagation();
-
-    const wrap = event?.target.closest(config.selector.wrapper);
-    const { dots } = getCurrentDot();
-
-    if (dots < 1 && !wrap) return;
-
-    if (event.type === 'touchstart') {
-      touchstart = event.changedTouches[0].screenX;
-    } else if (event.type === 'touchend' && touchstart !== null) {
-      touchend = event.changedTouches[0].screenX;
-      processTouchDirection(wrap);
-
-      // Reset touch positions to prevent accidental processing
-      touchstart = null;
-      touchend = null;
-    }
-  }
-
-  const processTouchDirection = (wrap) => {
-    if (!wrap) return;
-
-    const left = wrap.scrollLeft,
-          scroll = wrap.scrollWidth,
-          client = wrap.clientWidth,
-          next = wrap.parentElement.querySelector(config.selector.next),
-          prev = wrap.parentElement.querySelector(config.selector.prev),
-          isFade = wrap.parentElement.classList.contains(config.class.fade),
-          swipeDistance = Math.abs(touchstart - touchend),
-          minSwipeThreshold = 20;
-
-    // Only process significant swipes (minimum threshold to avoid accidental swipes)
-    if (swipeDistance < minSwipeThreshold) return;
-
-    const leftSwipe = touchstart > touchend,
-          rightSwipe = touchend > touchstart;
-    const { dots, index } = getCurrentDot();
-
-    if (!isFade) {
-      if (left >= 0 && left <= scroll - client) {
-        infinite = false;
-
-        if (leftSwipe) LazyUtils.triggerEvent(next, 'click');
-        if (rightSwipe) LazyUtils.triggerEvent(prev, 'click');
-
-        infinite = true;
-      }
-    } else {
-      if (leftSwipe && index < dots) handlePagination(undefined, index + 1);
-      if (rightSwipe && index > 1) handlePagination(undefined, index - 1);
-    }
-  }
-
-  const handleTouchpadMovement = (event) => {
-    if (isWheeling) return;
-
-    const wrap = event?.target.closest(config.selector.wrapper);
-    if (!wrap) return;
-
-    // Only handle horizontal scrolling, let vertical scroll work normally
-    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) return;
-
-    // Only process significant wheel events (minimum threshold)
-    if (Math.abs(event.deltaX) < 5) return;
-
-    // Prevent default to avoid page scrolling during carousel interaction
-    event.preventDefault();
-
-    const { dots, index } = getCurrentDot();
-    if (dots < 1) return;
-
-    isWheeling = true;
-
-    // Use the direction of wheel movement, not the magnitude
-    const delta = Math.sign(event.deltaX);
-
-    if (delta === -1 && index > 1) {
-      handlePagination(undefined, index - 1);
-    } else if (delta === 1 && index < dots) {
-      handlePagination(undefined, index + 1);
-    }
-
-    // Reset wheeling state after a delay
-    clearTimeout(wheelTimeout);
-    wheelTimeout = setTimeout(() => {
-      isWheeling = false;
-    }, 100);
-  }
-
-  const getCurrentDot = () => {
-    if (!elements.dots || !elements.dots.length) return { index: 1, dots: 0 };
-
-    let visibleDots = 0;
-
-    // Calculate max visible dots
-    if (elements.item && elements.wrap) {
-      const client = elements.wrap.clientWidth,
-            scroll = elements.wrap.scrollWidth,
-            width = slideWidth || elements.item.getBoundingClientRect().width,
-            maxDots = Math.ceil((scroll - client) / width) + 1;
-
-      if (!slideWidth) slideWidth = width; // Update cache if needed
-      if (scroll - client > 0) visibleDots = maxDots; // Calculate max dots that can be visible based on carousel width
-    }
-
-    if (visibleDots === 0) return;
-
-    // Use a more efficient approach to filter and find active dot
-    let activeIndex = 1,
-        foundActive = false;
-
-    // Only loop through dots once
-    for (const dot of elements.dots) {
-      if (!dot.classList.contains(config.modifier.hidden)) {
-        if (!foundActive && dot.classList.contains(config.modifier.active)) {
-          activeIndex = parseInt(dot.getAttribute(config.attr.index));
-          foundActive = true;
+        if (leftSwipe && index < dots.length) {
+          const newIndex = CarouselPagination.updatePagination(undefined, index + 1)
+          CarouselEffects.updateFadeClass(newIndex)
+          CarouselEffects.updateOverlay(newIndex)
+        }
+        if (rightSwipe && index > 1) {
+          const newIndex = CarouselPagination.updatePagination(undefined, index - 1)
+          CarouselEffects.updateFadeClass(newIndex)
+          CarouselEffects.updateOverlay(newIndex)
         }
       }
     }
 
-    return { index: activeIndex, dots: visibleDots }
-  }
+    $.frameSequence(readPhase, writePhase)
+  },
 
-  // Helper function to get animation duration in milliseconds
-  const getAnimationDuration = () => {
-    const transitionStyle = getComputedStyle(carousel),
-          animationDuration = transitionStyle.getPropertyValue(config.cssVar.animation) || `${defaultDuration}ms`;
+  handleTouchpadPoints: $.debounce(function(event) {
+    const wrap = event?.target.closest(CarouselConfig.selector.wrapper)
+    const { dots } = CarouselPagination.getCurrentDot()
 
-    let durationMs = parseInt(animationDuration.replace('ms', ''));
-    if (isNaN(durationMs)) durationMs = defaultDuration;
+    if (!dots.length && !wrap) return false
 
-    return durationMs + defaultDuration; // Add 200ms to the duration as specified in the CSS (transition: ... + 200ms)
-  }
+    const readPhase = () => {
+      let { index } = CarouselPagination.getCurrentDot()
+      const delta = event.deltaX
 
-  // Set overlay color with a delay for smoother transitions
-  const setOverlay = (index) => {
-    if (!carousel.classList.contains(config.class.edges) ||
-        !index ||
-        index > elements.items.length) return;
+      if (delta === -1 && index > 1) index = index - 1
+      if (delta === 1 && index < dots.length) index = index + 1
 
-    const defaultColor = carousel.getAttribute(config.attr.defaultColor),
-          itemIndex = index - 1; // Direct access to the specific item by index (more efficient)
-
-    if (itemIndex >= 0 && itemIndex < elements.items.length) {
-      const item = elements.items[itemIndex],
-            overlayColor = item.getAttribute(config.attr.overlayColor) || defaultColor,
-            durationMs = getAnimationDuration(), // Get animation duration
-            halfDuration = Math.max(durationMs / 2, defaultDuration / 2); // // Calculate midpoint. Default is 100ms delay
-
-      if (overlayTimer) clearTimeout(overlayTimer); // Clear any existing timer to avoid race conditions
-
-      // Delay setting the overlay color until halfway through the transition
-      overlayTimer = setTimeout(() => {
-        const parentStyle = carousel.parentElement.style; // Set all CSS variables at once for better performance
-        parentStyle.setProperty(config.cssVar.overlay, overlayColor);
-        parentStyle.setProperty(config.cssVar.overlay08, `${overlayColor}24`);
-        parentStyle.setProperty(config.cssVar.overlay45, `${overlayColor}73`);
-
-        overlayTimer = null; // Clear the timer reference once executed
-      }, halfDuration);
+      return { index }
     }
-  }
 
-  // Enhanced scroll with transition tracking for better performance
-  const smoothScrollTo = (element, left, top) => {
-    // Mark that we're starting a scroll transition
-    isScrolling = true;
-    currentScrollTarget = left;
+    const writePhase = (data) => {
+      if (!data) return
 
-    // Get the animation duration
-    const duration = getAnimationDuration();
+      const { index } = data
+      const newIndex = CarouselPagination.updatePagination(undefined, index)
+      CarouselEffects.updateFadeClass(newIndex)
+      CarouselEffects.updateOverlay(newIndex)
+    }
 
-    // Perform the smooth scroll using standard browser scrolling
-    element.scrollTo({
-      left,
-      top,
-      behavior: 'smooth'
+    $.frameSequence(readPhase, writePhase)
+  }, (() => {
+    // Adjust debounce time based on connection speed with Safari fallback
+    const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
+    return laggy ? CarouselConfig.time.wheelDebounce * 2 : CarouselConfig.time.wheelDebounce
+  })())
+}
+
+const CarouselTimer = {
+  startTimer() {
+    const elements = CarouselDOM.elements
+
+    if (!elements.timers || elements.timers.length === 0) {
+      return false
+    }
+
+    elements.timers.forEach(timer => {
+      let time = timer.value * 1000
+
+      if (!time) {
+        return false
+      }
+
+      // Adjust timing based on connection speed for better UX
+      const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
+      if (laggy) {
+        time = time * 1.5 // Increase interval on slow connections
+      }
+
+      CarouselDOM.state.interval = setInterval(() => {
+        CarouselNavigation.handleNavigation(undefined, time)
+      }, time)
     })
+  },
 
-    // Add a one-time scroll event listener to detect when scrolling ends
-    const handleScrollEnd = () => {
-      // Reset scrolling state when the transition is complete
-      isScrolling = false;
-      currentScrollTarget = null;
+  setupPauseAutoRotate() {
+    const block = CarouselDOM.elements.block
+    const isPause = block.classList.contains(CarouselConfig.classes.pause)
 
-      // Update visible slides after scrolling finishes
-      handleVisibleSlides();
+    if (!isPause) {
+      return false
+    }
+    if (!CarouselDOM.elements.items.length) {
+      return false
     }
 
-    // Use scrollend event if supported, otherwise fallback to timeout
-    'onscrollend' in window
-      ? LazyUtils.addEventListenerNode(element, 'scrollend', handleScrollEnd, { once: true })
-      : setTimeout(handleScrollEnd, duration + 100) // Use a longer timeout for wider browser compatibility
-  }
-
-  const getSiblingElement = (element, selector, direction) => {
-    if (!element) return null;
-
-    let sibling;
-
-    if (direction === 'prev') {
-      sibling = element.previousElementSibling;
-      while (sibling) {
-        if (sibling.matches(selector)) return sibling;
-        sibling = sibling.previousElementSibling;
+    const eventHandler = (event) => {
+      if (event.type === 'mouseenter' || event.type === 'touchstart') {
+        if (CarouselDOM.state.interval) {
+          clearInterval(CarouselDOM.state.interval)
+          CarouselDOM.state.interval = null
+        }
       }
-    } else if (direction === 'next') {
-      sibling = element.nextElementSibling;
-      while (sibling) {
-        if (sibling.matches(selector)) return sibling;
-        sibling = sibling.nextElementSibling;
+      if (event.type === 'mouseleave' || event.type === 'touchend') {
+        this.startTimer()
       }
     }
 
-    return null;
-  }
-
-  const setupListeners = () => {
-    // Use event delegation for better performance - attach event handlers to the carousel
-    // instead of to each individual element
-    clickHandler = e => {
-      // Handle dot clicks
-      if (e.target.classList.contains(config.class.dot)) {
-        handlePagination(e);
-        handleNavigation(e);
-      }
-
-      // Handle button clicks
-      if (e.target.classList.contains(config.class.prev) || e.target.classList.contains(config.class.next)) {
-        handleNavigation(e);
-      }
-    }
-    LazyUtils.addEventListenerNode(carousel, 'click', clickHandler);
-
-    // Touch and wheel events with optimized passive listeners
-    // Use a throttled wheel handler for better performance
-    let wheelThrottled = false;
-    wheelHandler = e => {
-      if (!wheelThrottled) {
-        wheelThrottled = true;
-        window.requestAnimationFrame(() => {
-          handleTouchpadMovement(e);
-          wheelThrottled = false;
-        })
-      }
-    }
-    LazyUtils.addEventListenerNode(carousel, 'wheel', wheelHandler, { passive: false });
-
-    // Store touch event handlers
-    touchStartHandler = handleTouchscreenMovement;
-    touchEndHandler = handleTouchscreenMovement;
-
-    LazyUtils.addEventListenerNode(carousel, 'touchstart', touchStartHandler, { passive: true });
-    LazyUtils.addEventListenerNode(carousel, 'touchend', touchEndHandler, { passive: true });
-
-    const resizeObserver = () => {
-      // Create a callback function for resize changes
-      const handleResize = () => {
-        // Recalculate slide width since viewport changed
-        if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
-
-        // Update UI elements
-        updateControls();
-        updatePaginationDots();
-      }
-
-      // Create the ResizeObserver with our config
-      resizeObserverUtil = Utils.createResizeObserver(handleResize, {
-        element: carousel,
-        debounceTime: 100,
-        trackWidth: true
-      })
-    }
-
-    const debouncedResize = () => {
-      // Fallback to window resize event with debounce for older browsers
-      windowResizeHandler = LazyUtils.debounce(() => {
-        const currentWidth = window.innerWidth;
-
-        if (currentWidth === lastWindowWidth) return;
-
-        lastWindowWidth = currentWidth;
-
-        window.requestAnimationFrame(() => {
-          if (elements.item) {
-            slideWidth = elements.item.getBoundingClientRect().width;
-          }
-
-          updateControls();
-          updatePaginationDots();
-        })
-      }, 100);
-
-      LazyUtils.addEventListenerNode(window, 'resize', windowResizeHandler);
-    }
-
-    // Use the ResizeObserver utility from Utils
-    Utils && isFunc(Utils.createResizeObserver)
-      ? resizeObserver()
-      : debouncedResize()
-  }
-
-  const hideOffScreenImages = (el) => {
-    if (el.classList.contains(config.class.off)) return;
-
-    el.classList.add(config.class.off);
-
-    const pictures = el.querySelectorAll('picture'); // Handle picture elements
-    pictures.forEach(picture => {
-      const img = picture.querySelector('img'); // Handle the img inside the picture
-      if (!img || !img.dataset.originalLoading) return;
-
-      img.dataset.originalLoading = img.loading || 'lazy';
-      img.loading = 'lazy';
-      img.decoding = 'async';
-    })
-  }
-
-  const showOnScreenImages = (el) => {
-    if (!el.classList.contains(config.class.off)) return;
-    el.classList.remove(config.class.off);
-
-    // Restore picture elements
-    const pictures = el.querySelectorAll('picture');
-    pictures.forEach(picture => {
-      const img = picture.querySelector('img');
-      if (!img || !img.dataset.originalLoading) return;
-
-      img.loading = img.dataset.originalLoading;
-      delete img.dataset.originalLoading;
-    })
-  }
-
-  // Optimize performance by only rendering visible and nearby slides
-  const handleVisibleSlides = () => {
-    if (!elements.items) return; // Skip if not enough slides or if using fade effect
-
-    const range = 1, // Number of slides visible on either side of current
-          wrapperWidth = elements.wrap.clientWidth,
-          scrollPosition = elements.wrap.scrollLeft,
-          start = Math.floor(scrollPosition / slideWidth) - range,               // Calculate which slides
-          end = Math.ceil((scrollPosition + wrapperWidth) / slideWidth) + range; //should be visible
-
-    // Apply optimizations to slides
-    elements.items.forEach((el, i) => {
-      i < start || i > end ? hideOffScreenImages(el) : showOnScreenImages(el)
-    })
-  }
-
-  const initialize = () => {
-    if (!elements.items || elements.items.length < 2) return;
-
-    // Cache the slide width on initialization to avoid recalculating it multiple times
-    if (elements.item) slideWidth = elements.item.getBoundingClientRect().width;
-
-    carousel.classList.add(config.class.init);
-
-    // Apply initial slide optimizations for large carousels
-    handleVisibleSlides();
-
-    // Create scroll handler once and store it for proper removal later
-    scrollHandler = LazyUtils.debounce(() => {
-      window.requestAnimationFrame(handleVisibleSlides);
-    }, 100);
-
-    // Add scroll handler to update visible slides during scrolling
-    if (elements.wrap) {
-      LazyUtils.addEventListenerNode(elements.wrap, 'scroll', scrollHandler, { passive: true });
-    }
-
-    // Check if auto-rotation is needed - only run this code if necessary
-    if (carousel.hasAttribute(config.attr.timer)) {
-      startTimer();
-      if (carousel.classList.contains(config.class.pause)) autoRotatePause();
-    }
-
-    // Run these functions in order - they depend on each other
-    updateControls();
-    updatePaginationDots();
-
-    // Set initial overlay if feature is enabled (conditional execution)
-    if (carousel.classList.contains(config.class.edges)) setOverlay(1);
-
-    setupListeners(); // Set up event listeners after all initialization is complete
-  }
-
-  // Comprehensive cleanup function to prevent memory leaks
-  const destroy = () => {
-    // Clear any running timers
-    if (interval) clearInterval(interval);
-    if (wheelTimeout) clearTimeout(wheelTimeout);
-    if (overlayTimer) clearTimeout(overlayTimer);
-
-    // Clean up ResizeObserver utility if used
-    if (resizeObserverUtil && isFunc(resizeObserverUtil.cleanup)) {
-      resizeObserverUtil.cleanup();
-      resizeObserverUtil = null;
-    }
-
-    // Reset any offscreen optimizations
-    if (elements.items && elements.items.length) {
-      elements.items.forEach(item => {
-        showOnScreenImages(item);
-      })
-    }
-
-    // Remove scroll event listener if added
-    if (elements.wrap && scrollHandler) {
-      LazyUtils.removeEventListenerNode(elements.wrap, 'scroll', scrollHandler);
-      scrollHandler = null;
-    }
-
-    // Explicitly remove registered event listeners
-    if (carousel) {
-      if (clickHandler) {
-        LazyUtils.removeEventListenerNode(carousel, 'click', clickHandler);
-        clickHandler = null;
-      }
-
-      if (wheelHandler) {
-        LazyUtils.removeEventListenerNode(carousel, 'wheel', wheelHandler);
-        wheelHandler = null;
-      }
-
-      if (touchStartHandler) {
-        LazyUtils.removeEventListenerNode(carousel, 'touchstart', touchStartHandler);
-        touchStartHandler = null;
-      }
-
-      if (touchEndHandler) {
-        LazyUtils.removeEventListenerNode(carousel, 'touchend', touchEndHandler);
-        touchEndHandler = null;
-      }
-
-      // Clean up pause event handlers if present
-      if (pauseEventHandler) {
-        LazyUtils.removeEventListenerNode(carousel, 'mouseenter', pauseEventHandler);
-        LazyUtils.removeEventListenerNode(carousel, 'mouseleave', pauseEventHandler);
-        LazyUtils.removeEventListenerNode(carousel, 'touchstart', pauseEventHandler);
-        LazyUtils.removeEventListenerNode(carousel, 'touchend', pauseEventHandler);
-        pauseEventHandler = null;
-      }
-
-      // Clean up window resize handler if fallback was used
-      if (windowResizeHandler) {
-        LazyUtils.removeEventListenerNode(window, 'resize', windowResizeHandler);
-        windowResizeHandler = null;
-      }
-
-      // Use cloneNode as a final safeguard for any listeners we might have missed
-      // This ensures all event listeners are removed
-      const newCarousel = carousel.cloneNode(true);
-      if (carousel.parentNode) {
-        carousel.parentNode.replaceChild(newCarousel, carousel);
-      }
-    }
-
-    // Clear references to DOM elements
-    for (const key in elements) {
-      if (Object.prototype.hasOwnProperty.call(elements, key)) {
-        elements[key] = null;
-      }
-    }
-
-    // Release memory from closure variables
-    slideWidth = 0;
-    lastWindowWidth = 0;
-    isScrolling = false;
-    currentScrollTarget = null;
-  }
-
-  // Public API
-  return {
-    initialize,
-    updateControls,
-    updatePaginationDots,
-    destroy
+    $.eventListener('add', block, 'mouseenter', eventHandler, { passive: true })
+    $.eventListener('add', block, 'mouseleave', eventHandler, { passive: true })
+    $.eventListener('add', block, 'touchstart', eventHandler, { passive: true })
+    $.eventListener('add', block, 'touchend', eventHandler, { passive: true })
   }
 }
 
-/**
- * Initialize carousels with intersection observer for performance
- * @param {string} selector - CSS selector for carousel elements
- */
-const initCarousel = (selector = '.carousel') => {
-  const nodes = document.querySelectorAll(selector);
-  if (!nodes.length) return;
+const handleCarousel = el => {
+  if (!el) return null
 
-  // Handler for carousel intersection
-  const handleCarouselIntersection = (entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const carousel = handleCarousel(entry.target);
-        if (carousel) window.requestAnimationFrame(() => carousel.initialize());
+  const elements = CarouselDOM.init(el)
+  if (!elements.block) return null
 
-        observer.unobserve(entry.target); // Stop observing after it's initialized
-      }
-    })
+  CarouselDOM.initCarousel()
+
+  const navigationHandler = e => {
+    CarouselNavigation.handleNavigation(e, undefined)
   }
 
-  const observer = Utils.createObserver(handleCarouselIntersection);
+  const touchscreenHandler = e => {
+    CarouselTouch.handleTouchscreenPoints(e)
+  }
+
+  const touchpadHandler = e => {
+    CarouselTouch.handleTouchpadPoints(e)
+  }
+
+  const handleResponsiveChanges = () => {
+    CarouselEffects.hideControls(elements)
+    CarouselPagination.hidePaginationDots()
+
+    // Check if all controls should be hidden after the above calls
+    const element = elements.wrap
+    const clientX = element.clientWidth
+    const totalItems = elements.items.length
+    // Use CSS-defined slide width instead of computed width to avoid fractional issues
+    const itemWidth = CarouselUtils.getSlideWidth(elements.block)
+    const gap = CarouselUtils.getGapValue(element)
+
+    // Calculate total content width precisely (consistent with hideControls)
+    const totalContentWidth = (totalItems * itemWidth) + ((totalItems - 1) * gap)
+    const hasContentOverflow = totalContentWidth > clientX
+    const shouldHideAllControls = !hasContentOverflow
+
+
+    // If controls should be hidden, reset pagination state and return
+    if (shouldHideAllControls) {
+
+      // Reset all dots to inactive state when controls are hidden
+      elements.dots.forEach(dot => {
+        $.toggleClass(dot, CarouselConfig.modifier.active, false)
+      })
+
+      return
+    }
+
+    // Only do responsive recalculation if controls should be visible
+    const currentScroll = element.scrollLeft
+    const currentPosition = Math.round(currentScroll / itemWidth) + 1
+
+    // Update pagination to reflect current scroll position
+    const visibleDots = [...elements.dots].filter(dot =>
+      !dot.classList.contains(CarouselConfig.modifier.hidden)
+    )
+    const maxValidPosition = visibleDots.length
+    const validPosition = Math.min(currentPosition, maxValidPosition)
+
+    CarouselPagination.updatePagination(null, validPosition)
+  }
+
+  CarouselTimer.startTimer()
+  CarouselTimer.setupPauseAutoRotate()
+  handleResponsiveChanges()
+  CarouselEffects.updateOverlay(1)
+
+  elements.dots.forEach(dot => {
+    $.eventListener('add', dot, 'click', navigationHandler)
+  })
+
+  elements.btns.forEach(btn => {
+    $.eventListener('add', btn, 'click', navigationHandler)
+  })
+  $.eventListener('add', document, 'wheel', touchpadHandler, { passive: true })
+  $.eventListener('add', document, 'touchstart', touchscreenHandler, { passive: true })
+  $.eventListener('add', document, 'touchend', touchscreenHandler, { passive: true })
+  // Use ResizeObserver for better performance with connection-aware settings
+  const laggy = $.slowConnection() && $.is($.slowConnection, 'function')
+  const resizeObserver = $.resizeObserver(() => {
+    handleResponsiveChanges()
+  }, {
+    element: elements.wrap,
+    debounceTime: laggy ? 300 : 150 // Longer debounce on slow connections
+  })
+
+  const cleanup = () => {
+    elements.dots.forEach(dot => {
+      $.eventListener('remove', dot, 'click', navigationHandler)
+    })
+
+    elements.btns.forEach(btn => {
+      $.eventListener('remove', btn, 'click', navigationHandler)
+    })
+    $.eventListener('remove', document, 'wheel', touchpadHandler, { passive: true })
+    $.eventListener('remove', document, 'touchstart', touchscreenHandler, { passive: true })
+    $.eventListener('remove', document, 'touchend', touchscreenHandler, { passive: true })
+
+    if (resizeObserver && $.is(resizeObserver.cleanup, 'function')) {
+      resizeObserver.cleanup()
+    }
+
+    CarouselDOM.cleanup()
+    return null
+  }
+
+  return cleanup
+}
+
+const initAllCarousels = () => {
+  const nodes = document.querySelectorAll(CarouselConfig.selector.carousel)
+  if (!nodes.length) return null
+
+  const cleanupHandlers = []
 
   nodes.forEach(node => {
-    observer
-      ? observer.observe(node) // If we have an observer, use it to lazy-initialize carousels
-      : window.requestAnimationFrame(() => handleCarousel(node)?.initialize()) // Fallback for browsers without IntersectionObserver
+    const cleanup = handleCarousel(node)
+    if (!cleanup) return null
+    cleanupHandlers.push(cleanup)
   })
+
+  const handleCleanup = () => {
+    cleanupHandlers.forEach(cleanup => {
+      if ($.is(cleanup, 'function')) cleanup()
+    })
+    cleanupHandlers.length = 0
+    return null
+  }
+
+  return handleCleanup
+}
+
+const handleCarousels = () => {
+  $.cleanup('cleanupCarousels', initAllCarousels)
+}
+
+const initCarousel = () => {
+  const delay = CarouselConfig.time.slowConnectionDelay,
+        laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
+        setDelay = laggy ? delay * 2 : delay
+
+  $.is($.requestIdle, 'function')
+    ? $.requestIdle(handleCarousels, { timeout: CarouselConfig.time.idleTimeout })
+    : setTimeout(handleCarousels, setDelay)
 }
 
 initCarousel()
