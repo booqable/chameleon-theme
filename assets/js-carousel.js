@@ -45,7 +45,9 @@ const CarouselConfig = {
     ariaLabel: 'aria-label',
     ariaLive: 'aria-live',
     ariaAtomic: 'aria-atomic',
-    tabIndex: 'tabindex'
+    tabIndex: 'tabindex',
+    defaultColor: 'data-default-color',
+    overlayColor: 'data-overlay-color'
   },
   viewport: {
     mobileBreakpoint: 992
@@ -507,38 +509,76 @@ const CarouselRenderer = {
     $.frameSequence(readCounter, writeCounter)
   },
 
+  updateOverlayColor(carousel, activeIndex) {
+    const read = () => {
+      const carouselType = CarouselCalculator.getCarouselType(carousel)
+      if (carouselType !== CarouselConfig.carouselTypes.huge) return null // Only apply to Huge carousels
+
+      const defaultColor = carousel.getAttribute(CarouselConfig.attr.defaultColor),
+            items = carousel.querySelectorAll(CarouselConfig.selector.item),
+            currentSlide = items[activeIndex],
+            attributeValue = currentSlide.getAttribute(CarouselConfig.attr.overlayColor),
+            overlayColor = currentSlide ? attributeValue : null
+
+      return { defaultColor, overlayColor, shouldUpdate: defaultColor !== null }
+    }
+
+    const write = (data) => {
+      if (!data || !data.shouldUpdate) return
+
+      const { defaultColor, overlayColor } = data
+      const setCss = (elem, color) => {
+        elem.style.setProperty('--overlay-color', color)
+        elem.style.setProperty('--overlay-color-08', `${color}24`)
+        elem.style.setProperty('--overlay-color-45', `${color}73`)
+      }
+
+      if (!overlayColor) {
+        setCss(carousel, defaultColor)
+      } else {
+        // Compare colors (case-insensitive, trim whitespace)
+        const normalizedDefault = defaultColor.trim().toLowerCase(),
+              normalizedOverlay = overlayColor.trim().toLowerCase()
+
+        normalizedDefault === normalizedOverlay
+          ? setCss(carousel, defaultColor)
+          : setCss(carousel, overlayColor)
+      }
+    }
+
+    $.frameSequence(read, write)
+  },
+
   showControls(carousel) {
-    // Read-then-write operation - use frameSequence
-    const readControls = () => {
+    const read = () => {
       return {
         navigation: carousel.querySelector(CarouselConfig.selector.navigation),
         pagination: carousel.querySelector(CarouselConfig.selector.pagination)
       }
     }
 
-    const writeControls = (controls) => {
+    const write = (controls) => {
       if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, false)
       if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, false)
     }
 
-    $.frameSequence(readControls, writeControls)
+    $.frameSequence(read, write)
   },
 
   hideControls(carousel) {
-    // Read-then-write operation - use frameSequence
-    const readControls = () => {
+    const read = () => {
       return {
         navigation: carousel.querySelector(CarouselConfig.selector.navigation),
         pagination: carousel.querySelector(CarouselConfig.selector.pagination)
       }
     }
 
-    const writeControls = (controls) => {
+    const write = (controls) => {
       if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, true)
       if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, true)
     }
 
-    $.frameSequence(readControls, writeControls)
+    $.frameSequence(read, write)
   }
 }
 
@@ -947,6 +987,13 @@ const CarouselController = {
           this.updateVisibility()
           this.startAutoScroll()
           CarouselAccessibility.setupAccessibility(this)
+
+          // Initialize overlay color for Huge carousel
+          const carouselType = CarouselCalculator.getCarouselType(this.carousel)
+          if (carouselType === CarouselConfig.carouselTypes.huge) {
+            CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
+          }
+
           this.markInitialized()
         } catch (error) {
           console.error('Carousel: Failed to initialize', error)
@@ -1089,9 +1136,9 @@ const CarouselController = {
 
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
 
-          // Update counter for Huge carousel
           if (carouselType === CarouselConfig.carouselTypes.huge) {
             CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
+            CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
           }
 
           // Announce slide change for accessibility
@@ -1212,9 +1259,9 @@ const CarouselController = {
 
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
 
-          // Update counter for Huge carousel
           if (carouselType === CarouselConfig.carouselTypes.huge) {
             CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
+            CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
           }
         }
 
