@@ -1,0 +1,17 @@
+{
+  "name": "chameleon-theme",
+  "private": true,
+  "scripts": {
+    "lint": "eslint assets/**/*.js",
+    "lint:fix": "eslint assets/**/*.js --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@stylistic/eslint-plugin": "^4.4.1",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
