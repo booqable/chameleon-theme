@@ -3,7 +3,6 @@
  *
  * High-performance carousel with transform translate approach.
  * Supports navigation buttons, pagination dots, and auto-scroll with hover pause.
- * Uses CSS variables for responsive slide widths and gap calculation.
  *
  * @requires js-utils-core.js
  */
@@ -17,7 +16,18 @@ const CarouselConfig = {
     pagination: '.carousel__pagination',
     prevBtn: '.carousel__btn.prev',
     nextBtn: '.carousel__btn.next',
-    dot: '.carousel__dot'
+    dot: '.carousel__dot',
+    counter: '.carousel__counter',
+    count: '.carousel__count'
+  },
+  carouselTypes: {
+    small: 'small',
+    big: 'big',
+    huge: 'huge'
+  },
+  typeSelectors: {
+    huge: '.carousel__edges',
+    big: '.carousel__full-width'
   },
   classes: {
     hidden: 'hidden',
@@ -25,7 +35,9 @@ const CarouselConfig = {
     initialized: 'initialized',
     paused: 'carousel__pause',
     swiping: 'carousel__swiping',
-    reduced: 'carousel__reduced-motion'
+    reduced: 'carousel__reduced-motion',
+    show: 'show',
+    hide: 'hide'
   },
   attr: {
     timer: 'data-carousel-timer',
@@ -150,10 +162,33 @@ const CarouselDOM = {
 }
 
 const CarouselCalculator = {
+  getCarouselType(carousel) {
+    try {
+      if (carousel.classList.contains('carousel__edges')) {
+        return CarouselConfig.carouselTypes.huge
+      }
+      if (carousel.classList.contains('carousel__full-width')) {
+        return CarouselConfig.carouselTypes.big
+      }
+      return CarouselConfig.carouselTypes.small
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to determine carousel type', error)
+      return CarouselConfig.carouselTypes.small
+    }
+  },
+
   getSlideWidth(carousel) {
     try {
       if (!carousel) return 294 // Safe fallback
 
+      const carouselType = this.getCarouselType(carousel)
+
+      // Big and Huge carousels: use full container width
+      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
+        return carousel.offsetWidth
+      }
+
+      // Small carousel: use CSS variables
       const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint
       const cacheKey = `slideWidth-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
       let cachedWidth = CarouselCache.get(cacheKey)
@@ -193,7 +228,8 @@ const CarouselCalculator = {
       if (!wrapper) return 16
 
       const computedStyle = getComputedStyle(wrapper)
-      const gap = parseInt(computedStyle.gap) || 16
+      const gapValue = computedStyle.gap
+      const gap = gapValue === '0px' ? 0 : parseInt(gapValue)
 
       // Validate the result
       if (gap < 0 || gap > 200) {
@@ -235,23 +271,44 @@ const CarouselCalculator = {
   },
 
   getVisibleSlidesCount(carousel) {
-    const carouselWidth = carousel.offsetWidth
-    const slideWidth = this.getSlideWidth(carousel)
-    const gap = this.getGap(carousel)
-    const horizontalPadding = this.getHorizontalPadding(carousel)
+    try {
+      const carouselType = this.getCarouselType(carousel)
 
-    // Calculate available width inside the wrapper, accounting for padding
-    const availableWidth = carouselWidth - horizontalPadding + gap
-    const slideAndGapWidth = slideWidth + gap
-    const visibleCount = Math.floor(availableWidth / slideAndGapWidth)
+      // Big and Huge carousels always show 1 slide
+      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
+        return 1
+      }
 
-    // Ensure at least 1 slide is visible, but not more than total slides
-    const items = carousel.querySelectorAll(CarouselConfig.selector.item)
-    return Math.max(1, Math.min(visibleCount, items.length))
+      // Small carousel uses the original calculation
+      const carouselWidth = carousel.offsetWidth
+      const slideWidth = this.getSlideWidth(carousel)
+      const gap = this.getGap(carousel)
+      const horizontalPadding = this.getHorizontalPadding(carousel)
+
+      // Calculate available width inside the wrapper, accounting for padding
+      const availableWidth = carouselWidth - horizontalPadding + gap
+      const slideAndGapWidth = slideWidth + gap
+      const visibleCount = Math.floor(availableWidth / slideAndGapWidth)
+
+      // Ensure at least 1 slide is visible, but not more than total slides
+      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+      return Math.max(1, Math.min(visibleCount, items.length))
+    } catch (error) {
+      console.error('CarouselCalculator: Failed to get visible slides count', error)
+      return 1
+    }
   },
 
   getMaxTranslateIndex(carousel, totalSlides) {
     try {
+      const carouselType = this.getCarouselType(carousel)
+
+      // Big and Huge carousels: max index is totalSlides - 1 (can navigate to each slide)
+      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
+        return Math.max(0, totalSlides - 1)
+      }
+
+      // Small carousel uses the original calculation
       const carouselWidth = carousel.offsetWidth
       const slideWidth = this.getSlideWidth(carousel)
       const gap = this.getGap(carousel)
@@ -290,6 +347,19 @@ const CarouselCalculator = {
 
   getTranslateValue(carousel, targetIndex) {
     try {
+      const carouselType = this.getCarouselType(carousel)
+
+      // Big and Huge carousels: simple slide-by-slide translation
+      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
+        const slideWidth = this.getSlideWidth(carousel)
+        const gap = this.getGap(carousel)
+        const slideAndGapWidth = slideWidth + gap
+
+        // Simple slide-by-slide translation for 1-slide-visible carousels
+        return -(slideAndGapWidth * targetIndex)
+      }
+
+      // Small carousel uses the original complex calculation
       const slideWidth = this.getSlideWidth(carousel)
       const gap = this.getGap(carousel)
       const carouselWidth = carousel.offsetWidth
@@ -338,7 +408,14 @@ const CarouselCalculator = {
       const items = carousel.querySelectorAll(CarouselConfig.selector.item)
       if (!items.length) return false
 
-      // Detect if ANY content overflows (even 1px)
+      const carouselType = this.getCarouselType(carousel)
+
+      // Big and Huge carousels: show controls if there's more than 1 slide
+      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
+        return items.length > 1
+      }
+
+      // Small carousel: detect if ANY content overflows (even 1px)
       const carouselWidth = carousel.offsetWidth
       const slideWidth = this.getSlideWidth(carousel)
       const gap = this.getGap(carousel)
@@ -369,6 +446,30 @@ const CarouselRenderer = {
     $.batchDOM(applyTransform)
   },
 
+  updateSlideVisibility(carousel, activeIndex) {
+    // Read-then-write operation for Huge carousel with fade effect
+    const readSlides = () => {
+      return carousel.querySelectorAll(CarouselConfig.selector.item)
+    }
+
+    const writeSlides = (items) => {
+      if (!items.length) return
+
+      // Apply show/hide classes for fade effect transitions
+      items.forEach((item, index) => {
+        if (index === activeIndex) {
+          $.toggleClass(item, CarouselConfig.classes.show, true)
+          $.toggleClass(item, CarouselConfig.classes.hide, false)
+        } else {
+          $.toggleClass(item, CarouselConfig.classes.show, false)
+          $.toggleClass(item, CarouselConfig.classes.hide, true)
+        }
+      })
+    }
+
+    $.frameSequence(readSlides, writeSlides)
+  },
+
   updateDots(carousel, activeIndex) {
     // Read-then-write operation - use frameSequence
     const readDots = () => {
@@ -383,6 +484,27 @@ const CarouselRenderer = {
     }
 
     $.frameSequence(readDots, writeDots)
+  },
+
+  updateCounter(carousel, activeIndex, totalSlides) {
+    // Read-then-write operation for counter update
+    const readCounter = () => {
+      return {
+        counter: carousel.querySelector(CarouselConfig.selector.counter),
+        count: carousel.querySelector(CarouselConfig.selector.count)
+      }
+    }
+
+    const writeCounter = (elements) => {
+      const { counter, count } = elements
+      if (!counter || !count) return
+
+      const currentSlide = activeIndex + 1
+      const formattedCurrent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`
+      count.textContent = formattedCurrent
+    }
+
+    $.frameSequence(readCounter, writeCounter)
   },
 
   showControls(carousel) {
@@ -951,9 +1073,26 @@ const CarouselController = {
 
           this.currentIndex = newIndex
 
-          const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
-          CarouselRenderer.setTransform(this.wrapper, translateX)
+          const carouselType = CarouselCalculator.getCarouselType(this.carousel)
+
+          // Check if Huge carousel has fade effect
+          const isHugeFadeEffect = carouselType === CarouselConfig.carouselTypes.huge && this.carousel.classList.contains('carousel__fade-effect')
+
+          if (isHugeFadeEffect) {
+            // Huge carousel with fade effect: use show/hide classes instead of translateX
+            CarouselRenderer.updateSlideVisibility(this.carousel, this.currentIndex)
+          } else {
+            // All other carousels: use translateX for slide effect
+            const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
+            CarouselRenderer.setTransform(this.wrapper, translateX)
+          }
+
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
+
+          // Update counter for Huge carousel
+          if (carouselType === CarouselConfig.carouselTypes.huge) {
+            CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
+          }
 
           // Announce slide change for accessibility
           CarouselAccessibility.announceSlideChange(this)
@@ -1059,9 +1198,24 @@ const CarouselController = {
 
           this.updateVisibility()
 
-          const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
-          CarouselRenderer.setTransform(this.wrapper, translateX)
+          const carouselType = CarouselCalculator.getCarouselType(this.carousel)
+          const isHugeFadeEffect = carouselType === CarouselConfig.carouselTypes.huge && this.carousel.classList.contains('carousel__fade-effect')
+
+          if (isHugeFadeEffect) {
+            // Huge carousel with fade effect: use show/hide classes instead of translateX
+            CarouselRenderer.updateSlideVisibility(this.carousel, this.currentIndex)
+          } else {
+            // All other carousels (Small, Big, Huge with slide effect): use translateX
+            const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
+            CarouselRenderer.setTransform(this.wrapper, translateX)
+          }
+
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
+
+          // Update counter for Huge carousel
+          if (carouselType === CarouselConfig.carouselTypes.huge) {
+            CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
+          }
         }
 
         $.frameSequence(readResize, writeResize)
