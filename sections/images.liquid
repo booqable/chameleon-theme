@@ -119,7 +119,7 @@
     {%- if carousel -%}
     {%- assign timer_val = timer | plus: 0 -%}
 
-    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-default-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery">
+    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-default-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel">
       <div class="carousel__list">
         <div class="carousel__wrapper">
     {%- endif -%}

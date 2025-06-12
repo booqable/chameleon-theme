@@ -96,7 +96,7 @@
       {%- if carousel -%}
         {%- assign timer_val = timer | plus: 0 -%}
 
-        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Gallery">
+        <div class="carousel carousel__full-width carousel__pause{% if show_pagination or show_navigation %} carousel--controls{%- endif -%}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel">
           <div class="carousel__list">
             <div class="carousel__wrapper">
       {%- endif -%}

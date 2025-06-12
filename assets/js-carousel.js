@@ -14,8 +14,8 @@ const CarouselConfig = {
     item: '.carousel__item',
     navigation: '.carousel__navigation',
     pagination: '.carousel__pagination',
-    prevBtn: '.carousel__btn.prev',
-    nextBtn: '.carousel__btn.next',
+    prev: '.carousel__btn.prev',
+    next: '.carousel__btn.next',
     dot: '.carousel__dot',
     counter: '.carousel__counter',
     count: '.carousel__count'
@@ -24,10 +24,6 @@ const CarouselConfig = {
     small: 'small',
     big: 'big',
     huge: 'huge'
-  },
-  typeSelectors: {
-    huge: '.carousel__edges',
-    big: '.carousel__full-width'
   },
   classes: {
     hidden: 'hidden',
@@ -41,7 +37,6 @@ const CarouselConfig = {
   },
   attr: {
     timer: 'data-carousel-timer',
-    index: 'data-index',
     ariaLabel: 'aria-label',
     ariaLive: 'aria-live',
     ariaAtomic: 'aria-atomic',
@@ -57,17 +52,14 @@ const CarouselConfig = {
   },
   touch: {
     threshold: 50,
-    resistance: 0.25,
-    maxVelocity: 2000,
-    momentumDeceleration: 0.0006
+    resistance: 0.25
   },
   cache: {
     maxSize: 50,
     ttl: 30000 // 30 seconds
   },
   accessibility: {
-    announceDelay: 100,
-    focusDelay: 300
+    announceDelay: 100
   }
 }
 
@@ -440,21 +432,18 @@ const CarouselCalculator = {
 
 const CarouselRenderer = {
   setTransform(wrapper, translateX) {
-    // Pure write operation - use batchDOM
     const applyTransform = () => {
       wrapper.style.transform = `translateX(${translateX}px)`
     }
-
     $.batchDOM(applyTransform)
   },
 
   updateSlideVisibility(carousel, activeIndex) {
-    // Read-then-write operation for Huge carousel with fade effect
-    const readSlides = () => {
+    const read = () => {
       return carousel.querySelectorAll(CarouselConfig.selector.item)
     }
 
-    const writeSlides = (items) => {
+    const write = (items) => {
       if (!items.length) return
 
       // Apply show/hide classes for fade effect transitions
@@ -469,44 +458,42 @@ const CarouselRenderer = {
       })
     }
 
-    $.frameSequence(readSlides, writeSlides)
+    $.frameSequence(read, write)
   },
 
   updateDots(carousel, activeIndex) {
-    // Read-then-write operation - use frameSequence
-    const readDots = () => {
+    const read = () => {
       return carousel.querySelectorAll(CarouselConfig.selector.dot)
     }
 
-    const writeDots = (dots) => {
+    const write = (dots) => {
       if (!dots.length) return
       dots.forEach((dot, index) => {
         $.toggleClass(dot, CarouselConfig.classes.active, index === activeIndex)
       })
     }
 
-    $.frameSequence(readDots, writeDots)
+    $.frameSequence(read, write)
   },
 
-  updateCounter(carousel, activeIndex, totalSlides) {
-    // Read-then-write operation for counter update
-    const readCounter = () => {
+  updateCounter(carousel, activeIndex) {
+    const read = () => {
       return {
         counter: carousel.querySelector(CarouselConfig.selector.counter),
         count: carousel.querySelector(CarouselConfig.selector.count)
       }
     }
 
-    const writeCounter = (elements) => {
+    const write = (elements) => {
       const { counter, count } = elements
       if (!counter || !count) return
 
-      const currentSlide = activeIndex + 1
-      const formattedCurrent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`
+      const currentSlide = activeIndex + 1,
+            formattedCurrent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`
       count.textContent = formattedCurrent
     }
 
-    $.frameSequence(readCounter, writeCounter)
+    $.frameSequence(read, write)
   },
 
   updateOverlayColor(carousel, activeIndex) {
@@ -753,11 +740,8 @@ const CarouselAccessibility = {
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         $.toggleClass(instance.carousel, CarouselConfig.classes.reduced, true)
         // Reduce animation duration
-        instance.wrapper.style.setProperty('--carousel-duration', `${CarouselConfig.animation.reducedDuration}ms`)
+        instance.wrapper.style.setProperty('--animation-duration', `${CarouselConfig.animation.reducedDuration}ms`)
       }
-
-      // Setup ARIA attributes
-      instance.carousel.setAttribute(CarouselConfig.attr.ariaLabel, 'Carousel')
 
       // Setup live region for announcements
       this.setupLiveRegion(instance)
@@ -922,8 +906,8 @@ const CarouselController = {
   createInstance(carousel) {
     const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
     const items = carousel.querySelectorAll(CarouselConfig.selector.item)
-    const prevBtn = carousel.querySelector(CarouselConfig.selector.prevBtn)
-    const nextBtn = carousel.querySelector(CarouselConfig.selector.nextBtn)
+    const prevBtn = carousel.querySelector(CarouselConfig.selector.prev)
+    const nextBtn = carousel.querySelector(CarouselConfig.selector.next)
     const dots = carousel.querySelectorAll(CarouselConfig.selector.dot)
     const timerAttr = carousel.getAttribute(CarouselConfig.attr.timer)
 
@@ -1030,7 +1014,7 @@ const CarouselController = {
           $.eventListener('add', this.nextBtn, 'click', this.eventHandlers.next)
         }
 
-        if (this.timer > 0) {
+        if (this.timer > 0 && this.carousel.classList.contains(CarouselConfig.classes.paused)) {
           this.eventHandlers.mouseenter = () => this.pauseAutoScroll()
           this.eventHandlers.mouseleave = () => this.resumeAutoScroll()
           this.eventHandlers.touchstart = () => this.pauseAutoScroll()
@@ -1278,7 +1262,7 @@ const CarouselController = {
           })
 
           // Remove hover/touch handlers for auto-scroll
-          if (this.timer > 0) {
+          if (this.timer > 0 && this.carousel.classList.contains(CarouselConfig.classes.paused)) {
             if (this.eventHandlers.mouseenter) {
               $.eventListener('remove', this.carousel, 'mouseenter', this.eventHandlers.mouseenter)
             }
