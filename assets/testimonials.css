@@ -65,15 +65,6 @@
   padding: 0 24px;
 }
 
-.testimonials .carousel__wrapper {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.testimonials .carousel__item {
-  padding: 0 var(--horzontal-padding, 16px);
-}
-
 .palette-one.testimonials__wrapper {
   background: var(--background-primary, #0B1A26);
 }
@@ -162,11 +153,5 @@
 
   .testimonials__image-wrapper {
     padding-bottom: 0;
-  }
-}
-
-@media (min-width: 1273px) {
-  .testimonials .carousel__item {
-    padding: 0;
   }
 }

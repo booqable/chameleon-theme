@@ -35,12 +35,6 @@
   padding: 0;
 }
 
-/* Performance optimization for off-screen slides */
-.carousel__item--offscreen {
-  contain: layout style paint; /* Use contain to reduce rendering cost of off-screen slides */
-  contain-intrinsic-size: var(--slide-width-mobile) 400px; /* Approximate size placeholder to avoid layout shifts */
-}
-
 .carousel__pagination {
   position: absolute;
   left: 0;
@@ -126,13 +120,13 @@
   height: 100%;
 }
 
-.carousel__full-width .carousel__item:last-child {
-  min-width: var(--slide-width-mobile);
-  max-width: var(--slide-width-mobile);
+.carousel__full-width .carousel__wrapper {
+  padding-left: 0;
+  padding-right: 0;
 }
 
-.carousel__full-width .carousel__inner {
-  padding-right: 16px;
+.carousel__full-width .carousel__item {
+  padding: 0 var(--horzontal-padding, 16px);
 }
 
 .carousel__edges {
@@ -140,19 +134,20 @@
   margin: 0;
 }
 
-.carousel__edges .carousel__item:last-child {
-  min-width: var(--slide-width-mobile);
-  max-width: var(--slide-width-mobile);
+.carousel__edges .carousel__wrapper {
+  padding: 0;
+  width: 100%;
+  margin: 0;
+  gap: 0;
+}
+
+.carousel__edges .carousel__inner {
+  display: flex;
+  align-items: stretch;
 }
 
 .carousel__edges .carousel__item:not(:first-child) {
   display: none;
-}
-
-.carousel__edges .carousel__inner,
-.carousel__edges .carousel__item:last-child .carousel__inner {
-  display: flex;
-  align-items: stretch;
 }
 
 .carousel__edges .carousel__item.show {
@@ -203,6 +198,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+        border-color var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__edges .carousel__btn svg {
@@ -252,6 +249,7 @@
   align-items: center;
   font-size: 18px;
   padding: 0 16px;
+  transition: color var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .carousel__edges .carousel__divider {
@@ -417,23 +415,9 @@
     max-width: var(--slide-width);
   }
 
-  .carousel__item--offscreen {
-    contain-intrinsic-size: var(--slide-width) 400px;
-  }
-
-  .carousel__full-width .carousel__inner {
-    padding-right: 24px;
-  }
-
   .carousel__edges {
     width: 100%;
     margin: 0;
-  }
-
-  .carousel__edges .carousel__item,
-  .carousel__edges .carousel__item:last-child {
-    min-width: var(--slide-width);
-    max-width: var(--slide-width);
   }
 
   .carousel__edges .images__text-area {
@@ -501,8 +485,7 @@
     margin: 0 -4px;
   }
 
-  .carousel__full-width .carousel__item:last-child .carousel__inner,
-  .carousel__full-width .carousel__inner {
+  .carousel__full-width .carousel__item {
     padding: 0;
   }
 }
