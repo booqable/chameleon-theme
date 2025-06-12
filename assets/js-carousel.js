@@ -549,7 +549,7 @@ const CarouselRenderer = {
     $.frameSequence(read, write)
   },
 
-  showControls(carousel) {
+  toggleControls(carousel, shouldHide) {
     const read = () => {
       return {
         navigation: carousel.querySelector(CarouselConfig.selector.navigation),
@@ -558,24 +558,8 @@ const CarouselRenderer = {
     }
 
     const write = (controls) => {
-      if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, false)
-      if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, false)
-    }
-
-    $.frameSequence(read, write)
-  },
-
-  hideControls(carousel) {
-    const read = () => {
-      return {
-        navigation: carousel.querySelector(CarouselConfig.selector.navigation),
-        pagination: carousel.querySelector(CarouselConfig.selector.pagination)
-      }
-    }
-
-    const write = (controls) => {
-      if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, true)
-      if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, true)
+      if (controls.navigation) $.toggleClass(controls.navigation, CarouselConfig.classes.hidden, shouldHide)
+      if (controls.pagination) $.toggleClass(controls.pagination, CarouselConfig.classes.hidden, shouldHide)
     }
 
     $.frameSequence(read, write)
@@ -1180,11 +1164,7 @@ const CarouselController = {
         }
 
         const writeVisibility = (shouldShow) => {
-          if (shouldShow) {
-            CarouselRenderer.showControls(this.carousel)
-          } else {
-            CarouselRenderer.hideControls(this.carousel)
-          }
+          CarouselRenderer.toggleControls(this.carousel, !shouldShow)
         }
 
         $.frameSequence(readVisibility, writeVisibility)
