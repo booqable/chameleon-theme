@@ -1,0 +1,21 @@
+{
+  "name": "chameleon-theme",
+  "private": true,
+  "scripts": {
+    "eslint": "eslint assets/**/*.js",
+    "eslint:fix": "eslint assets/**/*.js --fix",
+    "stylelint": "stylelint assets/**/*.css",
+    "stylelint:fix": "stylelint assets/**/*.css --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@stylistic/eslint-plugin": "^4.4.1",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
