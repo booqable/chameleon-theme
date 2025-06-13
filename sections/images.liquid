@@ -30,13 +30,6 @@
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
-    {%- if carousel -%}
-      --slide-width: 100%;
-      --slide-width-mobile: 100%;
-    {%- else -%}
-      --overlay-color: {{- overlay_color -}};
-    {%- endif -%}
-
     {%- case height -%}
       {%- when 'small' -%}
         --height: 640px;
@@ -84,6 +77,15 @@
         --padding-bottom-mobile: 40px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- capture slide_variables -%}
+    {%- if carousel -%}
+      --slide-width: 100%;
+      --slide-width-mobile: 100%;
+    {%- else -%}
+      --overlay-color: {{- overlay_color -}};
+    {%- endif -%}
+  {%- endcapture -%}
   {% comment %} CSS variables end {% endcomment %}
 
   {%- assign default_color = nil -%}
@@ -115,8 +117,10 @@
 
   <div class="images__wrapper{% if full_width %} images__wrapper-full-width{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} section-with-date-picker{% endif %}{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}">
     {%- if carousel -%}
-      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-label="Gallery" data-dafault-color="{{- default_color -}}">
-        <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
+    {%- assign timer_val = timer | plus: 0 -%}
+
+    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-default-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel">
+      <div class="carousel__list">
         <div class="carousel__wrapper">
     {%- endif -%}
 
@@ -132,6 +136,7 @@
             {%- assign text_position        = block.settings.text_position -%}
             {%- assign text_position_mobile = block.settings.text_position_mobile -%}
             {%- assign video_url            = block.settings.video_url | strip -%}
+            {%- assign index                = forloop.index -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
             {%- assign image_alt            = block.settings.image_alt -%}
@@ -319,7 +324,7 @@
             {% comment %} CSS variables end {% endcomment %}
 
             {%- if carousel -%}
-              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{%- endif -%}>
+              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} data-index="{{- index -}}" aria-label="Slide {{ index }}">
                 <div class="carousel__inner">
             {%- endif -%}
                   <div
@@ -437,39 +442,40 @@
 
     {%- if carousel -%}
         </div>
-
-        <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
-          <span class="carousel__btn prev" aria-label="Prev slide">
-            Previous slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-          <span class="carousel__btn next" aria-label="Next slide">
-            Next slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-        </div>
-
-        <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
-          {%- for block in blocks -%}
-            {%- assign first = forloop.first -%}
-            {%- assign index = forloop.index -%}
-
-            <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
-              Go to slide {{ index -}}
-            </span>
-          {%- endfor -%}
-        </div>
-
-        <div class="carousel__counter">
-          {%- for block in blocks -%}
-            {%- assign length = forloop.length -%}
-          {%- endfor -%}
-
-          <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
-          <span class="carousel__divider">|</span>
-          <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
-        </div>
       </div>
+
+      <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
+        <span class="carousel__btn prev" aria-label="Prev slide">
+          Previous slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
+        <span class="carousel__btn next" aria-label="Next slide">
+          Next slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
+      </div>
+
+      <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
+        {%- for block in blocks -%}
+          {%- assign first = forloop.first -%}
+          {%- assign index = forloop.index -%}
+
+          <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
+            Go to slide {{ index -}}
+          </span>
+        {%- endfor -%}
+      </div>
+
+      <div class="carousel__counter">
+        {%- for block in blocks -%}
+          {%- assign length = forloop.length -%}
+        {%- endfor -%}
+
+        <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
+        <span class="carousel__divider">|</span>
+        <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
+      </div>
+    </div>
     {%- endif -%}
 
     {%- if datepicker_position == "bottom" -%}

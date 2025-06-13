@@ -44,13 +44,6 @@
   object-fit: cover;
 }
 
-.images .carousel__wrapper {
-  padding-bottom: 0;
-  width: 100%;
-  margin: 0;
-  scroll-padding: 0;
-}
-
 .images__wrapper-full-width .images__vision-wrapper {
   max-width: none;
 }

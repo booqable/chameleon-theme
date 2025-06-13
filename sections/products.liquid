@@ -90,6 +90,13 @@
         --padding-bottom-mobile: 60px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- if carousel -%}
+    {%- capture slide_variables -%}
+      --slide-width: 294px;
+      --slide-width-mobile: 298px;
+    {%- endcapture -%}
+  {%- endif -%}
   {% comment %} CSS variables end {% endcomment %}
 
   <div
@@ -97,13 +104,19 @@
     style="{{- variables | escape -}}"
   >
     <div class="products__container container">
-      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %} aria-label="Gallery"{% endif %}>
+      {%- if carousel -%}
+        {%- assign timer_val = timer | plus: 0 -%}
+      {%- endif -%}
+
+      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel"{%- endif -%}>
         {%- if carousel -%}
-          <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
-          <div class="carousel__wrapper">
+          <div class="carousel__list">
+            <div class="carousel__wrapper">
         {%- endif -%}
 
             {%- for item in items limit: items_limit -%}
+              {%- assign index = forloop.index -%}
+
               {% case items_type %}
                 {% when "blocks" %}
                   {% assign product = item.settings.product %}
@@ -112,7 +125,7 @@
               {% endcase %}
 
               {%- if carousel -%}
-                <div class="carousel__item">
+                <div class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
               {%- endif -%}
                     {%- render 'product-card',
@@ -126,33 +139,30 @@
             {%- endfor -%}
 
         {%- if carousel -%}
+            </div>
           </div>
 
-          {%- if show_navigation -%}
-            <div class="carousel__navigation hidden" role="navigation" aria-label="Carousel navigation">
-              <span class="carousel__btn prev" aria-label="Prev slide">
-                Previous slide
-                {%- render 'icon-arrow-right-full' -%}
-              </span>
-              <span class="carousel__btn next" aria-label="Next slide">
-                Next slide
-                {%- render 'icon-arrow-right-full' -%}
-              </span>
-            </div>
-          {%- endif -%}
+          <div class="carousel__navigation hidden"{% unless show_navigation %} style="display: none;"{% endunless %} role="navigation" aria-label="Carousel navigation">
+            <span class="carousel__btn prev" aria-label="Prev slide">
+              Previous slide
+              {%- render 'icon-arrow-right-full' -%}
+            </span>
+            <span class="carousel__btn next" aria-label="Next slide">
+              Next slide
+              {%- render 'icon-arrow-right-full' -%}
+            </span>
+          </div>
 
-          {%- if show_pagination -%}
-            <div class="carousel__pagination hidden" role="navigation" aria-label="Carousel pagination">
-              {%- for item in items limit: items_limit -%}
-                {%- assign first = forloop.first -%}
-                {%- assign index = forloop.index -%}
+          <div class="carousel__pagination hidden"{% unless show_pagination %} style="display: none;"{% endunless %} role="navigation" aria-label="Carousel pagination">
+            {%- for item in items limit: items_limit -%}
+              {%- assign first = forloop.first -%}
+              {%- assign index = forloop.index -%}
 
-                <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index }}">
-                  Go to slide {{ index }}
-                </span>
-              {%- endfor -%}
-            </div>
-          {%- endif -%}
+              <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index }}">
+                Go to slide {{ index }}
+              </span>
+            {%- endfor -%}
+          </div>
         {%- endif -%}
       </div>
     </div>
