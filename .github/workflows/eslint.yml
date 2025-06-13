@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  lint:
+  eslint:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,4 +23,4 @@ jobs:
       run: npm ci
 
     - name: Run ESLint
-      run: npm run lint
+      run: npm run eslint
