@@ -10,39 +10,39 @@
 const CarouselConfig = {
   selector: {
     carousel: '.carousel',
-    wrapper: '.carousel__wrapper',
+    count: '.carousel__count',
+    counter: '.carousel__counter',
+    dot: '.carousel__dot',
     item: '.carousel__item',
     navigation: '.carousel__navigation',
     pagination: '.carousel__pagination',
-    prev: '.carousel__btn.prev',
     next: '.carousel__btn.next',
-    dot: '.carousel__dot',
-    counter: '.carousel__counter',
-    count: '.carousel__count'
+    prev: '.carousel__btn.prev',
+    wrapper: '.carousel__wrapper'
   },
   carouselTypes: {
-    small: 'small',
     big: 'big',
-    huge: 'huge'
+    huge: 'huge',
+    small: 'small'
   },
   classes: {
-    hidden: 'hidden',
     active: 'active',
+    hide: 'hide',
+    hidden: 'hidden',
     initialized: 'initialized',
     paused: 'carousel__pause',
-    swiping: 'carousel__swiping',
     reduced: 'carousel__reduced-motion',
     show: 'show',
-    hide: 'hide'
+    swiping: 'carousel__swiping'
   },
   attr: {
-    timer: 'data-carousel-timer',
+    ariaAtomic: 'aria-atomic',
     ariaLabel: 'aria-label',
     ariaLive: 'aria-live',
-    ariaAtomic: 'aria-atomic',
-    tabIndex: 'tabindex',
     defaultColor: 'data-default-color',
-    overlayColor: 'data-overlay-color'
+    overlayColor: 'data-overlay-color',
+    tabIndex: 'tabindex',
+    timer: 'data-carousel-timer'
   },
   viewport: {
     mobileBreakpoint: 992
@@ -51,8 +51,8 @@ const CarouselConfig = {
     reducedDuration: 150
   },
   touch: {
-    threshold: 50,
-    resistance: 0.25
+    resistance: 0.25,
+    threshold: 50
   },
   cache: {
     maxSize: 50,
