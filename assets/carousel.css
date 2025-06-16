@@ -543,3 +543,16 @@
     background: var(--overlay-color, #0B1A26);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__wrapper,
+  .carousel__item,
+  .carousel__edges .carousel__item.show,
+  .carousel__edges .carousel__item.hide,
+  .carousel__dot:after,
+  .carousel__btn,
+  .carousel__btn path,
+  .carousel__edges .carousel__counter {
+    transition-duration: 10ms;
+  }
+}

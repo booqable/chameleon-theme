@@ -18,6 +18,7 @@ const CarouselConfig = {
     pagination: '.carousel__pagination',
     next: '.carousel__btn.next',
     prev: '.carousel__btn.prev',
+    region: '.carousel__live-region',
     wrapper: '.carousel__wrapper'
   },
   carouselTypes: {
@@ -27,11 +28,14 @@ const CarouselConfig = {
   },
   classes: {
     active: 'active',
+    edges: 'carousel__edges',
+    fade: 'carousel__fade-effect',
+    full: 'carousel__full-width',
     hide: 'hide',
     hidden: 'hidden',
     initialized: 'initialized',
-    paused: 'carousel__pause',
-    reduced: 'carousel__reduced-motion',
+    pause: 'carousel__pause',
+    region: 'carousel__live-region',
     show: 'show',
     swiping: 'carousel__swiping'
   },
@@ -44,11 +48,12 @@ const CarouselConfig = {
     tabIndex: 'tabindex',
     timer: 'data-carousel-timer'
   },
+  cssProp: {
+    widthDesktop: '--slide-width',
+    widthMobile: '--slide-width-mobile'
+  },
   viewport: {
     mobileBreakpoint: 992
-  },
-  animation: {
-    reducedDuration: 150
   },
   touch: {
     resistance: 0.25,
@@ -60,6 +65,10 @@ const CarouselConfig = {
   },
   accessibility: {
     announceDelay: 100
+  },
+  width: {
+    desktop: 294,
+    mobile: 298
   }
 }
 
@@ -69,9 +78,7 @@ const CarouselCache = {
   set(key, value) {
     try {
       // Clean up expired entries if cache is getting large
-      if (this.data.size >= CarouselConfig.cache.maxSize) {
-        this.cleanup()
-      }
+      if (this.data.size >= CarouselConfig.cache.maxSize) this.cleanup()
 
       this.data.set(key, {
         value,
@@ -158,10 +165,10 @@ const CarouselDOM = {
 const CarouselCalculator = {
   getCarouselType(carousel) {
     try {
-      if (carousel.classList.contains('carousel__edges')) {
+      if (carousel.classList.contains(CarouselConfig.classes.edges)) {
         return CarouselConfig.carouselTypes.huge
       }
-      if (carousel.classList.contains('carousel__full-width')) {
+      if (carousel.classList.contains(CarouselConfig.classes.full)) {
         return CarouselConfig.carouselTypes.big
       }
       return CarouselConfig.carouselTypes.small
@@ -172,70 +179,77 @@ const CarouselCalculator = {
   },
 
   getSlideWidth(carousel) {
+    const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint,
+          widthDesktop = CarouselConfig.width.desktop,
+          widthMobile = CarouselConfig.width.mobile
+
     try {
-      if (!carousel) return 294 // Safe fallback
+      if (!carousel) return widthDesktop // Safe fallback
 
-      const carouselType = this.getCarouselType(carousel)
+      const carouselType = this.getCarouselType(carousel),
+            isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
 
-      // Big and Huge carousels: use full container width
-      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
-        return carousel.offsetWidth
-      }
+      // Big and Huge carousels have fixed widths
+      if (isBigCarousel || isHugeCarousel) return carousel.offsetWidth
 
-      // Small carousel: use CSS variables
-      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint
+      // Small carousel: calculate based on CSS variable
       const cacheKey = `slideWidth-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
       let cachedWidth = CarouselCache.get(cacheKey)
 
       if (cachedWidth) return cachedWidth
 
-      const slideWidthVar = isMobile ? '--slide-width-mobile' : '--slide-width'
-      const computedStyle = getComputedStyle(carousel)
-      const slideWidthValue = computedStyle.getPropertyValue(slideWidthVar)
-      const slideWidth = parseInt(slideWidthValue) || (isMobile ? 298 : 294)
+      const widthMobileProp = CarouselConfig.cssProp.widthMobile,
+            widthDesktopProp = CarouselConfig.cssProp.widthDesktop,
+            slideWidthVar = isMobile ? widthMobileProp : widthDesktopProp,
+            computedStyle = getComputedStyle(carousel),
+            slideWidthValue = computedStyle.getPropertyValue(slideWidthVar),
+            defaultWidth = isMobile ? widthMobile : widthDesktop,
+            slideWidth = parseInt(slideWidthValue) || defaultWidth
 
-      // Validate the result
       if (slideWidth <= 0 || slideWidth > 2000) {
         console.warn('CarouselCalculator: Invalid slide width detected', slideWidth)
-        return isMobile ? 298 : 294
+        return defaultWidth
       }
 
       CarouselCache.set(cacheKey, slideWidth)
       return slideWidth
     } catch (error) {
       console.error('CarouselCalculator: Failed to get slide width', error)
-      return window.innerWidth < CarouselConfig.viewport.mobileBreakpoint ? 298 : 294
+      return isMobile ? widthMobile : widthDesktop
     }
   },
 
   getGap(carousel) {
-    try {
-      if (!carousel) return 16 // Safe fallback
+    const defaultGap = 16
 
-      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint
-      const cacheKey = `gap-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
+    try {
+      if (!carousel) return defaultGap // Safe fallback
+
+      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint,
+            cacheKey = `gap-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
       let cachedGap = CarouselCache.get(cacheKey)
 
       if (cachedGap !== undefined) return cachedGap
 
       const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
-      if (!wrapper) return 16
+      if (!wrapper) return defaultGap
 
-      const computedStyle = getComputedStyle(wrapper)
-      const gapValue = computedStyle.gap
-      const gap = gapValue === '0px' ? 0 : parseInt(gapValue)
+      const computedStyle = getComputedStyle(wrapper),
+            gapValue = computedStyle.gap,
+            gap = gapValue === '0px' ? 0 : parseInt(gapValue)
 
       // Validate the result
       if (gap < 0 || gap > 200) {
         console.warn('CarouselCalculator: Invalid gap detected', gap)
-        return 16
+        return defaultGap
       }
 
       CarouselCache.set(cacheKey, gap)
       return gap
     } catch (error) {
       console.error('CarouselCalculator: Failed to get gap', error)
-      return 16
+      return defaultGap
     }
   },
 
@@ -246,10 +260,10 @@ const CarouselCalculator = {
       const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
       if (!wrapper) return 0
 
-      const computedStyle = getComputedStyle(wrapper)
-      const paddingLeft = parseInt(computedStyle.paddingLeft) || 0
-      const paddingRight = parseInt(computedStyle.paddingRight) || 0
-      const totalPadding = paddingLeft + paddingRight
+      const computedStyle = getComputedStyle(wrapper),
+            paddingLeft = parseInt(computedStyle.paddingLeft) || 0,
+            paddingRight = parseInt(computedStyle.paddingRight) || 0,
+            totalPadding = paddingLeft + paddingRight
 
       // Validate the result
       if (totalPadding < 0 || totalPadding > 500) {
@@ -266,23 +280,21 @@ const CarouselCalculator = {
 
   getVisibleSlidesCount(carousel) {
     try {
-      const carouselType = this.getCarouselType(carousel)
+      const carouselType = this.getCarouselType(carousel),
+            isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
 
-      // Big and Huge carousels always show 1 slide
-      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
-        return 1
-      }
+      // Big and Huge carousels: always show 1 slide
+      if (isBigCarousel || isHugeCarousel) return 1
 
-      // Small carousel uses the original calculation
-      const carouselWidth = carousel.offsetWidth
-      const slideWidth = this.getSlideWidth(carousel)
-      const gap = this.getGap(carousel)
-      const horizontalPadding = this.getHorizontalPadding(carousel)
-
-      // Calculate available width inside the wrapper, accounting for padding
-      const availableWidth = carouselWidth - horizontalPadding + gap
-      const slideAndGapWidth = slideWidth + gap
-      const visibleCount = Math.floor(availableWidth / slideAndGapWidth)
+      // Small carousel: calculate based on available width
+      const carouselWidth = carousel.offsetWidth,
+            slideWidth = this.getSlideWidth(carousel),
+            gap = this.getGap(carousel),
+            horizontalPadding = this.getHorizontalPadding(carousel),
+            availableWidth = carouselWidth - horizontalPadding + gap,
+            slideAndGapWidth = slideWidth + gap,
+            visibleCount = Math.floor(availableWidth / slideAndGapWidth)
 
       // Ensure at least 1 slide is visible, but not more than total slides
       const items = carousel.querySelectorAll(CarouselConfig.selector.item)
@@ -295,42 +307,31 @@ const CarouselCalculator = {
 
   getMaxTranslateIndex(carousel, totalSlides) {
     try {
-      const carouselType = this.getCarouselType(carousel)
+      const carouselType = this.getCarouselType(carousel),
+            isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
 
       // Big and Huge carousels: max index is totalSlides - 1 (can navigate to each slide)
-      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
-        return Math.max(0, totalSlides - 1)
-      }
+      if (isBigCarousel || isHugeCarousel) return Math.max(0, totalSlides - 1)
 
       // Small carousel uses the original calculation
-      const carouselWidth = carousel.offsetWidth
-      const slideWidth = this.getSlideWidth(carousel)
-      const gap = this.getGap(carousel)
-      const horizontalPadding = this.getHorizontalPadding(carousel)
-
-      // Available width inside the wrapper (accounting for padding)
-      const availableWidth = carouselWidth - horizontalPadding
-
-      // Total width needed for all slides including gaps
-      const totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
+      const carouselWidth = carousel.offsetWidth,
+            slideWidth = this.getSlideWidth(carousel),
+            gap = this.getGap(carousel),
+            horizontalPadding = this.getHorizontalPadding(carousel),
+            availableWidth = carouselWidth - horizontalPadding,
+            totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
 
       // If all content fits in the available space, no translation needed
-      if (totalContentWidth <= availableWidth) {
-        return 0
-      }
+      if (totalContentWidth <= availableWidth) return 0
 
       // Calculate how many slides can start a "viewport window"
-      // A slide can start a viewport if there's enough content after it to fill the viewport
       const slideAndGapWidth = slideWidth + gap
 
-      // Find the last slide that can be the "first visible slide" in a viewport
-      // This happens when: slidePosition + availableWidth >= totalContentWidth
-      // Solving for slidePosition: slidePosition >= totalContentWidth - availableWidth
-      const minLastSlidePosition = totalContentWidth - availableWidth
-      const maxStartingSlideIndex = Math.ceil(minLastSlidePosition / slideAndGapWidth)
-
-      // Ensure we don't exceed the actual number of slides
-      const maxIndex = Math.min(maxStartingSlideIndex, totalSlides - 1)
+      // Find the last slide and pin it to the right side of the carousel
+      const minLastSlidePosition = totalContentWidth - availableWidth,
+            maxStartingSlideIndex = Math.ceil(minLastSlidePosition / slideAndGapWidth),
+            maxIndex = Math.min(maxStartingSlideIndex, totalSlides - 1)
 
       return Math.max(0, maxIndex)
     } catch (error) {
@@ -341,42 +342,37 @@ const CarouselCalculator = {
 
   getTranslateValue(carousel, targetIndex) {
     try {
-      const carouselType = this.getCarouselType(carousel)
+      const carouselType = this.getCarouselType(carousel),
+            isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
 
       // Big and Huge carousels: simple slide-by-slide translation
-      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
-        const slideWidth = this.getSlideWidth(carousel)
-        const gap = this.getGap(carousel)
-        const slideAndGapWidth = slideWidth + gap
+      if (isBigCarousel || isHugeCarousel) {
+        const slideWidth = this.getSlideWidth(carousel),
+              gap = this.getGap(carousel),
+              slideAndGapWidth = slideWidth + gap
 
         // Simple slide-by-slide translation for 1-slide-visible carousels
         return -(slideAndGapWidth * targetIndex)
       }
 
       // Small carousel uses the original complex calculation
-      const slideWidth = this.getSlideWidth(carousel)
-      const gap = this.getGap(carousel)
-      const carouselWidth = carousel.offsetWidth
-      const horizontalPadding = this.getHorizontalPadding(carousel)
-      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
-      const totalSlides = items.length
+      const slideWidth = this.getSlideWidth(carousel),
+            gap = this.getGap(carousel),
+            carouselWidth = carousel.offsetWidth,
+            horizontalPadding = this.getHorizontalPadding(carousel),
+            items = carousel.querySelectorAll(CarouselConfig.selector.item),
+            totalSlides = items.length
 
-      // If targetIndex is 0, always return 0 (no translation needed)
-      if (targetIndex === 0) {
-        return 0
-      }
+      if (targetIndex === 0) return 0
 
       // Available width inside the wrapper (accounting for padding)
-      const availableWidth = carouselWidth - horizontalPadding
-      const slideAndGapWidth = slideWidth + gap
-
-      // Total width needed for all slides including gaps
-      const totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
+      const availableWidth = carouselWidth - horizontalPadding,
+            slideAndGapWidth = slideWidth + gap,
+            totalContentWidth = (slideWidth * totalSlides) + (gap * (totalSlides - 1))
 
       // If all content fits, no translation needed
-      if (totalContentWidth <= availableWidth) {
-        return 0
-      }
+      if (totalContentWidth <= availableWidth) return 0
 
       // Standard translation (slide by slide)
       const standardTranslate = -(slideAndGapWidth * targetIndex)
@@ -385,7 +381,6 @@ const CarouselCalculator = {
       const contentEndPosition = totalContentWidth + standardTranslate
 
       if (contentEndPosition < availableWidth) {
-        // We've translated too far - align content to the right edge instead
         const rightAlignedTranslate = -(totalContentWidth - availableWidth)
         return rightAlignedTranslate
       }
@@ -402,24 +397,20 @@ const CarouselCalculator = {
       const items = carousel.querySelectorAll(CarouselConfig.selector.item)
       if (!items.length) return false
 
-      const carouselType = this.getCarouselType(carousel)
+      const carouselType = this.getCarouselType(carousel),
+            isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
 
       // Big and Huge carousels: show controls if there's more than 1 slide
-      if (carouselType === CarouselConfig.carouselTypes.big || carouselType === CarouselConfig.carouselTypes.huge) {
-        return items.length > 1
-      }
+      if (isBigCarousel || isHugeCarousel) return items.length > 1
 
       // Small carousel: detect if ANY content overflows (even 1px)
-      const carouselWidth = carousel.offsetWidth
-      const slideWidth = this.getSlideWidth(carousel)
-      const gap = this.getGap(carousel)
-      const horizontalPadding = this.getHorizontalPadding(carousel)
-
-      // Available width inside the wrapper
-      const availableWidth = carouselWidth - horizontalPadding
-
-      // Total width needed for all slides including gaps
-      const totalContentWidth = (slideWidth * items.length) + (gap * (items.length - 1))
+      const carouselWidth = carousel.offsetWidth,
+            slideWidth = this.getSlideWidth(carousel),
+            gap = this.getGap(carousel),
+            horizontalPadding = this.getHorizontalPadding(carousel),
+            availableWidth = carouselWidth - horizontalPadding,
+            totalContentWidth = (slideWidth * items.length) + (gap * (items.length - 1))
 
       // Show controls if ANY part of content doesn't fit (even 1px overflow)
       return totalContentWidth > availableWidth
@@ -431,14 +422,14 @@ const CarouselCalculator = {
 }
 
 const CarouselRenderer = {
-  setTransform(wrapper, translateX) {
-    const applyTransform = () => {
-      wrapper.style.transform = `translateX(${translateX}px)`
+  setSlideEffect(wrapper, translate) {
+    const transform = () => {
+      wrapper.style.transform = `translateX(${translate}px)`
     }
-    $.batchDOM(applyTransform)
+    $.batchDOM(transform)
   },
 
-  updateSlideVisibility(carousel, activeIndex) {
+  setFadeEffect(carousel, activeIndex) {
     const read = () => {
       return carousel.querySelectorAll(CarouselConfig.selector.item)
     }
@@ -448,13 +439,14 @@ const CarouselRenderer = {
 
       // Apply show/hide classes for fade effect transitions
       items.forEach((item, index) => {
-        if (index === activeIndex) {
-          $.toggleClass(item, CarouselConfig.classes.show, true)
-          $.toggleClass(item, CarouselConfig.classes.hide, false)
-        } else {
-          $.toggleClass(item, CarouselConfig.classes.show, false)
-          $.toggleClass(item, CarouselConfig.classes.hide, true)
+        const changeClass = (addShow, removeHide) => {
+          $.toggleClass(item, CarouselConfig.classes.show, addShow)
+          $.toggleClass(item, CarouselConfig.classes.hide, removeHide)
         }
+
+        index === activeIndex
+          ? changeClass(true, false)
+          : changeClass(false, true)
       })
     }
 
@@ -488,9 +480,9 @@ const CarouselRenderer = {
       const { counter, count } = elements
       if (!counter || !count) return
 
-      const currentSlide = activeIndex + 1,
-            formattedCurrent = currentSlide < 10 ? `0${currentSlide}` : `${currentSlide}`
-      count.textContent = formattedCurrent
+      const currentIndex = activeIndex + 1,
+            formattedIndex = currentIndex < 10 ? `0${currentIndex}` : `${currentIndex}`
+      count.textContent = formattedIndex
     }
 
     $.frameSequence(read, write)
@@ -557,21 +549,18 @@ const CarouselTouch = {
   handleWheelEvent(instance, event) {
     try {
       // Only handle horizontal scrolling or when shift is held for vertical trackpads
-      const isHorizontalScroll = Math.abs(event.deltaX) > Math.abs(event.deltaY)
-      const isShiftVerticalScroll = event.shiftKey && Math.abs(event.deltaY) > 0
+      const horizontalScroll = Math.abs(event.deltaX) > Math.abs(event.deltaY),
+            verticalScroll = event.shiftKey && Math.abs(event.deltaY) > 0
 
-      if (!isHorizontalScroll && !isShiftVerticalScroll) return
+      if (!horizontalScroll && !verticalScroll) return
 
-      // Prevent default scrolling behavior
       event.preventDefault()
 
-      // Determine scroll direction and amount
-      let deltaX = isHorizontalScroll ? event.deltaX : event.deltaY
+      let deltaX = horizontalScroll ? event.deltaX : event.deltaY
 
       // Normalize wheel delta (different browsers/devices have different scales)
       const normalizedDelta = Math.sign(deltaX) * Math.min(Math.abs(deltaX), 100)
 
-      // Debounce rapid wheel events
       const now = Date.now()
       if (!instance.wheelState) {
         instance.wheelState = {
@@ -581,11 +570,9 @@ const CarouselTouch = {
         }
       }
 
-      // Accumulate delta for smoother experience
       instance.wheelState.accumulatedDelta += normalizedDelta
       instance.wheelState.lastWheelTime = now
 
-      // Clear existing debounce timer
       if (instance.wheelState.debounceTimer) {
         clearTimeout(instance.wheelState.debounceTimer)
       }
@@ -595,34 +582,26 @@ const CarouselTouch = {
         const threshold = 50 // Minimum accumulated delta to trigger navigation
 
         if (Math.abs(instance.wheelState.accumulatedDelta) > threshold) {
-          if (instance.wheelState.accumulatedDelta > 0) {
-            // Scroll right/down - go to next slide
-            if (instance.currentIndex < instance.maxIndex) {
-              instance.goToNext()
-            }
-          } else {
-            // Scroll left/up - go to previous slide
-            if (instance.currentIndex > 0) {
-              instance.goToPrev()
-            }
+          const scrollToLeft = () => {
+            if (instance.currentIndex > 0) instance.goToPrev() // Scroll left/up - go to previous slide
           }
+          const scrollToRight = () => {
+            if (instance.currentIndex < instance.maxIndex) instance.goToNext() // Scroll right/down - go to next slide
+          }
+
+          instance.wheelState.accumulatedDelta > 0 ? scrollToRight() : scrollToLeft()
         }
 
-        // Reset accumulated delta
         instance.wheelState.accumulatedDelta = 0
-      }, 100) // Debounce delay
+      }, 50) // Debounce delay
 
-      // Pause auto-scroll during wheel interaction
       instance.pauseAutoScroll()
-
-      // Resume auto-scroll after a delay
       if (instance.wheelResumeTimer) {
         clearTimeout(instance.wheelResumeTimer)
       }
       instance.wheelResumeTimer = setTimeout(() => {
         instance.resumeAutoScroll()
-      }, 50) // Resume after 100ms of no wheel activity
-
+      }, 250)
     } catch (error) {
       console.error('CarouselTouch: Failed to handle wheel event', error)
     }
@@ -640,10 +619,8 @@ const CarouselTouch = {
         initialTransform: instance.getCurrentTransform()
       }
 
-      // Add swiping class for CSS transitions
       $.toggleClass(instance.carousel, CarouselConfig.classes.swiping, true)
 
-      // Pause auto-scroll during touch
       instance.pauseAutoScroll()
     } catch (error) {
       console.error('CarouselTouch: Failed to handle touch start', error)
@@ -654,11 +631,11 @@ const CarouselTouch = {
     try {
       if (!instance.touch) return
 
-      const touch = event.touches[0]
-      const deltaX = touch.clientX - instance.touch.startX
-      const deltaY = touch.clientY - instance.touch.startY
+      const touch = event.touches[0],
+            deltaX = touch.clientX - instance.touch.startX,
+            deltaY = touch.clientY - instance.touch.startY
 
-      // Check if we're swiping horizontally (not vertically)
+      // Check horizontally swiping
       if (!instance.touch.isDragging && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
         instance.touch.isDragging = true
         event.preventDefault()
@@ -669,17 +646,16 @@ const CarouselTouch = {
 
         // Apply resistance at boundaries
         let resistance = 1
-        const atStart = instance.currentIndex === 0 && deltaX > 0
-        const atEnd = instance.currentIndex === instance.maxIndex && deltaX < 0
+        const start = instance.currentIndex === 0 && deltaX > 0,
+              end = instance.currentIndex === instance.maxIndex && deltaX < 0
 
-        if (atStart || atEnd) {
+        if (start || end) {
           resistance = CarouselConfig.touch.resistance
         }
 
-        const constrainedDelta = deltaX * resistance
-        const newTransform = instance.touch.initialTransform + constrainedDelta
+        const constrainedDelta = deltaX * resistance,
+              newTransform = instance.touch.initialTransform + constrainedDelta
 
-        // Apply transform immediately for smooth tracking
         instance.wrapper.style.transform = `translateX(${newTransform}px)`
         instance.wrapper.style.transition = 'none'
       }
@@ -692,39 +668,34 @@ const CarouselTouch = {
     try {
       if (!instance.touch) return
 
-      const deltaX = instance.touch.currentX - instance.touch.startX
-      const deltaTime = Date.now() - instance.touch.startTime
-      const velocity = Math.abs(deltaX) / deltaTime
+      const deltaX = instance.touch.currentX - instance.touch.startX,
+            deltaTime = Date.now() - instance.touch.startTime,
+            velocity = Math.abs(deltaX) / deltaTime
 
-      // Remove swiping class
       $.toggleClass(instance.carousel, CarouselConfig.classes.swiping, false)
 
-      // Restore transition
       instance.wrapper.style.transition = ''
 
       if (instance.touch.isDragging) {
         // Determine if we should change slides
-        const threshold = CarouselConfig.touch.threshold
-        const shouldChange = Math.abs(deltaX) > threshold || velocity > 0.5
+        const threshold = CarouselConfig.touch.threshold,
+              shouldChange = Math.abs(deltaX) > threshold || velocity > 0.5
 
-        if (shouldChange) {
+        const transformHandler = () => {
           if (deltaX > 0 && instance.currentIndex > 0) {
             instance.goToPrev()
           } else if (deltaX < 0 && instance.currentIndex < instance.maxIndex) {
             instance.goToNext()
           } else {
-            // Snap back to current position
             instance.goToSlide(instance.currentIndex)
           }
-        } else {
-          // Snap back to current position
-          instance.goToSlide(instance.currentIndex)
         }
+
+        shouldChange ? transformHandler() : instance.goToSlide(instance.currentIndex)
 
         event.preventDefault()
       }
 
-      // Resume auto-scroll
       instance.resumeAutoScroll()
       instance.touch = null
     } catch (error) {
@@ -736,21 +707,9 @@ const CarouselTouch = {
 const CarouselAccessibility = {
   setupAccessibility(instance) {
     try {
-      // Check for reduced motion preference
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        $.toggleClass(instance.carousel, CarouselConfig.classes.reduced, true)
-        // Reduce animation duration
-        instance.wrapper.style.setProperty('--animation-duration', `${CarouselConfig.animation.reducedDuration}ms`)
-      }
-
-      // Setup live region for announcements
-      this.setupLiveRegion(instance)
-
-      // Setup keyboard navigation
-      this.setupKeyboardNavigation(instance)
-
-      // Setup focus management
-      this.setupFocusManagement(instance)
+      this.setupLiveRegion(instance) // Setup live region for announcements
+      this.setupKeyboardNavigation(instance) // Setup keyboard navigation
+      this.setupFocusManagement(instance) // Setup focus management
     } catch (error) {
       console.error('CarouselAccessibility: Failed to setup accessibility', error)
     }
@@ -758,11 +717,10 @@ const CarouselAccessibility = {
 
   setupLiveRegion(instance) {
     try {
-      // Create or find live region for announcements
-      let liveRegion = instance.carousel.querySelector('.carousel__live-region')
+      let liveRegion = instance.carousel.querySelector(CarouselConfig.selector.region)
       if (!liveRegion) {
         liveRegion = document.createElement('div')
-        liveRegion.className = 'carousel__live-region'
+        liveRegion.className = CarouselConfig.classes.region
         liveRegion.setAttribute(CarouselConfig.attr.ariaLive, 'polite')
         liveRegion.setAttribute(CarouselConfig.attr.ariaAtomic, 'true')
         liveRegion.style.cssText = 'position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;'
@@ -778,13 +736,12 @@ const CarouselAccessibility = {
     try {
       if (!instance.liveRegion) return
 
-      const currentSlide = instance.currentIndex + 1
-      const totalSlides = instance.totalSlides
-      const message = `Slide ${currentSlide} of ${totalSlides}`
+      const currentSlide = instance.currentIndex + 1,
+            totalSlides = instance.totalSlides,
+            message = `Slide ${currentSlide} of ${totalSlides}`
 
-      // Delay announcement to avoid overwhelming screen readers
       setTimeout(() => {
-        instance.liveRegion.textContent = message
+        instance.liveRegion.textContent = message // Delay announcement to avoid overwhelming screen readers
       }, CarouselConfig.accessibility.announceDelay)
     } catch (error) {
       console.error('CarouselAccessibility: Failed to announce slide change', error)
@@ -816,12 +773,9 @@ const CarouselAccessibility = {
           case ' ':
           case 'Enter':
             event.preventDefault()
-            // Toggle auto-scroll
-            if (instance.isPaused) {
-              instance.resumeAutoScroll()
-            } else {
-              instance.pauseAutoScroll()
-            }
+            instance.isPaused
+              ? instance.resumeAutoScroll()
+              : instance.pauseAutoScroll()
             break
         }
       }
@@ -862,7 +816,6 @@ const CarouselDetection = {
     if (this.observerSetup) return this.observer
 
     const handleResize = () => {
-      // Clear all cached values on resize
       CarouselCache.clear()
 
       CarouselController.instances.forEach(instance => {
@@ -886,9 +839,7 @@ const CarouselDetection = {
   },
 
   cleanup() {
-    if (this.resizeObserverCleanup) {
-      this.resizeObserverCleanup()
-    }
+    if (this.resizeObserverCleanup) this.resizeObserverCleanup()
 
     if (this.resizeHandler) {
       $.eventListener('remove', window, 'resize', this.resizeHandler, { passive: true })
@@ -904,17 +855,17 @@ const CarouselController = {
   instances: [],
 
   createInstance(carousel) {
-    const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
-    const items = carousel.querySelectorAll(CarouselConfig.selector.item)
-    const prevBtn = carousel.querySelector(CarouselConfig.selector.prev)
-    const nextBtn = carousel.querySelector(CarouselConfig.selector.next)
-    const dots = carousel.querySelectorAll(CarouselConfig.selector.dot)
-    const timerAttr = carousel.getAttribute(CarouselConfig.attr.timer)
+    const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper),
+          items = carousel.querySelectorAll(CarouselConfig.selector.item)
 
     if (!wrapper || !items.length) return null
 
-    const visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel)
-    const maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
+    const prevBtn = carousel.querySelector(CarouselConfig.selector.prev),
+          nextBtn = carousel.querySelector(CarouselConfig.selector.next),
+          dots = carousel.querySelectorAll(CarouselConfig.selector.dot),
+          timerAttr = carousel.getAttribute(CarouselConfig.attr.timer),
+          visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel),
+          maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
 
     const instance = {
       carousel,
@@ -952,11 +903,10 @@ const CarouselController = {
           this.setupEventHandlers()
           this.setupTouchHandlers()
           this.setupPagination()
-          this.updateVisibility()
+          this.updateControlsVisibility()
           this.startAutoScroll()
           CarouselAccessibility.setupAccessibility(this)
 
-          // Initialize overlay color for Huge carousel
           const carouselType = CarouselCalculator.getCarouselType(this.carousel)
           if (carouselType === CarouselConfig.carouselTypes.huge) {
             CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
@@ -974,9 +924,8 @@ const CarouselController = {
           if (!transform || transform === 'none') return 0
 
           const matrix = transform.match(/translateX?\(([^)]+)\)/)
-          if (matrix && matrix[1]) {
-            return parseFloat(matrix[1]) || 0
-          }
+          if (matrix && matrix[1]) return parseFloat(matrix[1]) || 0
+
           return 0
         } catch (error) {
           console.error('Carousel: Failed to get current transform', error)
@@ -986,17 +935,14 @@ const CarouselController = {
 
       setupTouchHandlers() {
         try {
-          // Touch event handlers
           this.eventHandlers.touchstart = (event) => CarouselTouch.handleTouchStart(this, event)
           this.eventHandlers.touchmove = (event) => CarouselTouch.handleTouchMove(this, event)
           this.eventHandlers.touchend = (event) => CarouselTouch.handleTouchEnd(this, event)
+          this.eventHandlers.wheel = (event) => CarouselTouch.handleWheelEvent(this, event)
 
           $.eventListener('add', this.wrapper, 'touchstart', this.eventHandlers.touchstart, { passive: false })
           $.eventListener('add', this.wrapper, 'touchmove', this.eventHandlers.touchmove, { passive: false })
           $.eventListener('add', this.wrapper, 'touchend', this.eventHandlers.touchend, { passive: false })
-
-          // Wheel event handler for trackpad/mouse wheel
-          this.eventHandlers.wheel = (event) => CarouselTouch.handleWheelEvent(this, event)
           $.eventListener('add', this.carousel, 'wheel', this.eventHandlers.wheel, { passive: false })
         } catch (error) {
           console.error('Carousel: Failed to setup touch handlers', error)
@@ -1004,17 +950,16 @@ const CarouselController = {
       },
 
       setupEventHandlers() {
-        if (this.prevBtn) {
+        const hasPause = this.carousel.classList.contains(CarouselConfig.classes.pause)
+        const eventPrevClick = () => {
           this.eventHandlers.prev = () => this.goToPrev()
           $.eventListener('add', this.prevBtn, 'click', this.eventHandlers.prev)
         }
-
-        if (this.nextBtn) {
+        const eventNextClick = () => {
           this.eventHandlers.next = () => this.goToNext()
           $.eventListener('add', this.nextBtn, 'click', this.eventHandlers.next)
         }
-
-        if (this.timer > 0 && this.carousel.classList.contains(CarouselConfig.classes.paused)) {
+        const eventPause = () => {
           this.eventHandlers.mouseenter = () => this.pauseAutoScroll()
           this.eventHandlers.mouseleave = () => this.resumeAutoScroll()
           this.eventHandlers.touchstart = () => this.pauseAutoScroll()
@@ -1025,15 +970,16 @@ const CarouselController = {
           $.eventListener('add', this.carousel, 'touchstart', this.eventHandlers.touchstart, { passive: true })
           $.eventListener('add', this.carousel, 'touchend', this.eventHandlers.touchend, { passive: true })
         }
+
+        if (this.prevBtn) eventPrevClick()
+        if (this.nextBtn) eventNextClick()
+        if (this.timer > 0 && hasPause) eventPause()
       },
 
       setupPagination() {
-        // Read-then-write operation for pagination setup
-        const readPagination = () => {
-          // Calculate the current max index for this viewport
+        const read = () => {
           const currentMaxIndex = CarouselCalculator.getMaxTranslateIndex(this.carousel, this.totalSlides)
 
-          // Read DOM elements and current state
           return {
             dots: this.dots,
             maxIndex: currentMaxIndex,
@@ -1041,13 +987,11 @@ const CarouselController = {
           }
         }
 
-        const writePagination = (data) => {
+        const write = (data) => {
           const { dots, maxIndex, existingHandlers } = data
 
-          // Update instance maxIndex
           this.maxIndex = maxIndex
 
-          // Remove existing dot event handlers first
           dots.forEach((dot, index) => {
             if (existingHandlers[index]) {
               $.eventListener('remove', dot, 'click', existingHandlers[index])
@@ -1055,7 +999,6 @@ const CarouselController = {
             }
           })
 
-          // Setup new handlers for valid positions only
           dots.forEach((dot, index) => {
             if (index <= maxIndex) {
               const handler = () => this.goToSlide(index)
@@ -1068,7 +1011,7 @@ const CarouselController = {
           })
         }
 
-        $.frameSequence(readPagination, writePagination)
+        $.frameSequence(read, write)
       },
 
       goToPrev() {
@@ -1088,23 +1031,25 @@ const CarouselController = {
 
           this.currentIndex = newIndex
 
-          const carouselType = CarouselCalculator.getCarouselType(this.carousel)
+          const carouselType = CarouselCalculator.getCarouselType(this.carousel),
+                isHuge = carouselType === CarouselConfig.carouselTypes.huge,
+                isFade = this.carousel.classList.contains('carousel__fade-effect'),
+                isHugeFadeEffect = isHuge && isFade
 
-          // Check if Huge carousel has fade effect
-          const isHugeFadeEffect = carouselType === CarouselConfig.carouselTypes.huge && this.carousel.classList.contains('carousel__fade-effect')
-
-          if (isHugeFadeEffect) {
-            // Huge carousel with fade effect: use show/hide classes instead of translateX
-            CarouselRenderer.updateSlideVisibility(this.carousel, this.currentIndex)
-          } else {
-            // All other carousels: use translateX for slide effect
+          const slideEffectHandler = () => {
             const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
-            CarouselRenderer.setTransform(this.wrapper, translateX)
+            CarouselRenderer.setSlideEffect(this.wrapper, translateX)
           }
+
+          const fadeEffectHandler = () => {
+            CarouselRenderer.setFadeEffect(this.carousel, this.currentIndex)
+          }
+
+          isHugeFadeEffect ? fadeEffectHandler() : slideEffectHandler()
 
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
 
-          if (carouselType === CarouselConfig.carouselTypes.huge) {
+          if (isHuge) {
             CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
             CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
           }
@@ -1120,9 +1065,7 @@ const CarouselController = {
         if (this.timer <= 0) return
 
         this.autoScrollTimer = setInterval(() => {
-          if (!this.isPaused) {
-            this.goToNext()
-          }
+          if (!this.isPaused) this.goToNext()
         }, this.timer)
       },
 
@@ -1135,28 +1078,25 @@ const CarouselController = {
       },
 
       stopAutoScroll() {
-        if (this.autoScrollTimer) {
-          clearInterval(this.autoScrollTimer)
-          this.autoScrollTimer = null
-        }
+        if (!this.autoScrollTimer) return null
+        clearInterval(this.autoScrollTimer)
+        this.autoScrollTimer = null
       },
 
-      updateVisibility() {
-        // Read-then-write operation for visibility check
-        const readVisibility = () => {
+      updateControlsVisibility() {
+        const read = () => {
           return CarouselCalculator.shouldShowControls(this.carousel)
         }
 
-        const writeVisibility = (shouldShow) => {
+        const write = (shouldShow) => {
           CarouselRenderer.toggleControls(this.carousel, !shouldShow)
         }
 
-        $.frameSequence(readVisibility, writeVisibility)
+        $.frameSequence(read, write)
       },
 
       handleResize() {
-        // Read-then-write operation for resize handling
-        const readResize = () => {
+        const read = () => {
           // Force cache invalidation for this specific carousel (both mobile and desktop)
           const carouselId = this.carousel.dataset.carouselId
           CarouselCache.delete(`slideWidth-${carouselId}-mobile`)
@@ -1165,11 +1105,11 @@ const CarouselController = {
           CarouselCache.delete(`gap-${carouselId}-desktop`)
 
           // Read current state and calculate new bounds
-          const oldVisibleSlides = this.visibleSlides
-          const oldMaxIndex = this.maxIndex
-          const newVisibleSlides = CarouselCalculator.getVisibleSlidesCount(this.carousel)
-          const newMaxIndex = CarouselCalculator.getMaxTranslateIndex(this.carousel, this.totalSlides)
-          const boundsChanged = (oldVisibleSlides !== newVisibleSlides || oldMaxIndex !== newMaxIndex)
+          const oldVisibleSlides = this.visibleSlides,
+                oldMaxIndex = this.maxIndex,
+                newVisibleSlides = CarouselCalculator.getVisibleSlidesCount(this.carousel),
+                newMaxIndex = CarouselCalculator.getMaxTranslateIndex(this.carousel, this.totalSlides),
+                boundsChanged = (oldVisibleSlides !== newVisibleSlides || oldMaxIndex !== newMaxIndex)
 
           return {
             newVisibleSlides,
@@ -1179,66 +1119,68 @@ const CarouselController = {
           }
         }
 
-        const writeResize = (data) => {
+        const write = (data) => {
+          console.log('Carousel: Handling resize', data);
+
           const { newVisibleSlides, newMaxIndex, boundsChanged, currentIndex } = data
 
           // Update instance properties
           this.visibleSlides = newVisibleSlides
           this.maxIndex = newMaxIndex
 
-          // If controls are no longer needed (all content fits), reset to beginning
-          if (newMaxIndex === 0) {
+          // If controls are no longer needed, reset to beginning
+          const resetHandler = () => {
             this.currentIndex = 0
-            // Stop auto-scroll when no navigation is needed (performance optimization)
-            this.stopAutoScroll()
-          } else {
-            // Ensure current index is within new bounds
-            if (currentIndex > newMaxIndex) {
-              this.currentIndex = newMaxIndex
-            }
-            // Restart auto-scroll if it was configured and we need navigation
-            if (this.timer > 0 && !this.autoScrollTimer) {
-              this.startAutoScroll()
-            }
+            this.stopAutoScroll() // Stop auto-scroll when no navigation is needed
           }
+
+          const resumeHandler = () => {
+            // Ensure current index is within new bounds
+            if (currentIndex > newMaxIndex) this.currentIndex = newMaxIndex
+
+            // Restart auto-scroll if it was configured and we need navigation
+            if (this.timer > 0 && !this.autoScrollTimer) this.startAutoScroll()
+          }
+
+          newMaxIndex === 0 ? resetHandler() : resumeHandler()
 
           // Update pagination for new bounds (always update if bounds changed)
-          if (boundsChanged) {
-            this.setupPagination()
+          if (boundsChanged) this.setupPagination()
+
+          this.updateControlsVisibility()
+
+          const carouselType = CarouselCalculator.getCarouselType(this.carousel),
+                isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge,
+                isFadeCarousel = this.carousel.classList.contains(CarouselConfig.classes.fade),
+                isHugeFadeEffect = isHugeCarousel && isFadeCarousel
+
+          const fadeEffectHandler = () => {
+            CarouselRenderer.setFadeEffect(this.carousel, this.currentIndex)
           }
-
-          this.updateVisibility()
-
-          const carouselType = CarouselCalculator.getCarouselType(this.carousel)
-          const isHugeFadeEffect = carouselType === CarouselConfig.carouselTypes.huge && this.carousel.classList.contains('carousel__fade-effect')
-
-          if (isHugeFadeEffect) {
-            // Huge carousel with fade effect: use show/hide classes instead of translateX
-            CarouselRenderer.updateSlideVisibility(this.carousel, this.currentIndex)
-          } else {
-            // All other carousels (Small, Big, Huge with slide effect): use translateX
+          const slideEffectHandler = () => {
             const translateX = CarouselCalculator.getTranslateValue(this.carousel, this.currentIndex)
-            CarouselRenderer.setTransform(this.wrapper, translateX)
+            CarouselRenderer.setSlideEffect(this.wrapper, translateX)
           }
+
+          isHugeFadeEffect ? fadeEffectHandler() : slideEffectHandler()
 
           CarouselRenderer.updateDots(this.carousel, this.currentIndex)
 
-          if (carouselType === CarouselConfig.carouselTypes.huge) {
+          if (isHugeCarousel) {
             CarouselRenderer.updateCounter(this.carousel, this.currentIndex, this.totalSlides)
             CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
           }
         }
 
-        $.frameSequence(readResize, writeResize)
+        $.frameSequence(read, write)
       },
 
       markInitialized() {
-        // Pure write operation - use batchDOM
-        const applyInitialized = () => {
+        const initialized = () => {
           $.toggleClass(this.carousel, CarouselConfig.classes.initialized, true)
         }
 
-        $.batchDOM(applyInitialized)
+        $.batchDOM(initialized)
       },
 
       cleanup() {
@@ -1249,7 +1191,6 @@ const CarouselController = {
           if (this.eventHandlers.prev && this.prevBtn) {
             $.eventListener('remove', this.prevBtn, 'click', this.eventHandlers.prev)
           }
-
           if (this.eventHandlers.next && this.nextBtn) {
             $.eventListener('remove', this.nextBtn, 'click', this.eventHandlers.next)
           }
@@ -1262,7 +1203,7 @@ const CarouselController = {
           })
 
           // Remove hover/touch handlers for auto-scroll
-          if (this.timer > 0 && this.carousel.classList.contains(CarouselConfig.classes.paused)) {
+          if (this.timer > 0 && this.carousel.classList.contains(CarouselConfig.classes.pause)) {
             if (this.eventHandlers.mouseenter) {
               $.eventListener('remove', this.carousel, 'mouseenter', this.eventHandlers.mouseenter)
             }
