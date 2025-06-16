@@ -1120,8 +1120,6 @@ const CarouselController = {
         }
 
         const write = (data) => {
-          console.log('Carousel: Handling resize', data);
-
           const { newVisibleSlides, newMaxIndex, boundsChanged, currentIndex } = data
 
           // Update instance properties
