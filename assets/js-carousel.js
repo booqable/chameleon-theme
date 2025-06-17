@@ -344,9 +344,14 @@ const CarouselCalculator = {
     try {
       const carouselType = this.getCarouselType(carousel),
             isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+            isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge,
+            isFadeCarousel = carousel.classList.contains(CarouselConfig.classes.fade),
+            isHugeFadeEffect = isHugeCarousel && isFadeCarousel
 
-      // Big and Huge carousels: simple slide-by-slide translation
+      // Huge carousel with fade effect: no translation needed
+      if (isHugeFadeEffect) return 0
+
+      // Big carousels and Huge carousels with slide effect: simple slide-by-slide translation
       if (isBigCarousel || isHugeCarousel) {
         const slideWidth = this.getSlideWidth(carousel),
               gap = this.getGap(carousel),

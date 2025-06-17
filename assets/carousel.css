@@ -268,6 +268,7 @@
 
 .carousel.carousel__edges.carousel__fade-effect .carousel__wrapper {
   overflow: hidden;
+  transform: none !important;
 }
 
 .carousel-with-date-picker.carousel__edges .carousel__navigation {
@@ -541,18 +542,5 @@
 
   .palette-three .carousel__edges .carousel__dot:hover:after {
     background: var(--overlay-color, #0B1A26);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .carousel__wrapper,
-  .carousel__item,
-  .carousel__edges .carousel__item.show,
-  .carousel__edges .carousel__item.hide,
-  .carousel__dot:after,
-  .carousel__btn,
-  .carousel__btn path,
-  .carousel__edges .carousel__counter {
-    transition-duration: 0ms;
   }
 }
