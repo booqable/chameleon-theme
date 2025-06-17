@@ -553,6 +553,6 @@
   .carousel__btn,
   .carousel__btn path,
   .carousel__edges .carousel__counter {
-    transition-duration: 10ms;
+    transition-duration: 0ms;
   }
 }

@@ -179,7 +179,7 @@ const CarouselCalculator = {
   },
 
   getSlideWidth(carousel) {
-    const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint,
+    const isMobile = $.viewportSize().width < CarouselConfig.viewport.mobileBreakpoint,
           widthDesktop = CarouselConfig.width.desktop,
           widthMobile = CarouselConfig.width.mobile
 
@@ -226,7 +226,7 @@ const CarouselCalculator = {
     try {
       if (!carousel) return defaultGap // Safe fallback
 
-      const isMobile = window.innerWidth < CarouselConfig.viewport.mobileBreakpoint,
+      const isMobile = $.viewportSize().width < CarouselConfig.viewport.mobileBreakpoint,
             cacheKey = `gap-${carousel.dataset.carouselId}-${isMobile ? 'mobile' : 'desktop'}`
       let cachedGap = CarouselCache.get(cacheKey)
 
@@ -507,9 +507,9 @@ const CarouselRenderer = {
 
       const { defaultColor, overlayColor } = data
       const setCss = (elem, color) => {
-        elem.style.setProperty('--overlay-color', color)
-        elem.style.setProperty('--overlay-color-08', `${color}24`)
-        elem.style.setProperty('--overlay-color-45', `${color}73`)
+        $.setCssVar({ key: '--overlay-color', value: color, element: elem })
+        $.setCssVar({ key: '--overlay-color-08', value: `${color}24`, element: elem })
+        $.setCssVar({ key: '--overlay-color-45', value: `${color}73`, element: elem })
       }
 
       if (!overlayColor) {
@@ -863,7 +863,7 @@ const CarouselController = {
     const prevBtn = carousel.querySelector(CarouselConfig.selector.prev),
           nextBtn = carousel.querySelector(CarouselConfig.selector.next),
           dots = carousel.querySelectorAll(CarouselConfig.selector.dot),
-          timerAttr = carousel.getAttribute(CarouselConfig.attr.timer),
+          timerVal = carousel.getAttribute(CarouselConfig.attr.timer),
           visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel),
           maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
 
@@ -878,7 +878,7 @@ const CarouselController = {
       maxIndex: maxTranslateIndex,
       totalSlides: items.length,
       visibleSlides,
-      timer: timerAttr ? parseInt(timerAttr) * 1000 : 0,
+      timer: $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0,
       autoScrollTimer: null,
       isPaused: false,
       eventHandlers: {
