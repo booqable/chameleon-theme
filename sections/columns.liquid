@@ -1,7 +1,6 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {{ "columns.css" | asset_url | stylesheet_tag }}
 
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign grid                  = section.settings.grid -%}
@@ -70,6 +69,8 @@
       <div class="columns__grid">
         {%- for block in blocks -%}
           {%- assign image        = block.settings.image -%}
+          {%- assign image_alt    = block.settings.image_alt -%}
+          {%- assign image_id     = block.id -%}
           {%- assign icon         = block.settings.icon -%}
           {%- assign title        = block.settings.title -%}
           {%- assign text         = block.settings.text -%}
@@ -82,9 +83,10 @@
               <div class="columns__image-wrapper">
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'columns__image',
-                  size: 'm'
+                  image_id: image_id,
+                  image_alt: image_alt,
+                  image_class: 'columns__image',
+                  image_size: 'm'
                 -%}
               </div>
             {%- elsif icon != "empty" -%}
@@ -126,7 +128,15 @@
     "name": "Columns",
     "tag": "section",
     "class": "columns",
-    "description": "Add sections to highhlight features or contact details",
+    "description": "Add sections to highlight features or contact details",
+    "css_assets": [
+      {
+        "file": "columns.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "blocks":[
       {
         "type": "column",
@@ -193,6 +203,12 @@
             "type": "image_picker",
             "id": "image",
             "label": "Image (optional)"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "header",

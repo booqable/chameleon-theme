@@ -38,7 +38,7 @@
 .pagination .page:not(.current),
 .pagination .prev:not([data-enabled="false"]),
 .pagination .next:not([data-enabled="false"]) {
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .pagination span[data-enabled="false"],
