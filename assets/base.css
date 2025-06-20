@@ -121,6 +121,11 @@ body > * {
   width: 100%;
 }
 
+#main > section:first-child:is(.text-image) .text-image__holder,
+#main > .text-image:first-child .text-image__holder {
+  max-height: none;
+}
+
 #main > section:last-child {
   display: flex;
   flex-direction: column;
