@@ -57,42 +57,62 @@
   {%- when 'xs' -%}
     {%- assign image_width = '20, 30, 48, 75, 105, 160' -%}
     {%- assign image_sizes = '(max-width: 320px) 20px, (max-width: 480px) 30px, (max-width: 768px) 48px, (max-width: 1200px) 75px, (max-width: 1680px) 105px, 160px' -%}
+    {%- assign display_width = 160 -%}
   {%- when 's' -%}
     {%- assign image_width = '40, 60, 96, 150, 210, 320' -%}
     {%- assign image_sizes = '(max-width: 320px) 40px, (max-width: 480px) 60px, (max-width: 768px) 96px, (max-width: 1200px) 150px, (max-width: 1680px) 210px, 320px' -%}
+    {%- assign display_width = 320 -%}
   {%- when 'm' -%}
     {%- assign image_width = '80, 120, 192, 300, 420, 640' -%}
     {%- assign image_sizes = '(max-width: 320px) 80px, (max-width: 480px) 120px, (max-width: 768px) 192px, (max-width: 1200px) 300px, (max-width: 1680px) 420px, 640px' -%}
+    {%- assign display_width = 640 -%}
   {%- when 'l' -%}
     {%- assign image_width = '160, 240, 384, 600, 840, 1280' -%}
     {%- assign image_sizes = '(max-width: 320px) 160px, (max-width: 480px) 240px, (max-width: 768px) 384px, (max-width: 1200px) 600px, (max-width: 1680px) 840px, 1280px' -%}
+    {%- assign display_width = 1280 -%}
   {%- when 'xl' -%}
     {%- assign image_width = '240, 360, 576, 900, 1260, 1920' -%}
     {%- assign image_sizes = '(max-width: 320px) 240px, (max-width: 480px) 360px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 1260px, 1920px' -%}
+    {%- assign display_width = 1920 -%}
   {%- when 'xxl' -%}
     {%- assign image_width = '320, 480, 768, 1200, 1680, 2560' -%}
     {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 768px, (max-width: 1200px) 1200px, (max-width: 1680px) 1680px, 2560px' -%}
+    {%- assign display_width = 2560 -%}
   {%- when 'flexible' -%}
       {%- assign image_width = '320, 480, 576, 900, 840, 1280' -%}
       {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 840px, 1280px' -%}
+      {%- assign display_width = 1280 -%}
   {%- when 'logo' -%}
     {%- assign image_width = '420, 640' -%}
     {%- assign image_sizes = '(max-width: 360px) 420px, 640px' -%}
+    {%- assign display_width = 640 -%}
 {%- endcase -%}
 
 {%- if custom_width != blank and custom_size != blank -%}
   {%- assign image_width = custom_width -%}
   {%- assign image_sizes = custom_size -%}
+  {%- assign display_width = custom_width | split: ',' | last | plus: 0 -%}
+{%- endif -%}
+
+{% comment %}
+  Calculate display height based on image aspect ratio to prevent layout shift
+  This reserves the correct amount of space before the image loads
+{% endcomment %}
+{%- if image.width and image.height and display_width -%}
+  {%- assign aspect_ratio = image.height | divided_by: image.width | times: 1.0 -%}
+  {%- assign display_height = display_width | times: aspect_ratio | round -%}
 {%- endif -%}
 
 {%- if image.url != blank -%}
-  {{- image.url | image_tag:
+  {{- image | image_url | image_tag:
     loading: loading,
     class: class,
     widths: image_width,
     sizes: image_sizes,
     focal: focal,
     alt: alt,
-    keep_type: keep_type
+    keep_type: keep_type,
+    width: display_width,
+    height: display_height
   -}}
 {%- endif -%}
