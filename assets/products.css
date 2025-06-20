@@ -16,7 +16,7 @@
 }
 
 .palette-one.products__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-two.products__wrapper {
@@ -31,13 +31,13 @@
   text-align: center;
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .products__list:not(.carousel) {
     gap: 24px;
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .products__wrapper--padding-top {
     padding-top: var(--padding-top, 112px);
   }

@@ -28,7 +28,7 @@
   font-weight: var(--font-weight-h1, 700);
   line-height: var(--line-height-sm, 1.2);
   text-align: center;
-  color: currentColor;
+  color: currentcolor;
 }
 
 div.error-404__container .error-404__description {
@@ -36,7 +36,7 @@ div.error-404__container .error-404__description {
   font-weight: var(--font-weight-medium, 500);
   line-height: var(--line-height-sm, 1.2);
   text-align: center;
-  color: currentColor;
+  color: currentcolor;
   padding: 0 0 20px;
 }
 
@@ -52,19 +52,13 @@ div.error-404__container .error-404__description {
 
 .error-404__background {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
 }
 
 .error-404__background-wrapper::after {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
 }
 
 .error-404__background-wrapper svg {
@@ -101,15 +95,12 @@ div.error-404__container .error-404__description {
 
 .error-404__background-floral-col:first-child svg {
   transform:rotate(180deg);
-  top: 0;
-  right: auto;
-  bottom: auto;
-  left: 0;
+  inset: 0 auto auto 0;
   max-height: none;
 }
 
 .palette-one.error-404__content {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-primary, #0B1A26);
 }
 
@@ -118,7 +109,7 @@ div.error-404__container .error-404__description {
 }
 
 .palette-one .error-404__background-wrapper::after {
-  background: linear-gradient(173.19deg, var(--background-primary, #FFFFFF) 33.02%, var(--background-primary-00, #FFFFFF00) 93.23%);
+  background: linear-gradient(173.19deg, var(--background-primary, #FFF) 33.02%, var(--background-primary-00, #FFF0) 93.23%);
 }
 
 .palette-one .error-404__background g,
@@ -128,7 +119,7 @@ div.error-404__container .error-404__description {
 
 .palette-two.error-404__content {
   background: var(--background-primary-2, #0B1A26);
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .error-404__description b {
@@ -141,7 +132,7 @@ div.error-404__container .error-404__description {
 
 .palette-two .error-404__background g,
 .palette-two .error-404__background path {
-  fill: var(--color-primary-2, #FFFFFF);
+  fill: var(--color-primary-2, #FFF);
 }
 
 .palette-three.error-404__content {
@@ -162,20 +153,20 @@ div.error-404__container .error-404__description {
   fill: var(--color-primary-3, #0B1A26);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .error-404__background-floral-col:first-child {
     display: block;
   }
 }
 
-@media (min-width: 810px) {
+@media (width >= 810px) {
   .error-404__background-wrapper svg {
     min-height: 100%;
     height: auto;
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .error-404__content--padding-top {
     padding-top: var(--padding-top, 50px);
   }

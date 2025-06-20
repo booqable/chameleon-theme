@@ -15,13 +15,10 @@
   position: relative;
 }
 
-.numbered-blocks__list:after {
+.numbered-blocks__list::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: clamp(180px, 7%, 230px);
-  bottom: clamp(140px, 6.7%, 190px);
+  inset: clamp(180px, 7%, 230px) 0 clamp(140px, 6.7%, 190px);
 }
 
 .numbered-blocks__item {
@@ -82,15 +79,15 @@
 
 .palette-one.numbered-blocks__wrapper {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
-.palette-one .numbered-blocks__list:after {
+.palette-one .numbered-blocks__list::after {
   background: var(--color-fourth, #0B1A2626);
 }
 
 .palette-one .numbered-blocks__item {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-primary, #0B1A26);
   border-color: var(--color-border, #0B1A2626);
 }
@@ -111,19 +108,19 @@
 .numbered-blocks .palette-one .button,
 .numbered-blocks .palette-two .button,
 .numbered-blocks .palette-three .button {
-  color: currentColor;
+  color: currentcolor;
 }
 
 .numbered-blocks .palette-one .button path,
 .numbered-blocks .palette-two .button path,
 .numbered-blocks .palette-three .button path {
-  fill: currentColor;
+  fill: currentcolor;
 }
 
 .numbered-blocks .palette-one .button--secondary:hover,
 .numbered-blocks .palette-two .button--secondary:hover,
 .numbered-blocks .palette-three .button--secondary:hover {
-  text-shadow: 0.5px 0 currentColor;
+  text-shadow: 0.5px 0 currentcolor;
 }
 
 .palette-two.numbered-blocks__wrapper {
@@ -131,13 +128,13 @@
   background: var(--background-primary-2, #0B1A26);
 }
 
-.palette-two .numbered-blocks__list:after {
+.palette-two .numbered-blocks__list::after {
   background: var(--color-fourth-2, #FFFFFF47);
 }
 
 .palette-two .numbered-blocks__item {
   background: var(--background-primary-2, #0B1A26);
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   border-color: var(--color-border-2, #FFFFFF47);
 }
 
@@ -155,11 +152,11 @@
 }
 
 .palette-three.numbered-blocks__wrapper {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
 }
 
-.palette-three .numbered-blocks__list:after {
+.palette-three .numbered-blocks__list::after {
   background: var(--color-fourth-3, #0B1A2626);
 }
 
@@ -179,7 +176,7 @@
 
 .palette-three .numbered-blocks__index {
   background: var(--background-accent-3, #0B1A26);
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
 }
 
 .classic-design .numbered-blocks__item:not(:last-child) {
@@ -190,8 +187,7 @@
   padding: 0 0 16px;
 }
 
-.classic-design .numbered-blocks__list:after,
-.classic-design .numbered-blocks__list:after {
+.classic-design .numbered-blocks__list::after {
   display: none !important;
 }
 
@@ -207,7 +203,7 @@
   border-color: transparent;
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .numbered-blocks__text-area {
     height: 100%;
     padding: 30px;
@@ -217,7 +213,7 @@
     align-items: flex-start;
   }
 
-  .numbered-blocks__list:after {
+  .numbered-blocks__list::after {
     top: clamp(150px, 10.5%, 225px);
     bottom: clamp(110px, 10%, 185px);
   }
@@ -282,7 +278,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .numbered-blocks__wrapper--padding-top {
     padding-top: var(--padding-top, 80px);
   }

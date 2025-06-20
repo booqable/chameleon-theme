@@ -145,33 +145,33 @@
 .palette-three .pagination .deco,
 .palette-three .pagination .current,
 .palette-three .pagination span a {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .pagination .current {
   background: var(--background-accent-3, #0B1A26);
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
 }
 
 .palette-three .pagination .page:not(.current):hover,
 .palette-three .pagination .prev:not([data-enabled="false"]):hover,
 .palette-three .pagination .next:not([data-enabled="false"]):hover {
   background: var(--background-accent-3-hover, #0B1A26CC);
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
 }
 
 .palette-three .pagination .page:not(.current):active,
 .palette-three .pagination .prev:not([data-enabled="false"]):active,
 .palette-three .pagination .next:not([data-enabled="false"]):active {
   background: var(--background-accent-3-active, #0B1A26BA);
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
 }
 
 .palette-three .pagination path {
-  fill: var(--color-secondary-3, #FFFFFF);
+  fill: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .pagination .prev[data-enabled="true"] a:hover path,
 .palette-three .pagination .next[data-enabled="true"] a:hover path {
-  fill: var(--color-accent-3, #FFFFFF);
+  fill: var(--color-accent-3, #FFF);
 }

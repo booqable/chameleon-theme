@@ -49,7 +49,7 @@
 
 .account-fieldset__block {
   position: relative;
-  margin: 0 0 30px 0;
+  margin: 0 0 30px;
 }
 
 .account-fieldset__label-backlight {
@@ -106,7 +106,7 @@
   margin-left: 24px;
 }
 
-.account-fieldset__radio-label:before {
+.account-fieldset__radio-label::before {
   content:'';
   position: absolute;
   top: 50%;
@@ -119,7 +119,7 @@
   border-radius: 50%;
 }
 
-[id^='user_legal_type']:checked + .account-fieldset__radio-label:after {
+[id^='user_legal_type']:checked + .account-fieldset__radio-label::after {
   content: '';
   display: block;
   position: absolute;
@@ -167,7 +167,7 @@
   margin-bottom: 40px;
 }
 
-.account-checkbox__label:before {
+.account-checkbox__label::before {
   content:'';
   position: absolute;
   top: 50%;
@@ -182,7 +182,7 @@
   border-radius: var(--border-radius-checkbox);
 }
 
-[id^='user_agreement_accepted']:checked + .account-checkbox__label:after {
+[id^='user_agreement_accepted']:checked + .account-checkbox__label::after {
   content: '';
   display: block;
   position: absolute;
@@ -233,8 +233,7 @@
   display: block;
   padding: 16px;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden auto;
   border-radius: var(--border-radius-rounded);
 }
 
@@ -250,8 +249,8 @@
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
 }
 
-.account__agreement-closer:after,
-.account__agreement-closer:before {
+.account__agreement-closer::after,
+.account__agreement-closer::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -261,7 +260,7 @@
   height: 2px;
 }
 
-.account__agreement-closer:after {
+.account__agreement-closer::after {
   transform: rotate(-45deg);
 }
 
@@ -391,7 +390,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 }
 
 .palette-one.account {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .account-checkbox__label,
@@ -411,7 +410,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 }
 
 .palette-one .account-fieldset__label {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-secondary, #4E5D78);
 }
 
@@ -426,7 +425,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 }
 
 .palette-one .account-fieldset__input {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border-color: var(--color-border, #0B1A2629);
   color: var(--color-primary, #0B1A26);
 }
@@ -439,10 +438,10 @@ div.account-fieldset--error .account-fieldset__input:focus {
   border: 1px solid var(--color-border, #0B1A2626);
 }
 
-.palette-one .account-fieldset__radio-label:before,
-.palette-one .account-checkbox__label:before {
+.palette-one .account-fieldset__radio-label::before,
+.palette-one .account-checkbox__label::before {
   border-color: var(--color-border, #0B1A2626);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .account__link,
@@ -461,34 +460,34 @@ div.account-fieldset--error .account-fieldset__input:focus {
 }
 
 .palette-one .account__agreement-inner {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border-color: var(--color-border, #0B1A2626);
 }
 
-.palette-one .account__agreement-closer:after,
-.palette-one .account__agreement-closer:before {
+.palette-one .account__agreement-closer::after,
+.palette-one .account__agreement-closer::before {
   background: var(--color-outline, #F4B841);
 }
 
-.palette-one .account__agreement-closer:hover:after,
-.palette-one .account__agreement-closer:hover:before {
+.palette-one .account__agreement-closer:hover::after,
+.palette-one .account__agreement-closer:hover::before {
   background: var(--color-outline-hover, #F4B841CC);
 }
 
-.palette-one .account__agreement-closer:active:after,
-.palette-one .account__agreement-closer:active:before {
+.palette-one .account__agreement-closer:active::after,
+.palette-one .account__agreement-closer:active::before {
   background: var(--color-outline-active, #F4B841BA);
 }
 
-.palette-one [id^='user_legal_type']:checked + .account-fieldset__radio-label:before,
-.palette-one [id^='user_agreement_accepted']:checked + .account-checkbox__label:before {
+.palette-one [id^='user_legal_type']:checked + .account-fieldset__radio-label::before,
+.palette-one [id^='user_agreement_accepted']:checked + .account-checkbox__label::before {
   border-color: var(--background-accent, #F4B841);
   background: var(--background-accent, #F4B841);
 }
 
-.palette-one [id^='user_legal_type']:checked + .account-fieldset__radio-label:after,
-.palette-one [id^='user_agreement_accepted']:checked + .account-checkbox__label:after {
-  border-color: var(--background-primary, #FFFFFF);
+.palette-one [id^='user_legal_type']:checked + .account-fieldset__radio-label::after,
+.palette-one [id^='user_agreement_accepted']:checked + .account-checkbox__label::after {
+  border-color: var(--background-primary, #FFF);
 }
 
 .palette-two.account {
@@ -500,7 +499,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 .palette-two .account__title-icon,
 .palette-two .account-fieldset__label:has(+ input:focus),
 .palette-two .account__breadcrumbs {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .account__title + .account__divider,
@@ -509,7 +508,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 }
 
 .palette-two .account__button--minimal:hover {
-  text-shadow: 0.5px 0 var(--color-primary-2, #FFFFFF);
+  text-shadow: 0.5px 0 var(--color-primary-2, #FFF);
 }
 
 .palette-two .account-fieldset__label {
@@ -530,7 +529,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 .palette-two .account-fieldset__input {
   background: var(--background-primary-2, #0B1A26);
   border-color: var(--color-border-2, #FFFFFF47);
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .account-fieldset__input:focus {
@@ -541,8 +540,8 @@ div.account-fieldset--error .account-fieldset__input:focus {
   border: 1px solid var(--color-border-2, #FFFFFF47);
 }
 
-.palette-two .account-fieldset__radio-label:before,
-.palette-two .account-checkbox__label:before {
+.palette-two .account-fieldset__radio-label::before,
+.palette-two .account-checkbox__label::before {
   border-color: var(--color-border-2, #FFFFFF47);
   background: var(--background-primary-2, #0B1A26);
 }
@@ -567,29 +566,29 @@ div.account-fieldset--error .account-fieldset__input:focus {
   border-color: var(--color-border-2, #FFFFFF47);
 }
 
-.palette-two .account__agreement-closer:after,
-.palette-two .account__agreement-closer:before {
+.palette-two .account__agreement-closer::after,
+.palette-two .account__agreement-closer::before {
   background: var(--color-outline-2, #F4B841);
 }
 
-.palette-two .account__agreement-closer:hover:after,
-.palette-two .account__agreement-closer:hover:before {
+.palette-two .account__agreement-closer:hover::after,
+.palette-two .account__agreement-closer:hover::before {
   background: var(--color-outline-2-hover, #F4B841CC);
 }
 
-.palette-two .account__agreement-closeractive:after,
-.palette-two .account__agreement-closer:active:before {
+.palette-two .account__agreement-closeractive::after,
+.palette-two .account__agreement-closer:active::before {
   background: var(--color-outline-2-active, #F4B841BA);
 }
 
-.palette-two [id^='user_legal_type']:checked + .account-fieldset__radio-label:before,
-.palette-two [id^='user_agreement_accepted']:checked + .account-checkbox__label:before {
+.palette-two [id^='user_legal_type']:checked + .account-fieldset__radio-label::before,
+.palette-two [id^='user_agreement_accepted']:checked + .account-checkbox__label::before {
   border-color: var(--background-accent-2, #F4B841);
   background: var(--background-accent-2, #F4B841);
 }
 
-.palette-two [id^='user_legal_type']:checked + .account-fieldset__radio-label:after,
-.palette-two [id^='user_agreement_accepted']:checked + .account-checkbox__label:after {
+.palette-two [id^='user_legal_type']:checked + .account-fieldset__radio-label::after,
+.palette-two [id^='user_agreement_accepted']:checked + .account-checkbox__label::after {
   border-color: var(--background-primary-2, #0B1A26);
 }
 
@@ -608,7 +607,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
 .palette-three .account-checkbox__label,
 .palette-three .account-fieldset__static-label,
 .palette-three .account-fieldset__radio-label {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .account__button--minimal:hover {
@@ -639,8 +638,8 @@ div.account-fieldset--error .account-fieldset__input:focus {
   border: 1px solid var(--color-border-3, #0B1A2626);
 }
 
-.palette-three .account-fieldset__radio-label:before,
-.palette-three .account-checkbox__label:before {
+.palette-three .account-fieldset__radio-label::before,
+.palette-three .account-checkbox__label::before {
   border-color: var(--color-border-3, #0B1A2626);
   background: var(--background-primary-3, #F4B841);
 }
@@ -665,33 +664,33 @@ div.account-fieldset--error .account-fieldset__input:focus {
   border-color: var(--color-border-3, #0B1A2626);
 }
 
-.palette-three .account__agreement-closer:after,
-.palette-three .account__agreement-closer:before {
+.palette-three .account__agreement-closer::after,
+.palette-three .account__agreement-closer::before {
   background: var(--color-outline-3, #0B1A26);
 }
 
-.palette-three .account__agreement-closer:hover:after,
-.palette-three .account__agreement-closer:hover:before {
+.palette-three .account__agreement-closer:hover::after,
+.palette-three .account__agreement-closer:hover::before {
   background: var(--color-outline-3-hover, #0B1A26CC);
 }
 
-.palette-three .account__agreement-closeractive:after,
-.palette-three .account__agreement-closer:active:before {
+.palette-three .account__agreement-closeractive::after,
+.palette-three .account__agreement-closer:active::before {
   background: var(--color-outline-3-active, #0B1A26BA);
 }
 
-.palette-three [id^='user_legal_type']:checked + .account-fieldset__radio-label:before,
-.palette-three [id^='user_agreement_accepted']:checked + .account-checkbox__label:before {
+.palette-three [id^='user_legal_type']:checked + .account-fieldset__radio-label::before,
+.palette-three [id^='user_agreement_accepted']:checked + .account-checkbox__label::before {
   border-color: var(--background-accent-3, #0B1A26);
   background: var(--background-accent-3, #0B1A26);
 }
 
-.palette-three [id^='user_legal_type']:checked + .account-fieldset__radio-label:after,
-.palette-three [id^='user_agreement_accepted']:checked + .account-checkbox__label:after {
+.palette-three [id^='user_legal_type']:checked + .account-fieldset__radio-label::after,
+.palette-three [id^='user_agreement_accepted']:checked + .account-checkbox__label::after {
   border-color: var(--background-primary-3, #F4B841);
 }
 
-@media screen and (min-width: 375px) {
+@media screen and (width >= 375px) {
   .account__title {
     font-size: 24px;
     line-height: var(--line-height-md, 1.33);
@@ -702,20 +701,20 @@ div.account-fieldset--error .account-fieldset__input:focus {
   }
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .account__agreement-modal {
     padding: 20px 50px;
   }
 }
 
-@media screen and (min-width: 810px) {
+@media screen and (width >= 810px) {
   .account__title {
     font-size: 40px;
     line-height: var(--line-height-sm, 1.2);
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .account--padding-top {
     padding-top: var(--padding-top, 40px);
   }
@@ -725,7 +724,7 @@ div.account-fieldset--error .account-fieldset__input:focus {
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .account__agreement-modal {
     padding: 50px;
   }
