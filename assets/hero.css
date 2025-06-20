@@ -39,10 +39,7 @@
 
 .hero__vision {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow: hidden;
   z-index: 0;
 }
@@ -65,7 +62,7 @@
   opacity: var(--overlay-opacity, 1);
 }
 
-.hero__vision-wrapper-overlay:after {
+.hero__vision-wrapper-overlay::after {
   content: "";
   position: absolute;
   top: 0;
@@ -74,17 +71,14 @@
   right: 50%;
 }
 
-.hero__vision-wrapper-overlay:before {
+.hero__vision-wrapper-overlay::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
 }
 
 .hero__image {
-  opacity: calc(100% - var(--overlay-opacity, 1));
+  opacity: calc(1 - var(--overlay-opacity, 1));
   width: 100%;
   height: 100%;
   max-width: none;
@@ -98,7 +92,7 @@
   transform: translate(-50%, -50%);
   height: 100%;
   min-width: 100%;
-  opacity: calc(100% - var(--overlay-opacity, 1));
+  opacity: calc(1 - var(--overlay-opacity, 1));
 }
 
 .hero__vision-floral-wrapper {
@@ -121,7 +115,7 @@
 
 .palette-one.hero__wrapper {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .hero__title {
@@ -129,15 +123,15 @@
 }
 
 .palette-one .hero__vision {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
-.palette-one .hero__vision-wrapper-overlay:after {
-  background: linear-gradient(to right, var(--background-primary, #FFFFFF) 0%, var(--background-primary, #FFFFFF) 90%, var(--background-primary-00, #FFFFFF00) 100%);
+.palette-one .hero__vision-wrapper-overlay::after {
+  background: linear-gradient(to right, var(--background-primary, #FFF) 0%, var(--background-primary, #FFF) 90%, var(--background-primary-00, #FFF0) 100%);
 }
 
-.palette-one .hero__vision-wrapper-overlay:before {
-  background: radial-gradient(43.14% 157.06% at 17.22% 51.25%, var(--background-primary, #FFFFFF) 0%, var(--background-primary-00, #FFFFFF00) 100%);
+.palette-one .hero__vision-wrapper-overlay::before {
+  background: radial-gradient(43.14% 157.06% at 17.22% 51.25%, var(--background-primary, #FFF) 0%, var(--background-primary-00, #FFF0) 100%);
 }
 
 .palette-one .hero__vision-floral-wrapper g,
@@ -152,29 +146,29 @@
 }
 
 .palette-two .hero__title {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .hero__vision {
   background: var(--background-primary-2, #0B1A26);
 }
 
-.palette-two .hero__vision-wrapper-overlay:after {
+.palette-two .hero__vision-wrapper-overlay::after {
   background: linear-gradient(to right, var(--background-primary-2, #0B1A26) 0%, var(--background-primary-2, #0B1A26) 90%, var(--background-primary-2-00, #0B1A2600) 100%);
 }
 
-.palette-two .hero__vision-wrapper-overlay:before {
+.palette-two .hero__vision-wrapper-overlay::before {
   background: radial-gradient(43.14% 157.06% at 17.22% 51.25%, var(--background-primary-2, #0B1A26) 0%, var(--background-primary-2-00, #0B1A2600) 100%);
 }
 
 .palette-two .hero__vision-floral-wrapper g,
 .palette-two .hero__vision-floral-wrapper path,
 .palette-two .hero__vision-wrapper path {
-  fill: var(--color-primary-2, #FFFFFF);
+  fill: var(--color-primary-2, #FFF);
 }
 
 .palette-three.hero__wrapper {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
 }
 
@@ -186,11 +180,11 @@
   background: var(--background-primary-3, #F4B841);
 }
 
-.palette-three .hero__vision-wrapper-overlay:after {
+.palette-three .hero__vision-wrapper-overlay::after {
   background: linear-gradient(to right, var(--background-primary-3, #F4B841) 0%, var(--background-primary-3, #F4B841) 90%, var(--background-primary-3-00, #F4B84100) 100%);
 }
 
-.palette-three .hero__vision-wrapper-overlay:before {
+.palette-three .hero__vision-wrapper-overlay::before {
   background: radial-gradient(43.14% 157.06% at 17.22% 51.25%, var(--background-primary-3, #F4B841) 0%, var(--background-primary-3-00, #F4B84100) 100%);
 }
 
@@ -200,14 +194,14 @@
   fill: var(--color-primary-3, #0B1A26);
 }
 
-@media (min-width: 810px) {
+@media (width >= 810px) {
   .hero__vision-wrapper svg {
     min-height: 100%;
     height: auto;
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .hero__date-picker--padding-top,
   .hero__container--padding-top {
     padding-top: var(--padding-top, 60px);

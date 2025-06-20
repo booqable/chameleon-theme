@@ -35,7 +35,7 @@
 }
 
 .images__text-area.images__text-area--color {
-  color: var(--color-overlay, #FFFFFF);
+  color: var(--color-overlay, #FFF);
 }
 
 .images__title {
@@ -65,10 +65,7 @@
 
 .images__vision {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow: hidden;
   z-index: -1;
 }
@@ -88,14 +85,11 @@
   display: none;
 }
 
-.images__vision-wrapper--overlay:after {
+.images__vision-wrapper--overlay::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: var(--opacity-overlay, 100%);
+  inset: 0;
+  opacity: var(--opacity-overlay, 1);
   background: linear-gradient(357.73deg, var(--background-overlay, #0B1A26) 3.03%, var(--background-overlay-00, #0B1A2600) 31.83%),
    linear-gradient(180deg, var(--background-overlay, #0B1A26) 6.67%, var(--background-overlay-00, #0B1A2600) 105.81%),
    linear-gradient(0deg, var(--background-overlay-45, #0B1A2673), var(--background-overlay-45, #0B1A2673));
@@ -154,26 +148,18 @@
   justify-content: var(--text-justify-content-mobile, flex-start);
 }
 
-.images__wrapper.section-with-date-picker .images__container--padding-bottom {
-  padding-bottom: calc(var(--padding-bottom-mobile, 40px) + var(--date-picker-block-height, 70px));
-}
-
-.images__wrapper.section-with-date-picker .images__vision {
-  bottom: calc(var(--date-picker-height, 70px) / 2 - 5px);
-}
-
 .palette-one .images__title,
 .palette-one .images__description {
   color: var(--color-primary, #0B1A26);
 }
 
 .palette-one .images__vision {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-two .images__title,
 .palette-two .images__description {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .images__vision {
@@ -189,6 +175,14 @@
   background: var(--background-primary-3, #F4B841);
 }
 
+.images__wrapper.section-with-date-picker .images__container--padding-bottom {
+  padding-bottom: calc(var(--padding-bottom-mobile, 40px) + var(--date-picker-block-height, 70px));
+}
+
+.images__wrapper.section-with-date-picker .images__vision {
+  bottom: calc(var(--date-picker-height, 70px) / 2 - 5px);
+}
+
 .palette-one .images__text-area--color .images__title,
 .palette-one .images__text-area--color .images__description,
 .palette-one .images__text-area--color .images__buttons .button--outlined,
@@ -198,16 +192,16 @@
 .palette-three .images__text-area--color .images__title,
 .palette-three .images__text-area--color .images__description,
 .palette-three .images__text-area--color .images__buttons .button--outlined {
-  color: currentColor;
+  color: currentcolor;
 }
 
-@media (min-width: 428px) {
+@media (width >= 428px) {
   .images__container {
     min-height: 560px;
   }
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .images__vision-wrapper--desktop {
     display: block;
   }
@@ -217,7 +211,7 @@
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .images__container {
     min-height: calc(var(--height, auto) - var(--header-height, 105px));
   }
@@ -250,8 +244,8 @@
   }
 
   .images__description {
-    padding-left: var(--padding-left, 0px);
-    padding-right: var(--padding-right, 0px);
+    padding-left: var(--padding-left, 0);
+    padding-right: var(--padding-right, 0);
   }
 
   .images__wrapper .date-picker__instance {
@@ -272,7 +266,7 @@
   }
 }
 
-@media (min-width: 1248px) {
+@media (width >= 1248px) {
   .images__text-area {
     padding: 0 var(--padding-no-full-width, 56px);
   }

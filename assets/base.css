@@ -29,7 +29,7 @@
   --color-green: #51C234;
   --color-red: #C23434;
   --color-red-light: #F5CFCF;
-  --color-white: #FFFFFF;
+  --color-white: #FFF;
   --color-white-90: #FFFFFFE6;
 
   /* Font weights */
@@ -56,13 +56,13 @@
   --transition-function-ease-in-out: ease-in-out;
 
   /* Shadows */
-  --shadow-xxs: 0px 1px 2px rgba(0, 0, 0, 0.0005);
-  --shadow-xs: 0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-sm: 0px 4px 8px -2px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0px 12px 16px -4px rgba(0, 0, 0, 0.08), 0px 4px 6px -2px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0px 20px 24px -4px rgba(0, 0, 0, 0.08), 0px 8px 8px -4px rgba(0, 0, 0, 0.03);
-  --shadow-xl: 0px 24px 48px -12px rgba(0, 0, 0, 0.18);
-  --shadow-xxl: 0px 32px 64px -12px rgba(0, 0, 0, 0.14);
+  --shadow-xxs: 0px 1px 2px rgb(0 0 0 / 0.05%);
+  --shadow-xs: 0px 1px 3px rgb(0 0 0 / 10%), 0px 1px 2px rgb(0 0 0 / 6%);
+  --shadow-sm: 0px 4px 8px -2px rgb(0 0 0 / 10%), 0px 2px 4px -2px rgb(0 0 0 / 6%);
+  --shadow-md: 0px 12px 16px -4px rgb(0 0 0 / 8%), 0px 4px 6px -2px rgb(0 0 0 / 3%);
+  --shadow-lg: 0px 20px 24px -4px rgb(0 0 0 / 8%), 0px 8px 8px -4px rgb(0 0 0 / 3%);
+  --shadow-xl: 0px 24px 48px -12px rgb(0 0 0 / 18%);
+  --shadow-xxl: 0px 32px 64px -12px rgb(0 0 0 / 14%);
 }
 
 *,
@@ -91,11 +91,11 @@ html:has(div[data-tid="Modal"][class*="Container-"]) {
 }
 
 .touch {
-  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-primary, #0B1A26);
   font-size: 16px;
   line-height: var(--line-height-lg, 1.5);
@@ -197,7 +197,7 @@ h6,
 .palette-two .h4,
 .palette-two .h5,
 .palette-two .h6 {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-three h1,
@@ -286,8 +286,7 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover
 textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-  -webkit-background-clip: text !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
   background-clip: text !important;
 }
 
@@ -311,8 +310,8 @@ textarea:-webkit-autofill:active {
 .palette-two textarea:-webkit-autofill:hover
 .palette-two textarea:-webkit-autofill:focus,
 .palette-two textarea:-webkit-autofill:active {
-  color: var(--color-primary-2, #FFFFFF) !important;
-  -webkit-text-fill-color: var(--color-primary-2, #FFFFFF) !important;
+  color: var(--color-primary-2, #FFF) !important;
+  -webkit-text-fill-color: var(--color-primary-2, #FFF) !important;
 }
 
 .palette-three input:-webkit-autofill,
@@ -395,7 +394,7 @@ img {
   letter-spacing: -0.01em;
   font-weight: var(--font-weight-semibold, 600);
   line-height: var(--line-height-sm, 1.2);
-  color: currentColor;
+  color: currentcolor;
   border: 1px solid transparent;
   border-radius: var(--border-radius-dynamic);
   background: none;
@@ -453,7 +452,7 @@ img {
 }
 
 .palette-one .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent, #F4B841);
 }
 
@@ -494,7 +493,7 @@ img {
 }
 
 .palette-two .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent-2, #F4B841);
 }
 
@@ -507,7 +506,7 @@ img {
 }
 
 .palette-three .button.button--primary {
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
   background: var(--background-accent-3, #0B1A26);
   border-color: var(--background-accent-3, #0B1A26);
 }
@@ -535,7 +534,7 @@ img {
 }
 
 .palette-three .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent-3, #0B1A26);
 }
 
@@ -563,7 +562,7 @@ img {
 }
 
 .fa, .far {
-  color: currentColor;
+  color: currentcolor;
 }
 
 .palette-one .fa, .palette-one .far {
@@ -571,7 +570,7 @@ img {
 }
 
 .palette-two .fa, .palette-two .far {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-three .fa, .palette-three .far {
@@ -601,7 +600,7 @@ img {
   color: var(--color-outline-3, #0B1A26);
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .tagline {
     margin: 0 0 16px;
   }
@@ -636,7 +635,7 @@ div[data-tid="Modal actions"] button {
   border-radius: var(--border-radius-dynamic) !important;
 }
 
-@media (min-width: 576px) {
+@media (width >= 576px) {
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: var(--header-height) !important;
     right: var(--horizontal-padding) !important;
@@ -678,7 +677,7 @@ div[data-tid="Modal actions"] button {
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   body:has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: calc(var(--header-height) - var(--menu-position)) !important;
   }
@@ -694,6 +693,7 @@ div[data-tid="Modal actions"] button {
   body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: calc(var(--header-height) - var(--menu-position) + var(--preview-height, 0)) !important;
   }
+
   body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root] [data-tid="Mini cart"] {
     max-height: calc(100vh - var(--header-height) + var(--menu-position) - var(--preview-height, 0) / 2);
   }
@@ -715,13 +715,13 @@ div[data-tid="Modal actions"] button {
   }
 }
 
-@media (min-width: 1280px) {
+@media (width >= 1280px) {
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
     right: calc(50% - var(--max-width) / 2 + var(--horizontal-padding)) !important;
   }
 }
 
-@media (min-height: 964px) {
+@media (height >= 964px) {
   div[data-tid="Mini cart"] div[class*="Summary"] div[class*="Services"] {
     max-height: none;
   }
@@ -732,7 +732,7 @@ div[data-tid="Modal actions"] button {
 }
 
 .title__wrapper--padding-bottom {
-  padding-bottom: var(--padding-bottom-mobile, 0px);
+  padding-bottom: var(--padding-bottom-mobile, 0);
 }
 
 .title__title {
@@ -758,7 +758,7 @@ div[data-tid="Modal actions"] button {
 }
 
 .palette-one.title__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-secondary, #4E5D78);
 }
 
@@ -776,7 +776,7 @@ div[data-tid="Modal actions"] button {
 }
 
 .palette-two .title__title {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .title__bg-text {
@@ -785,7 +785,7 @@ div[data-tid="Modal actions"] button {
 
 .palette-three.title__wrapper {
   background: var(--background-primary-3, #F4B841);
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .title__title {
@@ -796,7 +796,7 @@ div[data-tid="Modal actions"] button {
   color: var(--color-fourth-3, #0B1A2626);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .title__top {
     display: flex;
     justify-content: space-between;
@@ -822,13 +822,13 @@ div[data-tid="Modal actions"] button {
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .title__wrapper--padding-top {
     padding-top: var(--padding-top, 37px);
   }
 
   .title__wrapper--padding-bottom {
-    padding-bottom: var(--padding-bottom, 0px);
+    padding-bottom: var(--padding-bottom, 0);
   }
 
   .title__col {
@@ -840,7 +840,7 @@ div[data-tid="Modal actions"] button {
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .title__bg-text {
     font-size: 142px;
   }

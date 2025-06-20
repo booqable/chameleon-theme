@@ -60,10 +60,7 @@
 .text-image__bg-default-wrapper,
 .text-image__bg-floral-wrapper {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -109,7 +106,7 @@
 
 .palette-one.text-image__wrapper {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .text-image__bg-floral-wrapper g,
@@ -119,7 +116,7 @@
 }
 
 .palette-one .text-image__bg-overlay::before {
-  background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary, #FFFFFF) 0%, var(--background-primary-00, #FFFFFF00) 100%);
+  background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary, #FFF) 0%, var(--background-primary-00, #FFF0) 100%);
 }
 
 .palette-two.text-image__wrapper {
@@ -130,7 +127,7 @@
 .palette-two .text-image__bg-floral-wrapper g,
 .palette-two .text-image__bg-floral-wrapper path,
 .palette-two .text-image__bg-default-wrapper path {
-  fill: var(--color-primary-2, #FFFFFF);
+  fill: var(--color-primary-2, #FFF);
 }
 
 .palette-two .text-image__bg-overlay::before {
@@ -138,7 +135,7 @@
 }
 
 .palette-three.text-image__wrapper {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
 }
 
@@ -169,9 +166,9 @@
   border-color: var(--background-accent-3, #0B1A26);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .text-image__spacer {
-    height: var(--height, 0px);
+    height: var(--height, 0);
   }
 
   .text-image__columns {
@@ -216,11 +213,8 @@
   .text-image__bg-overlay::after {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
+    inset: 0 var(--overlay-right-ex) 0 var(--overlay-left-ex);
     width: 9999px;
-    left: var(--overlay-left-ex);
-    right: var(--overlay-right-ex);
   }
 
   .palette-one .text-image__holder {
@@ -228,15 +222,15 @@
   }
 
   .palette-one .text-image__bg-overlay::before {
-    background: radial-gradient(63.68% 231.83% at var(--overlay-rotate), var(--background-primary, #FFFFFF) 0%, var(--background-primary-00, #FFFFFF00) 100%);
+    background: radial-gradient(63.68% 231.83% at var(--overlay-rotate), var(--background-primary, #FFF) 0%, var(--background-primary-00, #FFF0) 100%);
   }
 
   .palette-one .text-image__bg-overlay::after {
-    background: linear-gradient(to var(--overlay-direction), var(--background-primary-00, #FFFFFF00) 0%, var(--background-primary-10, #FFFFFF1A) 20%, var(--background-primary-45, #FFFFFF73) 40%, var(--background-primary, #FFFFFF) 100%);
+    background: linear-gradient(to var(--overlay-direction), var(--background-primary-00, #FFF0) 0%, var(--background-primary-10, #FFFFFF1A) 20%, var(--background-primary-45, #FFFFFF73) 40%, var(--background-primary, #FFF) 100%);
   }
 
   .palette-one.text-image__spacer {
-    background: var(--background-primary, #FFFFFF);
+    background: var(--background-primary, #FFF);
   }
 
   .palette-two .text-image__holder {
@@ -285,14 +279,14 @@
   }
 }
 
-@media (min-width: 810px) {
+@media (width >= 810px) {
   .text-image__bg-default-wrapper svg {
     min-height: 100%;
     height: auto;
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .text-image__wrapper--padding-top {
     padding-top: var(--padding-top, 100px);
   }

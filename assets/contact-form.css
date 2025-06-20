@@ -60,7 +60,7 @@
   aspect-ratio: 16 / 9;
 }
 
-.contact-form__image-wrapper:after {
+.contact-form__image-wrapper::after {
   border-radius: var(--border-radius-block-rounded);
 }
 
@@ -71,10 +71,7 @@
 
 .contact-form__background {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -88,24 +85,18 @@
   opacity: 0.1;
 }
 
-.contact-form__background:after {
+.contact-form__background::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   transform: var(--overlay-rotate);
 }
 
-.contact-form__background:before {
+.contact-form__background::before {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
+  inset: 0 var(--overlay-right) 0 var(--overlay-left);
   width: 9999px;
-  left: var(--overlay-left);
-  right: var(--overlay-right);
   z-index: 1;
 }
 
@@ -119,7 +110,7 @@
 }
 
 .palette-one.contact-form__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-secondary, #4E5D78);
 }
 
@@ -140,12 +131,12 @@
   fill: var(--color-primary, #0B1A26);
 }
 
-.palette-one .contact-form__background:after {
-  background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary, #FFFFFF) 0%, var(--background-primary-00, #FFFFFF00) 100%);
+.palette-one .contact-form__background::after {
+  background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary, #FFF) 0%, var(--background-primary-00, #FFF0) 100%);
 }
 
-.palette-one .contact-form__background:before {
-  background: linear-gradient(to var(--overlay-direction), var(--background-primary-00, #FFFFFF00) 0%, var(--background-primary-10, #FFFFFF1A) 20%, var(--background-primary-45, #FFFFFF73) 40%, var(--background-primary, #FFFFFF) 100%);
+.palette-one .contact-form__background::before {
+  background: linear-gradient(to var(--overlay-direction), var(--background-primary-00, #FFF0) 0%, var(--background-primary-10, #FFFFFF1A) 20%, var(--background-primary-45, #FFFFFF73) 40%, var(--background-primary, #FFF) 100%);
 }
 
 .palette-two.contact-form__wrapper {
@@ -154,7 +145,7 @@
 }
 
 .palette-two .contact-form__heading {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .contact-form__holder.no-image {
@@ -162,25 +153,25 @@
 }
 
 .palette-two .contact-form__button.button--outlined {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .contact-form__background g,
 .palette-two .contact-form__background path {
-  fill: var(--color-primary-2, #FFFFFF);
+  fill: var(--color-primary-2, #FFF);
 }
 
-.palette-two .contact-form__background:after {
+.palette-two .contact-form__background::after {
   background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary-2, #0B1A26) 0%, var(--background-primary-2-00, #0B1A2600) 100%);
 }
 
-.palette-two .contact-form__background:before {
+.palette-two .contact-form__background::before {
   background: linear-gradient(to var(--overlay-direction), var(--background-primary-2-00, #0B1A2600) 0%, var(--background-primary-2-10, #0B1A261A) 20%, var(--background-primary-2-45, #0B1A2673) 40%, var(--background-primary-2, #0B1A26) 100%);
 }
 
 .palette-three.contact-form__wrapper {
   background: var(--background-primary-3, #F4B841);
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .contact-form__heading {
@@ -200,22 +191,22 @@
   fill: var(--color-primary-3, #0B1A26);
 }
 
-.palette-three .contact-form__background:after {
+.palette-three .contact-form__background::after {
   background: radial-gradient(63.68% 231.83% at 28.65% 40.5%, var(--background-primary-3, #F4B841) 0%, var(--background-primary-3-00, #F4B84100) 100%);
 }
 
-.palette-three .contact-form__background:before {
+.palette-three .contact-form__background::before {
   background: linear-gradient(to var(--overlay-direction), var(--background-primary-3-00, #F4B84100) 0%, var(--background-primary-3-10, #F4B8411A) 20%, var(--background-primary-3-45, #F4B84173) 40%, var(--background-primary-3, #F4B841) 100%);
 }
 
-@media (min-width: 810px) {
+@media (width >= 810px) {
   .contact-form__background svg {
     min-height: 100%;
     height: auto;
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .contact-form__wrapper--padding-top {
     padding-top: var(--padding-top, 70px);
   }
@@ -231,7 +222,7 @@
 
   .contact-form__content {
     justify-content: var(--align-items, flex-start);
-    padding: 0 0 var(--padding-bottom, 0px);
+    padding: 0 0 var(--padding-bottom, 0);
     order : var(--order, 1);
   }
 
@@ -246,13 +237,13 @@
     position: relative;
   }
 
-  .contact-form__holder.no-image:after,
-  .contact-form__image-wrapper:after {
+  .contact-form__holder.no-image::after,
+  .contact-form__image-wrapper::after {
     content: "";
     position: absolute;
     top: 30px;
-    left: var(--left, 0px);
-    right: var(--right, 0px);
+    left: var(--left, 0);
+    right: var(--right, 0);
     width: 100%;
     height: 100%;
     border: 2px solid transparent;
@@ -264,23 +255,23 @@
     right: var(--bg-left, 30px);
   }
 
-  .palette-one .contact-form__holder.no-image:after,
-  .palette-one .contact-form__image-wrapper:after {
+  .palette-one .contact-form__holder.no-image::after,
+  .palette-one .contact-form__image-wrapper::after {
     border-color: var(--background-accent, #F4B841);
   }
 
-  .palette-two .contact-form__holder.no-image:after,
-  .palette-two .contact-form__image-wrapper:after {
+  .palette-two .contact-form__holder.no-image::after,
+  .palette-two .contact-form__image-wrapper::after {
     border-color: var(--background-accent-2, #F4B841);
   }
 
-  .palette-three .contact-form__holder.no-image:after,
-  .palette-three .contact-form__image-wrapper:after {
+  .palette-three .contact-form__holder.no-image::after,
+  .palette-three .contact-form__image-wrapper::after {
     border-color: var(--background-accent-3, #0B1A26);
   }
 
-  .classic-design .contact-form__holder.no-image:after,
-  .classic-design .contact-form__image-wrapper:after {
+  .classic-design .contact-form__holder.no-image::after,
+  .classic-design .contact-form__image-wrapper::after {
     display: none;
   }
 
@@ -302,7 +293,7 @@
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .contact-form__inner--grid {
     gap: 76px;
   }

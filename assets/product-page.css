@@ -96,7 +96,7 @@
 
 .palette-one.product-main__holder {
   color: var(--color-primary, #0B1A26);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .product-main__shipping-info {
@@ -104,7 +104,7 @@
 }
 
 .palette-two.product-main__holder {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   background: var(--background-primary-2, #0B1A26);
 }
 
@@ -118,10 +118,10 @@
 }
 
 .palette-three .product-main__shipping-info {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .product-main__gallery {
     padding: 0 40px 50px 0;
   }
@@ -132,7 +132,7 @@
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .product-main__container--padding-top {
     padding-top: var(--padding-top, 24px);
   }
