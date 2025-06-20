@@ -6,6 +6,7 @@
       {
         "message": "Expected class selector to be kebab-case with optional BEM notation."
       }
-    ]
+    ],
+    "no-descending-specificity": null
   }
 }
