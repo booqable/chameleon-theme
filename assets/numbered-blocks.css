@@ -187,7 +187,6 @@
   padding: 0 0 16px;
 }
 
-.classic-design .numbered-blocks__list::after,
 .classic-design .numbered-blocks__list::after {
   display: none !important;
 }

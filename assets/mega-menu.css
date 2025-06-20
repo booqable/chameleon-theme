@@ -403,16 +403,13 @@
   height: calc(100vh - var(--header-height, 73px) + 3px);
 }
 
-.scrolled-down .preview-bar__container ~ .header--sticky #mobile-menu-opener:checked ~ .menu {
-  height: calc(100vh - var(--header-height, 73px) + var(--top-bar-height, 0px) + 3px);
-}
-
 .scrolled-down .preview-bar__container ~ .header--sticky .menu {
   height: calc(100vh - var(--header-height, 73px) + var(--top-bar-height, 0px) + 3px);
   top: calc(var(--header-height, 73px) - var(--top-bar-height, 0px) - 3px);
 }
 
 .scrolled-down .preview-bar__container ~ .header--sticky #mobile-menu-opener:checked ~ .menu {
+  height: calc(100vh - var(--header-height, 73px) + var(--top-bar-height, 0px) + 3px);
   max-height: calc(100vh - var(--header-height, 73px) + var(--top-bar-height, 0px) + 3px);
 }
 
