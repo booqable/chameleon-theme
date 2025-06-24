@@ -19,8 +19,8 @@
       },
       "disabled": null
     },
-    "search": {
-      "type": "search",
+    "search-page": {
+      "type": "search-page",
       "blocks": {
         "item": {
           "type": "item",
@@ -50,6 +50,6 @@
   },
   "order": [
     "hero-search",
-    "search"
+    "search-page"
   ]
 }

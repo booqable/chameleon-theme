@@ -13,7 +13,7 @@ class Header {
       menuBottom: ".header-menu-bottom",
       menuOpener: "#mobile-menu-opener",
       search: ".header__search",
-      searchOpener: "#search-opener",
+      searchOpener: "#header-search-opener",
       checkbox: "input[type=checkbox]"
     }
 

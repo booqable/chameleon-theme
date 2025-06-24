@@ -10,10 +10,10 @@ const HeaderModalManager = {
   config: {
     selectors: {
       header: '.header',
-      searchOpener: '#search-opener'
+      searchOpener: '#header-search-opener'
     },
     modalOpeners: [
-      '#search-opener',
+      '#header-search-opener',
       '#mobile-menu-opener',
       '.has-dropdown',
       '[data-modal-opener]'

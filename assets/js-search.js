@@ -9,11 +9,11 @@
 
 const SearchConfig = {
   selector: {
-    container: '.header__search',
+    container: '.search',
     form: '#search',
-    input: '.header__search-input',
-    opener: '#search-opener',
-    reset: '.header__search-reset'
+    input: '.search__input',
+    opener: '#header-search-opener',
+    reset: '.search__reset'
   },
   class: {
     filled: 'filled'

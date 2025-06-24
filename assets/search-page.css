@@ -1,61 +1,63 @@
-.search__container--padding-top {
+/* Search page styles */
+
+.search-page__container--padding-top {
   padding-top: var(--padding-top-mobile, 24px);
 }
 
-.search__container--padding-bottom {
+.search-page__container--padding-bottom {
   padding-bottom: var(--padding-bottom-mobile, 24px);
 }
 
-.search-results {
+.search-page__results {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
   gap: 18px;
   justify-content: center;
 }
 
-.search__grid {
+.search-page__grid {
   font-size: 16px;
   font-weight: var(--font-weight-regular, 400);
   line-height: var(--line-height-lg, 1.5);
 }
 
-.search-results .product-card {
+.search-page__results .product-card {
   min-width: auto;
 }
 
-.palette-one.search__wrapper {
+.palette-one.search-page__wrapper {
   background: var(--background-primary, #FFFFFF);
 }
 
-.palette-two.search__wrapper {
+.palette-two.search-page__wrapper {
   background: var(--background-primary-2, #0B1A26);
 }
 
-.palette-three.search__wrapper {
+.palette-three.search-page__wrapper {
   background: var(--background-primary-3, #F4B841);
 }
 
 @media (min-width: 768px) {
-  .search-results {
+  .search-page__results {
     justify-content: start;
     gap: 24px;
   }
 }
 
 @media (min-width: 992px) {
-  .search__container--padding-top {
+  .search-page__container--padding-top {
     padding-top: var(--padding-top, 24px);
   }
 
-  .search__container--padding-bottom {
+  .search-page__container--padding-bottom {
     padding-bottom: var(--padding-bottom, 24px);
   }
 
-  .search-results {
+  .search-page__results {
     gap: 24px;
   }
 
-  .search__grid {
+  .search-page__grid {
     display: grid;
     grid-template-columns: minmax(200px, 23.25%) 1fr;
     gap: 0 5.07%;
@@ -64,22 +66,22 @@
       "pagination pagination";
   }
 
-  .search__grid .search__sidebar {
+  .search-page__grid .search-page__sidebar {
     grid-area: sidebar;
   }
 
-  .search__grid .search-results {
+  .search-page__grid .search-page__results {
     grid-area: grid;
     grid-auto-rows: fit-content(100%);
   }
 
-  .search__grid .search__pagination {
+  .search-page__grid .search-page__pagination {
     grid-area: pagination;
   }
 }
 
 @media (min-width: 1080px) {
-  .search-results {
+  .search-page__results {
     gap: 20px 32px;
     grid-template-columns: repeat(var(--grid-element, 3), minmax(210px, 1fr));
   }

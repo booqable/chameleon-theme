@@ -26,6 +26,10 @@
 {%- assign vimeo                 = settings.social_vimeo_link -%}
 {%- assign app                   = section.blocks | where: "type", "app" | first -%}
 
+{%- if show_search %}
+  {{ "header-search.css" | asset_url | stylesheet_tag }}
+{%- endif -%}
+
 {%- if app %}
   {{ "app.css" | asset_url | stylesheet_tag }}
 {%- endif -%}
@@ -268,26 +272,28 @@
 {%- endcapture -%}
 
 {% comment %} Search component {% endcomment %}
-{%- capture header_search -%}
-  <div class="header__search">
-    <input type="checkbox" id="search-opener" style="display: none">
-    <label for="search-opener" class="header__search-opener">
-      {%- render 'icon-search' -%}
-    </label>
+{%- if show_search -%}
+  {%- capture header_search -%}
+    <div class="header__search search">
+      <input type="checkbox" id="header-search-opener" style="display: none">
+      <label for="header-search-opener" class="header__search-opener search__opener">
+        {%- render 'icon-search' -%}
+      </label>
 
-    <div class="header__search-wrapper" style="display: none">
-      <form id="search" action="{{ routes.search_url }}" role="search">
-        <div class="header__search-input-wrapper">
-          <i class="header__search-icon">
-            {%- render 'icon-search' -%}
-          </i>
-          <input type="search" name="q" class="header__search-input" placeholder="{{- search_placeholder -}}">
-        </div>
-        <span class="header__search-reset"></span>
-      </form>
+      <div class="search__wrapper" style="display: none">
+        <form id="search" action="{{ routes.search_url }}" role="search">
+          <div class="search__input-wrapper">
+            <i class="search__icon">
+              {%- render 'icon-search' -%}
+            </i>
+            <input type="search" name="q" class="search__input" placeholder="{{- search_placeholder -}}">
+          </div>
+          <span class="search__reset"></span>
+        </form>
+      </div>
     </div>
-  </div>
-{%- endcapture -%}
+  {%- endcapture -%}
+{%- endif -%}
 
 {% comment %} Right side buttons component {% endcomment %}
 {%- capture header_links -%}
