@@ -311,10 +311,10 @@
 
             {%- if show_overlay -%}
               {%- capture image_variables -%}
-                --opacity-overlay: {{ overlay_opacity | append: "%"}};
-                --background-overlay: {{- overlay_background -}};
-                --background-overlay-00: {{- overlay_background | append: "00" -}};
-                --background-overlay-45: {{- overlay_background | append: "73" -}};
+                --opacity-overlay: {{ overlay_opacity | divided_by: 100.0 }};
+                --background-overlay: {{ overlay_background }};
+                --background-overlay-00: {{ overlay_background | append: "00" }};
+                --background-overlay-45: {{ overlay_background | append: "73" }};
               {%- endcapture -%}
             {%- endif -%}
             {% comment %} CSS variables end {% endcomment %}
