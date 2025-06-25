@@ -4,7 +4,17 @@ import stylistic from '@stylistic/eslint-plugin'
 
 export default [
   { files: ['**/*.js'] },
-  { languageOptions: { globals: globals.browser } },
+  { ignores: ['**/*.min.js'] },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        $: 'readonly',
+        ol: 'readonly',
+        Utils: 'readonly'
+      }
+    }
+  },
   pluginJs.configs.recommended,
   {
     plugins: {

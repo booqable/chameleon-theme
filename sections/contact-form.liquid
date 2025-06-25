@@ -1,4 +1,3 @@
-{{ "contact-form.css" | asset_url | stylesheet_tag }}
 
 {%- assign name                  = section.settings.name -%}
 {%- assign email                 = section.settings.email -%}
@@ -95,6 +94,7 @@
     {% for block in section.blocks %}
       {%- assign image           = block.settings.image -%}
       {%- assign image_align     = block.settings.image_align -%}
+      {%- assign image_id        = block.id -%}
       {%- assign heading         = block.settings.heading -%}
       {%- assign heading_size    = block.settings.heading_size -%}
       {%- assign text            = block.settings.text -%}
@@ -163,9 +163,9 @@
               <div class="contact-form__image-wrapper">
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'contact-form__image',
-                  size: 'm'
+                  image_id: image_id,
+                  image_class: 'contact-form__image',
+                  image_size: 'm'
                 -%}
               </div>
             {%- endif -%}
@@ -239,6 +239,14 @@
     "description": "Add a way for visitors to contact you",
     "tag": "section",
     "class": "contact-form",
+    "css_assets": [
+      {
+        "file": "contact-form.css"
+      },
+      {
+        "file": "form.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",
