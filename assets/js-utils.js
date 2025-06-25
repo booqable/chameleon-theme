@@ -21,17 +21,17 @@ Utils.getDimensions = (element) => {
 Utils.triggerEvent = (element, eventType) => {
   if (!element) return
   const isFunction = $.is(element[eventType], 'function'),
-        isString = $.is(eventType, 'string')
+    isString = $.is(eventType, 'string')
   const eventFallback = () => {
-    const event = typeof eventType === 'string'
-      ? new Event(eventType, {bubbles: true})
-      : eventType
+    const event = typeof eventType === 'string' ?
+      new Event(eventType, { bubbles: true }) :
+      eventType
     element.dispatchEvent(event)
   }
 
-  element[eventType] && isString && isFunction
-    ? element[eventType]()
-    : eventFallback()
+  element[eventType] && isString && isFunction ?
+    element[eventType]() :
+    eventFallback()
 }
 
 // Sibling element traversal

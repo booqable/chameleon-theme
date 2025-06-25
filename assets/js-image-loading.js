@@ -32,11 +32,11 @@ const ImageVisibility = {
   observer: null,
   observerSetup: false,
 
-  setIntersectionObserver() {
+  setIntersectionObserver () {
     if (this.observerSetup) return this.observer
 
     const observerCallback = (entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (!entry.isIntersecting) return
         ImageLoader.loadImage(entry.target)
         this.unobserve(entry.target)
@@ -49,75 +49,75 @@ const ImageVisibility = {
     return this.observer
   },
 
-  cleanup() {
+  cleanup () {
     if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
     this.observerSetup = false
   },
 
-  observe(element) {
+  observe (element) {
     if (!this.observer) return
     this.observer.observe(element)
   },
 
-  unobserve(element) {
+  unobserve (element) {
     if (!this.observer) return
     this.observer.unobserve(element)
   },
 
-  checkVisibility(img, multiplier) {
+  checkVisibility (img, multiplier) {
     if ($.inViewport(img)) return { visible: true, inViewport: true }
 
     const viewport = ImageDevice.getViewportSize(),
-          rect = img.getBoundingClientRect(),
-          isNearViewport = rect.top < viewport.height * multiplier
+      rect = img.getBoundingClientRect(),
+      isNearViewport = rect.top < viewport.height * multiplier
 
     return { visible: isNearViewport, inViewport: false }
   }
 }
 
 const ImageDevice = {
-  getViewportSize() { return $.viewportSize() },
+  getViewportSize () { return $.viewportSize() },
 
-  lowMemory() {
+  lowMemory () {
     return navigator.deviceMemory && navigator.deviceMemory < 4
   },
 
-  reducedData() {
+  reducedData () {
     return navigator.connection && navigator.connection.saveData
   },
 
-  isMobile() {
+  isMobile () {
     return this.getViewportSize().width < ImageConfig.viewport.mobileWidth
   },
 
-  getAdaptiveMultiplier() {
+  getAdaptiveMultiplier () {
     if ($.slowConnection() || this.lowMemory()) {
       return ImageConfig.viewport.lowMultiplier
     }
-    return this.isMobile()
-      ? ImageConfig.viewport.mobileMultiplier
-      : ImageConfig.viewport.defaultMultiplier
+    return this.isMobile() ?
+      ImageConfig.viewport.mobileMultiplier :
+      ImageConfig.viewport.defaultMultiplier
   }
 }
 
 const ImageLoader = {
-  decodeImage(image) {
+  decodeImage (image) {
     if (!('decode' in image)) return
     image.decode().catch(() => {
       // Silently fail - the image will still display normally
     })
   },
 
-  loadSources(mainImage) {
+  loadSources (mainImage) {
     const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`)
     if (!wrapper) return
 
     const sources = wrapper.querySelectorAll(`source[${ImageConfig.attr.sourceSrcset}]`),
-          inViewport = $.inViewport(mainImage)
+      inViewport = $.inViewport(mainImage)
 
-    sources.forEach(source => {
+    sources.forEach((source) => {
       const dataSrc = source.getAttribute(ImageConfig.attr.sourceSrcset)
       if (!dataSrc) return
 
@@ -152,7 +152,7 @@ const ImageLoader = {
     this.decodeImage(mainImage)
   },
 
-  fadeInImage(mainImage, placeholder) {
+  fadeInImage (mainImage, placeholder) {
     this.loadSources(mainImage)
 
     $.toggleClass(mainImage, ImageConfig.classes.hidden, false)
@@ -165,13 +165,13 @@ const ImageLoader = {
     $.eventListener('add', placeholder, 'transitionend', removePlaceholder, { once: true, passive: true })
   },
 
-  loadImage(mainImage) {
+  loadImage (mainImage) {
     if (!mainImage.classList.contains(ImageConfig.classes.main)) return
     if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return
 
     const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`),
-          placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`),
-          inViewport = $.inViewport(mainImage)
+      placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`),
+      inViewport = $.inViewport(mainImage)
 
     if ($.slowConnection()) {
       mainImage.decoding = 'async'
@@ -191,7 +191,7 @@ const ImageLoader = {
 }
 
 const ImageLoadingStrategy = {
-  prioritizeVisible() {
+  prioritizeVisible () {
     const notLoaded = document.querySelectorAll(
       `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
     )
@@ -203,7 +203,7 @@ const ImageLoadingStrategy = {
     const loadingImages = () => {
       const visibilityResults = []
 
-      notLoaded.forEach(img => {
+      notLoaded.forEach((img) => {
         const result = ImageVisibility.checkVisibility(img, multiplier)
         if (!result.visible) return
         visibilityResults.push({ img, inViewport: result.inViewport })
@@ -222,13 +222,12 @@ const ImageLoadingStrategy = {
     $.batchDOM(loadingImages)
   },
 
-  // Read phase: identify visible images
-  readVisible(images) {
+  readVisible (images) {
     const multiplier = $.slowConnection() ? 2 : (ImageDevice.lowMemory() ? 3 : 4),
-          viewport = ImageDevice.getViewportSize(),
-          visibleImages = []
+      viewport = ImageDevice.getViewportSize(),
+      visibleImages = []
 
-    images.forEach(img => {
+    images.forEach((img) => {
       const rect = img.getBoundingClientRect()
       if (rect.top >= viewport.height * multiplier) return
       visibleImages.push(img)
@@ -237,12 +236,11 @@ const ImageLoadingStrategy = {
     return visibleImages
   },
 
-  // Write phase: load identified images
-  writeVisible(visibleImages) {
+  writeVisible (visibleImages) {
     if (!visibleImages || !visibleImages.length) return
 
     const loadingImages = () => {
-      visibleImages.forEach(img => {
+      visibleImages.forEach((img) => {
         ImageLoader.loadImage(img)
         ImageVisibility.unobserve(img)
       })
@@ -251,17 +249,17 @@ const ImageLoadingStrategy = {
     $.batchDOM(loadingImages)
   },
 
-  loadLimited(images) {
+  loadLimited (images) {
     // Bind the context to ensure 'this' references the ImageLoadingStrategy
-    const readPhase = this.readVisible.bind(this, images),
-          writePhase = this.writeVisible.bind(this)
+    const read = this.readVisible.bind(this, images),
+      write = this.writeVisible.bind(this)
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   },
 
-  loadInChunks(images) {
+  loadInChunks (images) {
     const chunkSize = ImageConfig.viewport.chunkSize,
-          totalImages = images.length
+      totalImages = images.length
 
     const loadChunk = (startIndex) => {
       const endIndex = Math.min(startIndex + chunkSize, totalImages)
@@ -278,34 +276,34 @@ const ImageLoadingStrategy = {
 
       if (endIndex >= totalImages) return
 
-      $.is($.requestIdle, 'function')
-        ? $.requestIdle(() => loadChunk(endIndex), { timeout: 100 })
-        : setTimeout(() => loadChunk(endIndex), 100)
+      $.is($.requestIdle, 'function') ?
+        $.requestIdle(() => loadChunk(endIndex), { timeout: 100 }) :
+        setTimeout(() => loadChunk(endIndex), 100)
     }
 
     loadChunk(0)
   },
 
-  handleWindowLoad() {
+  handleWindowLoad () {
     const notLoaded = document.querySelectorAll(
       `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
     )
 
     if (!notLoaded.length) return
     const laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
-          starved = ImageDevice.lowMemory(),
-          trimmed = ImageDevice.reducedData()
+      starved = ImageDevice.lowMemory(),
+      trimmed = ImageDevice.reducedData()
 
-    laggy || starved || trimmed
-      ? this.loadLimited(notLoaded)
-      : this.loadInChunks(notLoaded)
+    laggy || starved || trimmed ?
+      this.loadLimited(notLoaded) :
+      this.loadInChunks(notLoaded)
   }
 }
 
 const ImageHandler = {
   windowLoadHandler: null,
 
-  init() {
+  init () {
     const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`)
     if (!wrappers.length) return false
 
@@ -316,29 +314,29 @@ const ImageHandler = {
     return this.cleanup.bind(this)
   },
 
-  processImages(wrappers) {
-    wrappers.forEach(wrapper => {
+  processImages (wrappers) {
+    wrappers.forEach((wrapper) => {
       const mainImage = wrapper.querySelector(`.${ImageConfig.classes.main}`),
-            placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`)
+        placeholder = wrapper.querySelector(`.${ImageConfig.classes.placeholder}`)
 
       if (!mainImage || !placeholder) return
       if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return
 
-      $.inViewport(mainImage)
-        ? ImageLoader.loadImage(mainImage)
-        : ImageVisibility.observe(mainImage)
+      $.inViewport(mainImage) ?
+        ImageLoader.loadImage(mainImage) :
+        ImageVisibility.observe(mainImage)
     })
 
     // Process any visible images that weren't covered above
     ImageLoadingStrategy.prioritizeVisible()
   },
 
-  setWindowLoad() {
+  setWindowLoad () {
     this.windowLoadHandler = () => ImageLoadingStrategy.handleWindowLoad()
     $.eventListener('add', window, 'load', this.windowLoadHandler, { passive: true })
   },
 
-  cleanup() {
+  cleanup () {
     if (this.windowLoadHandler) {
       $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true })
       this.windowLoadHandler = null

@@ -15,7 +15,7 @@
 
 .form__block {
   position: relative;
-  margin: 0 0 30px 0;
+  margin: 0 0 30px;
 }
 
 .form__label-backlight {
@@ -168,14 +168,14 @@ div.form__block--error .form__textarea:focus {
 }
 
 .palette-one .form__label {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-secondary, #4E5D78);
 }
 
 .palette-one .form__input,
 .palette-one .form__textarea {
   color: var(--color-primary, #0B1A26);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border-color: var(--color-border, #0B1A2626);
 }
 
@@ -197,7 +197,7 @@ div.form__block--error .form__textarea:focus {
 
 .palette-two .form__input,
 .palette-two .form__textarea {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   background: var(--background-primary-2, #0B1A26);
   border-color: var(--color-border-2, #FFFFFF47);
 }
@@ -236,7 +236,7 @@ div.form__block--error .form__textarea:focus {
   border-color: var(--color-border-3, #0B1A2626);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .form__inner form {
     margin: 30px 0 0;
   }

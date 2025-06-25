@@ -23,7 +23,7 @@
   left: 10px;
 }
 
-.map .ol-zoom:after {
+.map .ol-zoom::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -49,7 +49,7 @@
   text-decoration: none;
   height: 24px;
   width: 24px;
-  background-color: var(--color-white, #FFFFFF);
+  background-color: var(--color-white, #FFF);
   border: 1px solid transparent;
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   pointer-events: all !important;
@@ -84,7 +84,7 @@
   border-color: var(--background-accent-3-active, #0B1A26BA);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .map {
     height: 100%;
   }

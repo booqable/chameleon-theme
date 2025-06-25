@@ -132,11 +132,11 @@
 
 .palette-one.mosaic__wrapper {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-one .mosaic__item {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border-color: var(--color-border, #0B1A2626);
 }
 
@@ -156,7 +156,7 @@
 .palette-one .mosaic__button.button:hover,
 .palette-two .mosaic__button.button:hover,
 .palette-three .mosaic__button.button:hover {
-  text-shadow: 0.5px 0 currentColor;
+  text-shadow: 0.5px 0 currentcolor;
 }
 
 .palette-two.mosaic__wrapper {
@@ -175,15 +175,15 @@
 
 .palette-two .mosaic__heading,
 .palette-two .mosaic__button.button {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .mosaic__button.button path {
-  fill: var(--color-primary-2, #FFFFFF);
+  fill: var(--color-primary-2, #FFF);
 }
 
 .palette-three.mosaic__wrapper {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
 }
 
@@ -255,7 +255,7 @@
   border: transparent;
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .mosaic__list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -349,7 +349,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .mosaic__wrapper--padding-top {
     padding-top: var(--padding-top, 112px);
   }

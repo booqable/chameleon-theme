@@ -22,11 +22,11 @@
   --color-green: #51C234;
   --color-red: #C23434;
   --color-red-light: #F5CFCF;
-  --color-white: #FFFFFF;
+  --color-white: #FFF;
   --color-white-90: #FFFFFFE6;
 
   /* Shadows */
-  --shadow-xs: 0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-xs: 0px 1px 3px rgb(0 0 0 / 10%), 0px 1px 2px rgb(0 0 0 / 6%);
 }
 
 /* Base styles */
@@ -53,16 +53,10 @@ html:has(div[data-tid="Modal"][class*="Container-"]) {
   overflow: clip;
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus
-input:-webkit-autofill:active,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover
-textarea:-webkit-autofill:focus,
-textarea:-webkit-autofill:active {
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
+/* Allow the image of the `text with image` section to be centered with text */
+#main > section:first-child:is(.text-image) .text-image__holder,
+#main > .text-image:first-child .text-image__holder {
+  max-height: none;
 }
 
 /* Stretch the only section to the footer */
@@ -150,7 +144,7 @@ div[data-tid="Modal actions"] button {
 
 /* COLORS */
 body {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-primary, #0B1A26);
 }
 
@@ -163,7 +157,8 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover
 textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  background-clip: text !important;
 }
 
 .palette-one input:-webkit-autofill,
@@ -186,8 +181,8 @@ textarea:-webkit-autofill:active {
 .palette-two textarea:-webkit-autofill:hover
 .palette-two textarea:-webkit-autofill:focus,
 .palette-two textarea:-webkit-autofill:active {
-  color: var(--color-primary-2, #FFFFFF) !important;
-  -webkit-text-fill-color: var(--color-primary-2, #FFFFFF) !important;
+  color: var(--color-primary-2, #FFF) !important;
+  -webkit-text-fill-color: var(--color-primary-2, #FFF) !important;
 }
 
 .palette-three input:-webkit-autofill,
@@ -204,7 +199,7 @@ textarea:-webkit-autofill:active {
 
 /* Text colors */
 .fa, .far {
-  color: currentColor;
+  color: currentcolor;
 }
 
 .palette-one .fa, .palette-one .far {
@@ -212,7 +207,7 @@ textarea:-webkit-autofill:active {
 }
 
 .palette-two .fa, .palette-two .far {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-three .fa, .palette-three .far {
@@ -246,7 +241,7 @@ textarea:-webkit-autofill:active {
 .palette-two .h4,
 .palette-two .h5,
 .palette-two .h6 {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-three h1,
@@ -306,7 +301,7 @@ textarea:-webkit-autofill:active {
 }
 
 .palette-one .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent, #F4B841);
 }
 
@@ -347,7 +342,7 @@ textarea:-webkit-autofill:active {
 }
 
 .palette-two .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent-2, #F4B841);
 }
 
@@ -360,7 +355,7 @@ textarea:-webkit-autofill:active {
 }
 
 .palette-three .button.button--primary {
-  color: var(--color-accent-3, #FFFFFF);
+  color: var(--color-accent-3, #FFF);
   background: var(--background-accent-3, #0B1A26);
   border-color: var(--background-accent-3, #0B1A26);
 }
@@ -388,7 +383,7 @@ textarea:-webkit-autofill:active {
 }
 
 .palette-three .button.button--outlined {
-  color: currentColor;
+  color: currentcolor;
   border-color: var(--background-accent-3, #0B1A26);
 }
 
@@ -400,7 +395,7 @@ textarea:-webkit-autofill:active {
   background: var(--background-accent-secondary-3-active, #0B1A268F);
 }
 
-@media (min-width: 576px) {
+@media (width >= 576px) {
   /* Mini cart responsive styles */
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: var(--header-height) !important;
@@ -443,7 +438,7 @@ textarea:-webkit-autofill:active {
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   /* Mini cart responsive styles */
   body:has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
     top: calc(var(--header-height) - var(--menu-position)) !important;
@@ -482,14 +477,14 @@ textarea:-webkit-autofill:active {
   }
 }
 
-@media (min-width: 1280px) {
+@media (width >= 1280px) {
   /* Mini cart responsive styles */
   div[data-tippy-root]:has([data-tid="Mini cart"]) {
     right: calc(50% - var(--max-width) / 2 + var(--horizontal-padding)) !important;
   }
 }
 
-@media (min-height: 964px) {
+@media (height >= 964px) {
   /* Mini cart responsive styles */
   div[data-tid="Mini cart"] div[class*="Summary"] div[class*="Services"] {
     max-height: none;

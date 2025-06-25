@@ -36,25 +36,25 @@ const CookieDOM = {
     appliedStyles: false
   },
 
-  init() {
+  init () {
     this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`)
     return !!this.elements.container
   },
 
-  getContainer() {
+  getContainer () {
     if (this.elements.container) return this.elements.container
 
     this.elements.container = document.querySelector(`#${CookieConfig.selector.container}`)
     return this.elements.container
   },
 
-  cleanup() {
+  cleanup () {
     this.elements.container = null
   }
 }
 
 const CookieStyler = {
-  applyStyles(container = null) {
+  applyStyles (container = null) {
     const ccMain = container || CookieDOM.getContainer()
     if (!ccMain) return false
 
@@ -62,14 +62,14 @@ const CookieStyler = {
 
     if (ccPalette === CookieDOM.cache.currentPalette && CookieDOM.cache.appliedStyles) return true
 
-    const readPhase = () => {
+    const read = () => {
       return {
         palette: ccPalette,
         styleMap: window?.cookieSettings?.cookieStyleMap || {}
       }
     }
 
-    const writePhase = (data) => {
+    const write = (data) => {
       ccMain.classList.remove(
         CookieConfig.modifier.paletteOne,
         CookieConfig.modifier.paletteTwo,
@@ -86,7 +86,7 @@ const CookieStyler = {
       ccMain.style.opacity = '1'
     }
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
     return true
   }
 }
@@ -94,7 +94,7 @@ const CookieStyler = {
 const CookieObserver = {
   observer: null,
 
-  setup() {
+  setup () {
     if (this.observer) return this.observer
 
     const handleElement = (el) => {
@@ -131,7 +131,7 @@ const CookieObserver = {
     return this.observer
   },
 
-  cleanup() {
+  cleanup () {
     if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
@@ -141,7 +141,7 @@ const CookieObserver = {
 const CookieInterval = {
   intervalId: null,
 
-  start() {
+  start () {
     let attempts = 0
     const interval = CookieConfig.defaults.interval
 
@@ -164,7 +164,7 @@ const CookieInterval = {
     return this.intervalId
   },
 
-  stop() {
+  stop () {
     if (!this.intervalId) return
     clearInterval(this.intervalId)
     this.intervalId = null
@@ -174,7 +174,7 @@ const CookieInterval = {
 const CookieHandler = {
   initHandler: null,
 
-  init() {
+  init () {
     CookieStyler.applyStyles()
     CookieObserver.setup()
     CookieInterval.start()
@@ -183,12 +183,12 @@ const CookieHandler = {
     return this.cleanup.bind(this)
   },
 
-  setupEventListener() {
+  setupEventListener () {
     this.initHandler = () => $.batchDOM(CookieStyler.applyStyles)
     $.eventListener('add', window, CookieConfig.event.initialized, this.initHandler)
   },
 
-  cleanup() {
+  cleanup () {
     if (this.initHandler) {
       $.eventListener('remove', window, CookieConfig.event.initialized, this.initHandler)
       this.initHandler = null

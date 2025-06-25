@@ -18,7 +18,7 @@
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
-  --overlay-opacity: {{ overlay_opacity | append: '%' }};
+  --opacity-overlay: {{ overlay_opacity | divided_by: 100.0 }};
 
   {%- case padding_top -%}
     {%- when 'small' -%}
@@ -61,22 +61,37 @@
 <div class="hero__wrapper{% if color_palette != blank %} palette-{{ color_palette }}{% endif %}{% if show_datepicker %} section-with-date-picker{%- endif -%}" style="{{- variables | escape -}}">
   <div class="hero__container container{% if padding_top != blank or padding_top_mobile != blank %} hero__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} hero__container--padding-bottom{%- endif -%}">
     <div class="hero__content">
-      <h1 class="hero__title">
-        {%- if section_preview -%}
-          Title
-        {%- else -%}
-          {%- if custom_title == blank and collection.title == blank and page.title == blank and cart.title == blank -%}
-            {%- assign custom_title = "Title" -%}
-          {%- endif -%}
+      {%- assign title = "Title" -%}
+      {%- assign description = "" -%}
 
-          {{- custom_title | default: collection.title | default: page.title | default: cart.title -}}
-        {%- endif -%}
+      {%- if custom_title != blank -%}
+        {%- assign title = custom_title -%}
+      {%- elsif collection.title != blank -%}
+        {%- assign title = collection.title -%}
+      {%- elsif page.title != blank -%}
+        {%- assign title = page.title -%}
+      {%- elsif cart.title != blank -%}
+        {%- assign title = cart.title -%}
+      {%- endif -%}
+
+      {%- if custom_description != blank -%}
+        {%- assign description = custom_description -%}
+      {%- elsif collection.description != blank -%}
+        {%- assign description = collection.description -%}
+      {%- elsif page.content != blank -%}
+        {%- assign description = page.content -%}
+      {%- endif -%}
+
+      <h1 class="hero__title">
+        {{- title -}}
       </h1>
 
-      <div class="hero__description text-medium bq-content rx-content">
-        {%- unless section_preview -%}
-          {{- custom_description | default: collection.description | default: page.content -}}
-        {%- endunless -%}
+      <div class="hero__description text-medium bq-content rx-content"{%- if section_preview -%} style="margin-bottom: 50px"{%- endif -%}>
+        {%- if section_preview -%}
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br>Suspendisse varius enim in eros elementum tristique.
+        {%- else -%}
+          {{- description -}}
+        {%- endif -%}
       </div>
     </div>
   </div>

@@ -16,7 +16,7 @@
 }
 
 .product-card__vision--white {
-  background: var(--color-white, #FFFFFF);
+  background: var(--color-white, #FFF);
 }
 
 .product-card__vision .product-card__link {
@@ -28,7 +28,7 @@
   z-index: 2;
 }
 
-.product-card__vision:after {
+.product-card__vision::after {
   content: "";
   display: block;
   aspect-ratio: 1 / 0.97;
@@ -120,7 +120,7 @@ bq-product-availability[visible="true"] {
 
 .palette-one .product-card {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border: 1px solid var(--color-border, #0B1A2626);
 }
 
@@ -156,7 +156,7 @@ bq-product-availability[visible="true"] {
 }
 
 .palette-two .product-card__price-info {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .product-card__price,
@@ -165,7 +165,7 @@ bq-product-availability[visible="true"] {
 }
 
 .palette-three .product-card {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
   border: 1px solid var(--color-border-3, #0B1A2626);
 }
@@ -189,7 +189,7 @@ bq-product-availability[visible="true"] {
 
 .palette-one.product-card {
   color: var(--color-secondary, #4E5D78);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border: 1px solid var(--color-border, #0B1A2626);
 }
 
@@ -227,7 +227,7 @@ bq-product-availability[visible="true"] {
 
 .palette-two.product-card .product-card__title,
 .palette-two.product-card .product-card__price-info {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two.product-card .product-card__price,
@@ -236,7 +236,7 @@ bq-product-availability[visible="true"] {
 }
 
 .palette-three.product-card {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
   background: var(--background-primary-3, #F4B841);
   border: 1px solid var(--color-border-3, #0B1A2626);
 }
@@ -298,13 +298,13 @@ bq-product-availability[visible="true"] {
   border: 1px solid var(--background-accent-3, #0B1A26);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .product-card {
     min-width: 285px;
     container: product-card / inline-size;
   }
 
-  .product-card__vision:after {
+  .product-card__vision::after {
     aspect-ratio: 1 / 1.02;
   }
 }

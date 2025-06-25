@@ -96,7 +96,7 @@
 
 .palette-one .columns__item {
   color: var(--color-primary, #0B1A26);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   border-color: var(--color-fourth, #0B1A2626);
 }
 
@@ -113,7 +113,7 @@
 }
 
 .palette-two .columns__item {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   background: var(--background-primary-2, #0B1A26);
   border-color: var(--color-fourth-2, #FFFFFF47);
 }
@@ -141,10 +141,10 @@
 }
 
 .palette-three .columns__description {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .columns__wrapper--padding-top {
     padding-top: var(--padding-top, 112px);
   }
@@ -158,7 +158,7 @@
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .columns__grid {
     gap: 48px;
   }

@@ -43,8 +43,7 @@ const TouchDOM = {
 }
 
 const TouchRenderer = {
-  // Read phase for frameSequence
-  readNotchData() {
+  readNotchData () {
     if (!$.isTouchDevice()) return null
 
     // Apply throttling to avoid excessive calculations during resize
@@ -60,17 +59,16 @@ const TouchRenderer = {
       left: parseInt(styles.getPropertyValue(TouchConfig.cssVars.areaLeft)) || 0
     }
 
-    const hasNotch = Object.values(safeAreas).some(val => val > 0),
-          screen = $.viewportSize(),
-          orientation = (hasNotch && screen.width > screen.height)
-            ? TouchConfig.orientations.landscape
-            : TouchConfig.orientations.portrait
+    const hasNotch = Object.values(safeAreas).some((val) => val > 0),
+      screen = $.viewportSize(),
+      orientation = (hasNotch && screen.width > screen.height) ?
+        TouchConfig.orientations.landscape :
+        TouchConfig.orientations.portrait
 
     return { hasNotch, screen, orientation: orientation }
   },
 
-  // Write phase for frameSequence
-  writeNotchData(data) {
+  writeNotchData (data) {
     if (!data) return
 
     $.toggleClass(TouchDOM.elements.doc, TouchConfig.modifiers.touch, true)
@@ -84,24 +82,24 @@ const TouchRenderer = {
     TouchDOM.cacheData.currentOrientation = data.orientation
   },
 
-  detectNotch() {
+  detectNotch () {
     // Bind the context to ensure 'this' references are maintained
-    const readPhase = this.readNotchData.bind(this),
-          writePhase = this.writeNotchData.bind(this)
+    const read = this.readNotchData.bind(this),
+      write = this.writeNotchData.bind(this)
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   }
 }
 
 const TouchHandler = {
   resizeHandler: null,
 
-  setupResizeHandler() {
+  setupResizeHandler () {
     this.resizeHandler = TouchRenderer.detectNotch.bind(TouchRenderer)
     $.eventListener('add', window, 'resize', this.resizeHandler)
   },
 
-  init() {
+  init () {
     TouchRenderer.detectNotch()
     this.setupResizeHandler()
 
@@ -111,7 +109,7 @@ const TouchHandler = {
     }
   },
 
-  cleanup() {
+  cleanup () {
     if (this.resizeHandler) {
       $.eventListener('remove', window, 'resize', this.resizeHandler)
       this.resizeHandler = null

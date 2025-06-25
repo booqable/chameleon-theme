@@ -48,12 +48,12 @@ const MapDOM = {
     mapLinks: []
   },
 
-  init() {
+  init () {
     this.elements.locationWrappers = document.querySelectorAll(MapConfig.selector.wrapper)
     return this.elements.locationWrappers && this.elements.locationWrappers.length > 0
   },
 
-  getPinDimensions(iconSelector = MapConfig.selector.icon) {
+  getPinDimensions (iconSelector = MapConfig.selector.icon) {
     if (this.cache.iconDimensions.has(iconSelector)) {
       return this.cache.iconDimensions.get(iconSelector)
     }
@@ -62,21 +62,21 @@ const MapDOM = {
     if (!icon) return [MapConfig.iconWidth, MapConfig.iconHeight]
 
     const dimensions = $.getDimensions(icon)
-    const result = dimensions.width && dimensions.height
-      ? [dimensions.width, dimensions.height]
-      : [MapConfig.iconWidth, MapConfig.iconHeight]
+    const result = dimensions.width && dimensions.height ?
+      [dimensions.width, dimensions.height] :
+      [MapConfig.iconWidth, MapConfig.iconHeight]
 
     this.cache.iconDimensions.set(iconSelector, result) // Cache the result for future use
 
     return result
   },
 
-  updateMapLinks(locationData) {
+  updateMapLinks (locationData) {
     const links = document.querySelectorAll(MapConfig.selector.link)
     if (!links || !links.length) return
 
     const [lat, lon] = [locationData[0].lat, locationData[0].lon],
-          mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=${MapConfig.defaultZoom}/${lat}/${lon}`
+      mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=${MapConfig.defaultZoom}/${lat}/${lon}`
 
     this.cache.mapLinks.push(mapUrl)
 
@@ -91,30 +91,29 @@ const MapDOM = {
     $.batchDOM(mapLinksHandler)
   },
 
-  isVisible(element) {
+  isVisible (element) {
     if (!element) return false
     if ($.inViewport(element)) return true
 
     const tabContent = element.closest(MapConfig.selector.tabsContent),
-          tabContentStyles = window.getComputedStyle(tabContent)
+      tabContentStyles = window.getComputedStyle(tabContent)
     return tabContent && tabContentStyles.display !== 'none'
   },
 
-  cleanup() {
+  cleanup () {
     this.cache.mapLinks.length = 0
     this.cache.iconDimensions.clear()
 
-    Object.keys(this.elements).forEach(key => {
+    Object.keys(this.elements).forEach((key) => {
       this.elements[key] = null // Clear element references
     })
   }
 }
 
 const MapRenderer = {
-  // Read phase for map configuration
-  readMapConfiguration(lon, lat) {
+  readMapConfiguration (lon, lat) {
     const iconDimensions = MapDOM.getPinDimensions(),
-          icon = document.querySelector(MapConfig.selector.icon)
+      icon = document.querySelector(MapConfig.selector.icon)
 
     return {
       layers: [
@@ -150,8 +149,7 @@ const MapRenderer = {
     }
   },
 
-  // Write phase for creating the map
-  writeMapObject(targetId, mapConfig) {
+  writeMapObject (targetId, mapConfig) {
     new ol.Map({
       target: targetId,
       layers: mapConfig.layers,
@@ -160,18 +158,17 @@ const MapRenderer = {
     })
   },
 
-  renderMap(targetId, locationData) {
+  renderMap (targetId, locationData) {
     const [lon, lat] = [locationData[0].lon, locationData[0].lat]
 
     // Bind the context to ensure 'this' references are maintained
-    const readPhase = this.readMapConfiguration.bind(this, lon, lat),
-          writePhase = (mapConfig) => this.writeMapObject(targetId, mapConfig)
+    const read = this.readMapConfiguration.bind(this, lon, lat),
+      write = (mapConfig) => this.writeMapObject(targetId, mapConfig)
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   },
 
-  // Read phase for error message preparation
-  readErrorElements(mapElement, address) {
+  readErrorElements (mapElement, address) {
     const errorDiv = document.createElement('div')
     errorDiv.classList.add(MapConfig.class.error)
     errorDiv.innerHTML = `${address} - ${MapConfig.errorMessage}`
@@ -182,33 +179,32 @@ const MapRenderer = {
     }
   },
 
-  // Write phase for error message display
-  writeErrorElements(data) {
+  writeErrorElements (data) {
     data.mapElement.appendChild(data.errorDiv)
 
     if (!data.parentElement) return
     $.toggleClass(data.parentElement, MapConfig.class.noImage, true)
   },
 
-  displayErrorMessage(mapElement, address) {
+  displayErrorMessage (mapElement, address) {
     // Bind the context to ensure 'this' references are maintained
-    const readPhase = () => this.readErrorElements(mapElement, address)
-    const writePhase = (data) => {
+    const read = () => this.readErrorElements(mapElement, address)
+    const write = (data) => {
       if (!data) return
       // Add the mapElement to the data object for use in the write phase
       data.mapElement = mapElement
       this.writeErrorElements(data)
     }
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   }
 }
 
 const MapData = {
-  async fetchLocationData(address) {
+  async fetchLocationData (address) {
     try {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`,
-            response = await fetch(url)
+        response = await fetch(url)
       return await response.json()
     } catch (error) {
       console.error('Error fetching location data:', error)
@@ -218,7 +214,7 @@ const MapData = {
 }
 
 const MapProcessor = {
-  async processMapElement(mapElement) {
+  async processMapElement (mapElement) {
     const processed = mapElement.getAttribute(MapConfig.attr.processed)
     if (!mapElement || processed === 'true') return
 
@@ -226,7 +222,7 @@ const MapProcessor = {
     if (!address) return
 
     const mapId = mapElement.getAttribute(MapConfig.attr.id),
-          locationData = await MapData.fetchLocationData(address)
+      locationData = await MapData.fetchLocationData(address)
 
     if (!locationData || !locationData.length) {
       MapRenderer.displayErrorMessage(mapElement, address)
@@ -239,11 +235,11 @@ const MapProcessor = {
     mapElement.setAttribute(MapConfig.attr.processed, 'true') // Mark as processed to prevent duplicate processing
   },
 
-  processLocationWrapper(wrapper) {
+  processLocationWrapper (wrapper) {
     const maps = wrapper.querySelectorAll(MapConfig.selector.map)
     if (!maps || !maps.length) return
 
-    maps.forEach(map => {
+    maps.forEach((map) => {
       const attribute = map.getAttribute(MapConfig.attr.processed)
       const mapObserver = () => {
         if (attribute !== 'true') MapVisibility.observer.observe(map)
@@ -262,11 +258,11 @@ const MapVisibility = {
   observer: null,
   observerSetup: false,
 
-  setIntersectionObserver() {
+  setIntersectionObserver () {
     if (this.observerSetup) return this.observer
 
     const observerCallback = (entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (!entry.isIntersecting) return
         MapProcessor.processMapElement(entry.target)
         this.observer.unobserve(entry.target)
@@ -279,7 +275,7 @@ const MapVisibility = {
     return this.observer
   },
 
-  cleanup() {
+  cleanup () {
     if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
@@ -297,20 +293,20 @@ const handleLocation = () => {
     if (!mapWrappers || !mapWrappers.length) return
 
     const handleWrappers = () => {
-      MapDOM.elements.locationWrappers.forEach(wrapper => {
+      MapDOM.elements.locationWrappers.forEach((wrapper) => {
         MapProcessor.processLocationWrapper(wrapper)
       })
     }
 
-    $.is($.requestIdle, 'function')
-      ? $.requestIdle(() => { handleWrappers() }, { timeout: MapConfig.idleTimeout })
-      : handleWrappers()
+    $.is($.requestIdle, 'function') ?
+      $.requestIdle(() => { handleWrappers() }, { timeout: MapConfig.idleTimeout }) :
+      handleWrappers()
   }
 
   // Initialize with connection-aware delay
-  $.slowConnection() && $.is($.slowConnection, 'function')
-    ? setTimeout(wrappersWithDelay, MapConfig.slowConnectionDelay)
-    : wrappersWithDelay()
+  $.slowConnection() && $.is($.slowConnection, 'function') ?
+    setTimeout(wrappersWithDelay, MapConfig.slowConnectionDelay) :
+    wrappersWithDelay()
 
   const cleanup = () => {
     MapVisibility.cleanup()
