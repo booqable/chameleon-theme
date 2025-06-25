@@ -1,21 +1,21 @@
 class Main {
-  constructor(block) {
-    this.block = block;
+  constructor (block) {
+    this.block = block
 
     this.selector = {
-      datePicker: "bq-date-picker",
-      datePickerBlock: ".date-picker-instance",
-      image: ".focal-image"
+      datePicker: 'bq-date-picker',
+      datePickerBlock: '.date-picker-instance',
+      image: '.focal-image'
     }
 
     this.modifier = {
-      loaded: "loaded",
-      resize: "resize-active"
+      loaded: 'loaded',
+      resize: 'resize-active'
     }
 
     this.data = {
-      focalX: "data-focal-x",
-      focalY: "data-focal-y"
+      focalX: 'data-focal-x',
+      focalY: 'data-focal-y'
     }
 
     this.cssVar = {
@@ -23,43 +23,43 @@ class Main {
       datePickerBlockHeight: '--date-picker-block-height'
     }
 
-    this.time = 500;
-    this.timer = undefined;
-    this.focalImageTimeout;
+    this.time = 500
+    this.timer = undefined
+    this.focalImageTimeout
   }
 
-  init() {
-    if (!this.block) return false;
+  init () {
+    if (!this.block) return false
 
-    this.elements();
-    this.events();
+    this.elements()
+    this.events()
   }
 
-  elements() {
-    this.datePicker = document.querySelector(this.selector.datePicker);
-    this.datePickerBlock = document.querySelector(this.selector.datePickerBlock);
+  elements () {
+    this.datePicker = document.querySelector(this.selector.datePicker)
+    this.datePickerBlock = document.querySelector(this.selector.datePickerBlock)
   }
 
-  events() {
-    this.setLoadedClass();
-    this.focalImages();
-    setTimeout(() => this.getDatePickerHeight(), 1000);
+  events () {
+    this.setLoadedClass()
+    this.focalImages()
+    setTimeout(() => this.getDatePickerHeight(), 1000)
 
-    window.addEventListener("resize", this.getDatePickerHeight.bind(this));
-    window.addEventListener("resize", this.setResizeClass.bind(this));
+    window.addEventListener('resize', this.getDatePickerHeight.bind(this))
+    window.addEventListener('resize', this.setResizeClass.bind(this))
   }
 
-  getDatePickerHeight() {
-    if (!this.datePicker) return false;
+  getDatePickerHeight () {
+    if (!this.datePicker) return false
 
-    const datePickerHeight = parseInt(this.datePicker?.getBoundingClientRect().height);
-    const datePickerBlockHeight = parseInt(this.datePickerBlock?.getBoundingClientRect().height);
+    const datePickerHeight = parseInt(this.datePicker?.getBoundingClientRect().height)
+    const datePickerBlockHeight = parseInt(this.datePickerBlock?.getBoundingClientRect().height)
 
-    if (datePickerHeight) this.setCssVar(this.cssVar.datePickerHeight, datePickerHeight);
-    if (datePickerBlockHeight) this.setCssVar(this.cssVar.datePickerBlockHeight, datePickerBlockHeight);
+    if (datePickerHeight) this.setCssVar(this.cssVar.datePickerHeight, datePickerHeight)
+    if (datePickerBlockHeight) this.setCssVar(this.cssVar.datePickerBlockHeight, datePickerBlockHeight)
   }
 
-  setCssVar(key, val) {
+  setCssVar (key, val) {
     document.documentElement.style.setProperty(
       `${key}`,
       `${val}px`
@@ -67,52 +67,52 @@ class Main {
   }
 
   // adding class while resizing window
-  setResizeClass() {
-    this.block.classList.add(this.modifier.resize);
-    clearTimeout(this.timer);
+  setResizeClass () {
+    this.block.classList.add(this.modifier.resize)
+    clearTimeout(this.timer)
 
     this.timer = setTimeout(() => {
-      this.block.classList.remove(this.modifier.resize);
-    }, this.time);
+      this.block.classList.remove(this.modifier.resize)
+    }, this.time)
   }
 
   // adding class after loading content
-  setLoadedClass() {
-    this.block.classList.add(this.modifier.loaded);
+  setLoadedClass () {
+    this.block.classList.add(this.modifier.loaded)
   }
 
   // change focus positioning of image
-  focalImages() {
+  focalImages () {
     if (!window.imageFocus) {
-      if (this.focalImageTimeout) clearTimeout(this.focalImageTimeout);
+      if (this.focalImageTimeout) clearTimeout(this.focalImageTimeout)
 
-      this.focalImageTimeout = setTimeout(() => initFocalImages(), 10);
+      this.focalImageTimeout = setTimeout(() => initFocalImages(), 10)
 
-      return;
+      return
     }
 
-    clearTimeout(this.focalImageTimeout);
+    clearTimeout(this.focalImageTimeout)
 
-    const images = document.querySelectorAll(this.selector.image);
+    const images = document.querySelectorAll(this.selector.image)
 
-    images.forEach(image => {
+    images.forEach((image) => {
       const x = image.getAttribute(this.data.focalX),
-            y = image.getAttribute(this.data.focalY);
+        y = image.getAttribute(this.data.focalY)
 
       new window.imageFocus(image, {
         focus: {
           x: parseFloat(x) || 0,
-          y: parseFloat(y) || 0,
+          y: parseFloat(y) || 0
         }
-      });
+      })
 
-      image.style.opacity = 1;
+      image.style.opacity = 1
     })
   }
 }
 
-const main = new Main(document.querySelector('body'));
+const main = new Main(document.querySelector('body'))
 
-document.addEventListener("readystatechange", (event) => {
-  if (event.target.readyState === "complete") main.init();
+document.addEventListener('readystatechange', (event) => {
+  if (event.target.readyState === 'complete') main.init()
 })
