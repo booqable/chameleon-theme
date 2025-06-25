@@ -18,7 +18,7 @@
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
-  --overlay-opacity: {{ overlay_opacity | append: '%' }};
+  --overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }};
 
   {%- case padding_top -%}
     {%- when 'small' -%}
