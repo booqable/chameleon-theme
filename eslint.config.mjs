@@ -4,7 +4,16 @@ import stylistic from '@stylistic/eslint-plugin'
 
 export default [
   { files: ['**/*.js'] },
-  { languageOptions: { globals: globals.browser } },
+  { ignores: ['**/*.min.js'] },
+  { 
+    languageOptions: { 
+      globals: {
+        ...globals.browser,
+        initFocalImages: 'readonly',
+        ol: 'readonly'
+      }
+    }
+  },
   pluginJs.configs.recommended,
   {
     plugins: {
