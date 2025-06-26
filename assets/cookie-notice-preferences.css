@@ -62,7 +62,7 @@
   color: var(--color-accent-3);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .cookie-notice-preferences__wrapper--padding-top {
     padding-top: var(--padding-top);
   }

@@ -30,7 +30,7 @@
   border-radius: 0;
 }
 
-.tabs__trigger:before {
+.tabs__trigger::before {
   content: "";
   position: absolute;
   left: 0;
@@ -44,7 +44,7 @@
   transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
-.tabs__trigger:hover:before {
+.tabs__trigger:hover::before {
   opacity: 1;
   visibility: visible;
 }
@@ -149,7 +149,7 @@
   border-bottom-color: var(--color-border, #0B1A2626);
 }
 
-.palette-one .tabs__trigger:before {
+.palette-one .tabs__trigger::before {
   background: var(--background-accent, #F4B841);
 }
 
@@ -178,12 +178,12 @@
   border-bottom-color: var(--color-border-2, #FFFFFF47);
 }
 
-.palette-two .tabs__trigger:before {
+.palette-two .tabs__trigger::before {
   background: var(--background-accent-2, #F4B841);
 }
 
 .palette-two .tabs__heading {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .tabs__image-wrapper.no-image {
@@ -200,14 +200,14 @@
 }
 
 .palette-three .tabs {
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .tabs__trigger {
   border-bottom-color: var(--color-border-3, #0B1A2626);
 }
 
-.palette-three .tabs__trigger:before {
+.palette-three .tabs__trigger::before {
   background: var(--background-accent-3, #0B1A26);
 }
 
@@ -228,7 +228,7 @@
   fill: var(--color-outline-3, #0B1A26);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .tabs {
     flex-direction: var(--direction, row);
     gap: 30px;
@@ -282,13 +282,13 @@
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .tabs__trigger-label {
     padding: 16px 32px;
   }
 }
 
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   .tabs__tab {
     padding: var(--tabs-gap);
   }

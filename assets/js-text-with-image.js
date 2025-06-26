@@ -26,12 +26,12 @@ const TextImageDOM = {
     prevSections: new Map()
   },
 
-  init() {
+  init () {
     this.elements.sections = document.querySelectorAll(TextImageConfig.selector.section)
     return this.elements.sections && this.elements.sections.length > 0
   },
 
-  getPreviousSection(section) {
+  getPreviousSection (section) {
     if (!section) return null
 
     if (this.cache.prevSections.has(section)) {
@@ -44,7 +44,7 @@ const TextImageDOM = {
     return prevSection
   },
 
-  getSpacer(section) {
+  getSpacer (section) {
     if (!section) return null
     if (this.cache.spacers.has(section)) {
       return this.cache.spacers.get(section)
@@ -56,18 +56,18 @@ const TextImageDOM = {
     return spacer
   },
 
-  cleanup() {
+  cleanup () {
     this.cache.spacers.clear()
     this.cache.prevSections.clear()
 
-    Object.keys(this.elements).forEach(key => {
+    Object.keys(this.elements).forEach((key) => {
       this.elements[key] = null
     })
   }
 }
 
 const TextImageDetector = {
-  findElementPalette(el) {
+  findElementPalette (el) {
     if (!el) return null
 
     for (const palette of TextImageConfig.palettes) {
@@ -77,7 +77,7 @@ const TextImageDetector = {
     return null
   },
 
-  findElementSource(prevSection) {
+  findElementSource (prevSection) {
     if (!prevSection || !prevSection.children || prevSection.children.length === 0) return null
 
     for (const child of prevSection.children) {
@@ -92,11 +92,11 @@ const TextImageDetector = {
 
 const TextImageRenderer = {
   // Read phase - gather palette information
-  readPaletteData(spacer, sourceElement) {
+  readPaletteData (spacer, sourceElement) {
     if (!spacer || !sourceElement) return null
 
     const prevPalette = TextImageDetector.findElementPalette(sourceElement),
-          currentPalette = TextImageDetector.findElementPalette(spacer)
+      currentPalette = TextImageDetector.findElementPalette(spacer)
 
     if (!prevPalette) return null
 
@@ -108,7 +108,7 @@ const TextImageRenderer = {
   },
 
   // Write phase - apply palette changes
-  writePaletteChanges(data) {
+  writePaletteChanges (data) {
     if (!data || !data.spacer || !data.needsUpdate) return
 
     if (data.currentPalette) {
@@ -119,37 +119,34 @@ const TextImageRenderer = {
   },
 
   // Apply palette to a single spacer
-  applyPalette(spacer, sourceElement) {
+  applyPalette (spacer, sourceElement) {
     if (!spacer || !sourceElement) return
 
-    // Read phase
-    const readPhase = () => {
+    const read = () => {
       const paletteData = this.readPaletteData(spacer, sourceElement)
       if (!paletteData) return null
 
       return { ...paletteData, spacer }
     }
 
-    // Write phase
-    const writePhase = (data) => {
+    const write = (data) => {
       this.writePaletteChanges(data)
     }
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   }
 }
 
 const TextImageProcessor = {
-  processSections() {
-    // Read phase - gather all relevant data at once
-    const readPhase = () => {
+  processSections () {
+    const read = () => {
       const sections = TextImageDOM.elements.sections
       if (!sections || !sections.length) return null
 
       // Process all sections at once to avoid multiple frame sequences
       const processData = []
 
-      Array.from(sections).forEach(section => {
+      Array.from(sections).forEach((section) => {
         const prevSection = TextImageDOM.getPreviousSection(section)
         if (!prevSection) return
 
@@ -169,19 +166,18 @@ const TextImageProcessor = {
       return processData.length > 0 ? processData : null
     }
 
-    // Write phase - apply palette changes to all spacers
-    const writePhase = (sectionsData) => {
+    const write = (sectionsData) => {
       if (!sectionsData) return
 
       // Process all spacers in a single frame
-      sectionsData.forEach(data => {
+      sectionsData.forEach((data) => {
         if (data && data.spacer && data.sourceElement) {
           TextImageRenderer.applyPalette(data.spacer, data.sourceElement)
         }
       })
     }
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   }
 }
 

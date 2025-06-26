@@ -3,7 +3,7 @@
 }
 
 .title__wrapper--padding-bottom {
-  padding-bottom: var(--padding-bottom-mobile, 0px);
+  padding-bottom: var(--padding-bottom-mobile, 0);
 }
 
 .title__title {
@@ -29,7 +29,7 @@
 }
 
 .palette-one.title__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-secondary, #4E5D78);
 }
 
@@ -47,7 +47,7 @@
 }
 
 .palette-two .title__title {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-two .title__bg-text {
@@ -56,7 +56,7 @@
 
 .palette-three.title__wrapper {
   background: var(--background-primary-3, #F4B841);
-  color: var(--color-secondary-3, #FFFFFF);
+  color: var(--color-secondary-3, #FFF);
 }
 
 .palette-three .title__title {
@@ -67,7 +67,7 @@
   color: var(--color-fourth-3, #0B1A2626);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .title__top {
     display: flex;
     justify-content: space-between;
@@ -93,13 +93,13 @@
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .title__wrapper--padding-top {
     padding-top: var(--padding-top, 37px);
   }
 
   .title__wrapper--padding-bottom {
-    padding-bottom: var(--padding-bottom, 0px);
+    padding-bottom: var(--padding-bottom, 0);
   }
 
   .title__col {
@@ -111,7 +111,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .title__bg-text {
     font-size: 142px;
   }

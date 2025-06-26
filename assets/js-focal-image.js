@@ -28,19 +28,19 @@ const FocalDOM = {
     positions: new Map()
   },
 
-  init() {
+  init () {
     this.elements.images = document.querySelectorAll(FocalConfig.selector.image)
     return this.elements.images && this.elements.images.length > 0
   },
 
-  cleanup() {
+  cleanup () {
     this.cache.positions.clear()
     this.elements.images = null
   }
 }
 
 const FocalCalculator = {
-  convertToPercentage(coordinate) {
+  convertToPercentage (coordinate) {
     const value = parseFloat(coordinate) || 0
 
     // Convert from (-1 to 1) range to (0% to 100%) range
@@ -53,7 +53,7 @@ const FocalCalculator = {
     return `${clampedPercentage}%`
   },
 
-  calculatePosition(focalX, focalY) {
+  calculatePosition (focalX, focalY) {
     if (focalX === null || focalY === null) return FocalConfig.defaultPosition // Skip invalid coordinates
 
     const positionKey = `${focalX}_${focalY}` // Create a unique key for caching
@@ -63,7 +63,7 @@ const FocalCalculator = {
     // If not found in cache, calculate and store it
     if (!position) {
       const objectPositionX = this.convertToPercentage(focalX),
-            objectPositionY = this.convertToPercentage(focalY)
+        objectPositionY = this.convertToPercentage(focalY)
       position = `${objectPositionX} ${objectPositionY}`
 
       FocalDOM.cache.positions.set(positionKey, position) // Cache the result
@@ -74,11 +74,11 @@ const FocalCalculator = {
 }
 
 const FocalProcessor = {
-  processImage(image) {
+  processImage (image) {
     if (image.getAttribute(FocalConfig.attr.processed) === 'true') return
 
     const focalX = image.getAttribute(FocalConfig.attr.focalX),
-          focalY = image.getAttribute(FocalConfig.attr.focalY)
+      focalY = image.getAttribute(FocalConfig.attr.focalY)
 
     if (focalX === null || focalY === null) return
 
@@ -98,11 +98,11 @@ const FocalVisibility = {
   observer: null,
   observerSetup: false,
 
-  setIntersectionObserver() {
+  setIntersectionObserver () {
     if (this.observerSetup) return this.observer
 
     const observerCallback = (entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (!entry.isIntersecting) return
         FocalProcessor.processImage(entry.target)
         this.observer.unobserve(entry.target)
@@ -115,7 +115,7 @@ const FocalVisibility = {
     return this.observer
   },
 
-  cleanup() {
+  cleanup () {
     if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
@@ -130,7 +130,7 @@ const handleFocalImages = () => {
 
   const processImages = () => {
     const images = FocalDOM.elements.images
-    images.forEach(image => {
+    images.forEach((image) => {
       FocalVisibility.observer.observe(image)
     })
   }

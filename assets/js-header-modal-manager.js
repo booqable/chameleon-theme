@@ -20,23 +20,23 @@ const HeaderModalManager = {
     ]
   },
 
-  init() {
+  init () {
     if (!$.is(this.handleClick, 'function')) return
 
     $.eventListener('add', document, 'click', this.handleClick.bind(this))
   },
 
-  handleClick(event) {
+  handleClick (event) {
     const element = document.querySelector(this.config.selectors.header)
     if (!element) return
 
     const clickInside = element.contains(event.target),
-          clickOnOpener = this.isModalOpener(event.target)
+      clickOnOpener = this.isModalOpener(event.target)
 
     if (!clickInside && !clickOnOpener) this.closeSearchModal()
   },
 
-  closeSearchModal() {
+  closeSearchModal () {
     const searchOpener = document.querySelector(this.config.selectors.searchOpener)
     if (!searchOpener && !searchOpener.checked) return false
 
@@ -44,13 +44,13 @@ const HeaderModalManager = {
     $.frameSequence(() => ({ searchOpener }), closeSearch)
   },
 
-  isModalOpener(element) {
+  isModalOpener (element) {
     if (!element || !$.is(element.matches, 'function')) return false
 
-    return this.config.modalOpeners.some(selector => {
+    return this.config.modalOpeners.some((selector) => {
       try {
         return element.matches(selector)
-      } catch (e) {
+      } catch {
         return false
       }
     })

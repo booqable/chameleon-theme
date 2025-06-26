@@ -46,8 +46,8 @@
   cursor: pointer;
 }
 
-.search__reset:after,
-.search__reset:before {
+.search__reset::after,
+.search__reset::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -58,7 +58,7 @@
   transition: background var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
-.search__reset:before {
+.search__reset::before {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
@@ -125,25 +125,24 @@
   display: block !important;
 }
 
-.palette-one .search__reset:after,
-.palette-one .search__reset:before {
+.palette-one .search__reset::after,
+.palette-one .search__reset::before {
   background: var(--color-primary, #0B1A26);
 }
 
-.palette-one .search__reset:hover:after,
-.palette-one .search__reset:hover:before {
+.palette-one .search__reset:hover::after,
+.palette-one .search__reset:hover::before {
   background: var(--color-outline-hover, #F4B841CC);
 }
 
-.palette-one .search__reset:active:after,
-.palette-one .search__reset:active:before {
+.palette-one .search__reset:active::after,
+.palette-one .search__reset:active::before {
   background: var(--color-outline-active, #F4B841BA);
 }
 
 .palette-one .search__input {
   color: var(--color-primary, #0B1A26);
-  background: var(--background-primary, #FFFFFF);
-  border-bottom-color: var(--background-accent, #F4B841);
+  background: var(--background-primary, #FFF);
   border-color: var(--background-accent, #F4B841);
 }
 
@@ -153,30 +152,30 @@
 
 .palette-one .search__input:-webkit-autofill,
 .palette-one .search__input:autofill {
-  box-shadow: inset 0 0 0 150px var(--background-primary, #FFFFFF) !important;
+  box-shadow: inset 0 0 0 150px var(--background-primary, #FFF) !important;
 }
 
 .palette-one .search__icon g {
   stroke: var(--color-primary, #0B1A26);
 }
 
-.palette-two .search__reset:after,
-.palette-two .search__reset:before {
-  background: var(--color-primary-2, #FFFFFF);
+.palette-two .search__reset::after,
+.palette-two .search__reset::before {
+  background: var(--color-primary-2, #FFF);
 }
 
-.palette-two .search__reset:hover:after,
-.palette-two .search__reset:hover:before {
+.palette-two .search__reset:hover::after,
+.palette-two .search__reset:hover::before {
   background: var(--color-outline-2-hover, #F4B841CC);
 }
 
-.palette-two .search__reset:active:after,
-.palette-two .search__reset:active:before {
+.palette-two .search__reset:active::after,
+.palette-two .search__reset:active::before {
   background: var(--color-outline-2-active, #F4B841BA);
 }
 
 .palette-two .search__input {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   background: var(--background-primary-2, #0B1A26);
   border-color: var(--background-accent-2, #F4B841);
 }
@@ -191,28 +190,27 @@
 }
 
 .palette-two .search__icon g {
-  stroke: var(--color-primary-2, #FFFFFF);
+  stroke: var(--color-primary-2, #FFF);
 }
 
-.palette-three .search__reset:after,
-.palette-three .search__reset:before {
+.palette-three .search__reset::after,
+.palette-three .search__reset::before {
   background: var(--color-primary-3, #0B1A26);
 }
 
-.palette-three .search__reset:hover:after,
-.palette-three .search__reset:hover:before {
+.palette-three .search__reset:hover::after,
+.palette-three .search__reset:hover::before {
   background: var(--color-outline-3-hover, #0B1A26CC);
 }
 
-.palette-three .search__reset:active:after,
-.palette-three .search__reset:active:before {
+.palette-three .search__reset:active::after,
+.palette-three .search__reset:active::before {
   background: var(--color-outline-3-active, #0B1A26BA);
 }
 
 .palette-three .search__input {
   color: var(--color-primary-3, #0B1A26);
   background: var(--background-primary-3, #F4B841);
-  border-bottom-color: var(--background-accent-3, #0B1A26);
   border-color: var(--background-accent-3, #0B1A26);
 }
 
@@ -229,7 +227,7 @@
   stroke: var(--color-primary-3, #0B1A26);
 }
 
-@media (min-width: 576px) {
+@media (width >= 576px) {
   .search__wrapper {
     right: -25px;
     min-width: calc(100vw - 160px);
@@ -240,13 +238,13 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .search__wrapper {
     min-width: 800px;
   }
 }
 
-@media (min-width: 1100px) and (hover: hover) {
+@media (width >= 1100px) and (hover: hover) {
   .search__wrapper {
     right: -5px;
   }
@@ -300,7 +298,7 @@
   }
 
   .palette-two.header-menu-bottom .search__input {
-    border-color: var(--color-primary-2, #FFFFFF);
+    border-color: var(--color-primary-2, #FFF);
   }
 
   .palette-two.header-menu-bottom .search__input:focus {

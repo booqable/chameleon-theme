@@ -15,13 +15,13 @@
 }
 
 .palette-one.date-picker__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
   color: var(--color-primary, #0B1A26);
 }
 
 .palette-two.date-picker__wrapper {
   background: var(--background-primary-2, #0B1A26);
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
 }
 
 .palette-three.date-picker__wrapper {
@@ -29,7 +29,7 @@
   color: var(--color-primary-3, #0B1A26);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .date-picker-section .date-picker__container--padding-top {
     padding-top: var(--padding-top, 16px);
   }

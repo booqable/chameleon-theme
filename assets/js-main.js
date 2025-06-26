@@ -48,23 +48,23 @@ const MainDOM = {
   isResizing: false,
   resizeTimer: null,
 
-  init() {
+  init () {
     this.elements.body = document.querySelector(MainConfig.selector.body)
     this.elements.datePicker = document.querySelector(MainConfig.selector.datePicker)
     this.elements.datePickerBlock = document.querySelector(MainConfig.selector.datePickerBlock)
     return this.elements
   },
 
-  setClassLoaded() {
+  setClassLoaded () {
     if (!this.elements.body) return
     $.toggleClass(this.elements.body, MainConfig.modifier.loaded, true)
   },
 
-  setClassResize() {
+  setClassResize () {
     if (!this.elements.body) return
 
     const target = this.elements.body,
-          mod = MainConfig.modifier.resize
+      mod = MainConfig.modifier.resize
 
     const addClassHandler = () => {
       this.isResizing = true
@@ -83,7 +83,7 @@ const MainDOM = {
     this.resizeTimer = setTimeout(removeClassHandler, MainConfig.time.resizeDelay)
   },
 
-  cleanup() {
+  cleanup () {
     if (this.resizeTimer) {
       clearTimeout(this.resizeTimer)
       this.resizeTimer = null
@@ -101,7 +101,7 @@ const MainDOM = {
       datePickerBlockHeight: 0
     }
 
-    Object.keys(this.elements).forEach(key => {
+    Object.keys(this.elements).forEach((key) => {
       this.elements[key] = null
     })
   }
@@ -111,15 +111,16 @@ const MainHeight = {
   height: MainConfig.cssVar.datePickerHeight,
   blockHeight: MainConfig.cssVar.datePickerBlockHeight,
 
-  // Read phase function for frameSequence
-  readDatePickerDimensions() {
+  readDatePickerDimensions () {
     if (!MainDOM.elements.datePicker) return null
 
     const datePickerHeight = parseInt(MainDOM.elements.datePicker ?
-      $.getDimensions(MainDOM.elements.datePicker).height : 0) || 0
+      $.getDimensions(MainDOM.elements.datePicker).height :
+      0) || 0
 
     const datePickerBlockHeight = parseInt(MainDOM.elements.datePickerBlock ?
-      $.getDimensions(MainDOM.elements.datePickerBlock).height : 0) || 0
+      $.getDimensions(MainDOM.elements.datePickerBlock).height :
+      0) || 0
 
     // Only return dimensions that have changed
     const result = {}
@@ -137,8 +138,7 @@ const MainHeight = {
     return Object.keys(result).length ? result : null // If nothing changed, return null to skip write phase
   },
 
-  // Write phase function for frameSequence
-  writeDatePickerVariables(dimensions) {
+  writeDatePickerVariables (dimensions) {
     if (!dimensions) return
     const { datePickerHeight, datePickerBlockHeight } = dimensions
     const setDatePickerHeight = () => {
@@ -152,17 +152,17 @@ const MainHeight = {
     if (datePickerBlockHeight !== undefined) setDatePickerBlockHeight()
   },
 
-  calculateDatePickerHeight() {
+  calculateDatePickerHeight () {
     if (!MainDOM.elements.datePicker) return
 
     // Bind the context to ensure 'this' references the MainHeight
-    const readPhase = this.readDatePickerDimensions.bind(this),
-          writePhase = this.writeDatePickerVariables.bind(this)
+    const read = this.readDatePickerDimensions.bind(this),
+      write = this.writeDatePickerVariables.bind(this)
 
-    $.frameSequence(readPhase, writePhase)
+    $.frameSequence(read, write)
   },
 
-  setInitialHeights() {
+  setInitialHeights () {
     $.setCssVar({ key: this.height, value: 0, unit: 'px' })
     $.setCssVar({ key: this.blockHeight, value: 0, unit: 'px' })
   }
@@ -171,7 +171,7 @@ const MainHeight = {
 const MainResize = {
   resizeObserver: null,
 
-  setupResizeHandlers() {
+  setupResizeHandlers () {
     const handleResize = () => {
       MainHeight.calculateDatePickerHeight()
       MainDOM.setClassResize()
@@ -185,7 +185,7 @@ const MainResize = {
     this.resizeObserver = $.resizeObserver(handleResize, handleResizeSettings)
   },
 
-  cleanup() {
+  cleanup () {
     if (!this.resizeObserver || !$.is(this.resizeObserver.cleanup, 'function')) return
     this.resizeObserver.cleanup()
     this.resizeObserver = null
@@ -195,11 +195,11 @@ const MainResize = {
 const MainVisibility = {
   observer: null,
 
-  setupIntersectionObserver() {
+  setupIntersectionObserver () {
     if (!MainDOM.elements.datePicker) return
 
     const handleIntersection = (entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (!entry.isIntersecting) return
         MainHeight.calculateDatePickerHeight()
       })
@@ -209,8 +209,8 @@ const MainVisibility = {
     this.observer.observe(MainDOM.elements.datePicker)
   },
 
-  cleanup() {
-    if (! this.observer) return
+  cleanup () {
+    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
   }
@@ -220,7 +220,7 @@ const handleMainLoading = () => {
   MainHeight.setInitialHeights()
 
   const body = document.querySelector(MainConfig.selector.body),
-        loaded = MainConfig.modifier.loaded
+    loaded = MainConfig.modifier.loaded
   if (body) $.toggleClass(body, loaded, true)
 }
 
@@ -234,9 +234,9 @@ const handleMain = () => {
   if (!elements.body) return null
 
   const delay = MainConfig.time.slowConnectionDelay,
-        laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
-        inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
-        setDelay = laggy ? delay * 2 : delay
+    laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
+    inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
+    setDelay = laggy ? delay * 2 : delay
 
   MainDOM.setClassLoaded()
 
@@ -245,9 +245,9 @@ const handleMain = () => {
     setTimeout(MainHeight.calculateDatePickerHeight, setDelay)
   }
 
-  elements.datePicker && inView
-    ? MainHeight.calculateDatePickerHeight()
-    : calculateWithDelay()
+  elements.datePicker && inView ?
+    MainHeight.calculateDatePickerHeight() :
+    calculateWithDelay()
 
   MainResize.setupResizeHandlers()
   MainVisibility.setupIntersectionObserver()
@@ -266,6 +266,6 @@ const initMain = () => {
   $.cleanup('cleanupMain', handleMain)
 }
 
-$.is($.requestIdle, 'function')
-  ? $.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout })
-  : setTimeout(initMain, MainConfig.time.slowConnectionDelay) // Use a short timeout to ensure body is ready
+$.is($.requestIdle, 'function') ?
+  $.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout }) :
+  setTimeout(initMain, MainConfig.time.slowConnectionDelay) // Use a short timeout to ensure body is ready

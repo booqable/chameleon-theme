@@ -36,7 +36,7 @@ const SearchDOM = {
     reset: null
   },
 
-  init() {
+  init () {
     this.elements.container = document.querySelector(SearchConfig.selector.container)
     this.elements.form = document.querySelector(SearchConfig.selector.form)
     this.elements.input = document.querySelector(SearchConfig.selector.input)
@@ -46,10 +46,10 @@ const SearchDOM = {
     return this.elements.form && this.elements.input
   },
 
-  cleanup() {
+  cleanup () {
     if (!$.is(this.elements, 'object')) return
 
-    Object.keys(this.elements).forEach(key => {
+    Object.keys(this.elements).forEach((key) => {
       this.elements[key] = null
     })
   }
@@ -58,17 +58,17 @@ const SearchDOM = {
 const SearchState = {
   url: null,
 
-  init() {
+  init () {
     if (!$.is(window.location.href, 'string')) return null
     this.url = new URL(window.location.href)
   },
 
-  getQuery() {
+  getQuery () {
     if (!this.url) return null
     return this.url.searchParams.get(SearchConfig.params.q)
   },
 
-  buildSearchUrl(query) {
+  buildSearchUrl (query) {
     if (!this.url || !SearchDOM.elements.form) return ''
 
     const route = SearchDOM.elements.form.getAttribute(SearchConfig.attr.action)
@@ -81,7 +81,7 @@ const SearchState = {
 }
 
 const SearchRenderer = {
-  showClearButton() {
+  showClearButton () {
     if (!SearchDOM.elements.input) return
 
     const read = () => {
@@ -96,15 +96,15 @@ const SearchRenderer = {
 
     const write = (data) => {
       if (!data) return
-      data.shouldShow
-        ? data.parent.classList.add(SearchConfig.class.filled)
-        : data.parent.classList.remove(SearchConfig.class.filled)
+      data.shouldShow ?
+        data.parent.classList.add(SearchConfig.class.filled) :
+        data.parent.classList.remove(SearchConfig.class.filled)
     }
 
     $.frameSequence(read, write)
   },
 
-  clearInput() {
+  clearInput () {
     if (!SearchDOM.elements.input) return
 
     const read = () => ({
@@ -122,7 +122,7 @@ const SearchRenderer = {
     $.frameSequence(read, write)
   },
 
-  focusInput() {
+  focusInput () {
     if (!SearchDOM.elements.input) return
 
     const read = () => ({ input: SearchDOM.elements.input })
@@ -138,7 +138,7 @@ const SearchRenderer = {
     }, SearchConfig.focusDelay)
   },
 
-  autoFillInput() {
+  autoFillInput () {
     if (!SearchDOM.elements.input) return
 
     const query = SearchState.getQuery()
@@ -159,7 +159,7 @@ const SearchRenderer = {
 }
 
 const SearchProcessor = {
-  handleFocus(event) {
+  handleFocus (event) {
     const target = event?.target
 
     if (target !== SearchDOM.elements.opener) return
@@ -170,7 +170,7 @@ const SearchProcessor = {
         menuOpener.checked = false
 
         const header = window.stickyHeader,
-              isFn = $.is(header.removeOverflow, 'function')
+          isFn = $.is(header.removeOverflow, 'function')
 
         if (!header && !isFn) return null
         header.removeOverflow()
@@ -182,7 +182,7 @@ const SearchProcessor = {
     SearchRenderer.focusInput()
   },
 
-  handleClear(event) {
+  handleClear (event) {
     const target = event?.target
 
     if (target !== SearchDOM.elements.reset) return
@@ -190,11 +190,11 @@ const SearchProcessor = {
     SearchRenderer.clearInput()
   },
 
-  handleKeyup() {
+  handleKeyup () {
     SearchRenderer.showClearButton()
   },
 
-  handleSubmit(event) {
+  handleSubmit (event) {
     const target = event.target
 
     if (target !== SearchDOM.elements.form) return
@@ -204,16 +204,16 @@ const SearchProcessor = {
     if (!$.is(SearchDOM.elements.input.value, 'string')) return
 
     const value = SearchDOM.elements.input.value,
-          searchUrl = SearchState.buildSearchUrl(value),
-          isString = $.is(searchUrl, 'string'),
-          notEmpty = searchUrl.length > 0
+      searchUrl = SearchState.buildSearchUrl(value),
+      isString = $.is(searchUrl, 'string'),
+      notEmpty = searchUrl.length > 0
 
     if (isString && notEmpty) window.location.href = searchUrl
   }
 }
 
 const SearchEvents = {
-  bindEvents() {
+  bindEvents () {
     $.eventListener('add', document, 'click', SearchProcessor.handleFocus.bind(SearchProcessor))
     $.eventListener('add', document, 'click', SearchProcessor.handleClear.bind(SearchProcessor))
     $.eventListener('add', document, 'keyup', SearchProcessor.handleKeyup.bind(SearchProcessor))

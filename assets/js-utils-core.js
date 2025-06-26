@@ -51,7 +51,7 @@ Utils.viewportSize = () => ({
 })
 
 // Animation frame utilities - critical for performance
-Utils.nextFrame = callback => window.requestAnimationFrame(callback)
+Utils.nextFrame = (callback) => window.requestAnimationFrame(callback)
 
 Utils.frameSequence = (readCallback, writeCallback) => {
   return $.nextFrame(() => {
@@ -62,7 +62,7 @@ Utils.frameSequence = (readCallback, writeCallback) => {
   })
 }
 
-Utils.batchDOM = callback => {
+Utils.batchDOM = (callback) => {
   return $.nextFrame(() => callback())
 }
 
@@ -95,9 +95,9 @@ Utils.eventListener = (method, nodes, event, handler, options) => {
 
   // Handle single object case
   if (nodes === window ||
-      nodes === document ||
-      nodes instanceof HTMLElement ||
-      (typeof nodes === 'object' &&
+    nodes === document ||
+    nodes instanceof HTMLElement ||
+    (typeof nodes === 'object' &&
       ($.is(nodes.addEventListener, 'function')))) {
     if (method === 'add') nodes.addEventListener(event, handler, options)
     if (method === 'remove') nodes.removeEventListener(event, handler, options)
@@ -106,7 +106,7 @@ Utils.eventListener = (method, nodes, event, handler, options) => {
 
   if (!nodes.length) return
 
-  Array.from(nodes).forEach(node => {
+  Array.from(nodes).forEach((node) => {
     if (!node || $.is(node.addEventListener, 'function')) return
     if (method === 'add') node.addEventListener(event, handler, options)
     if (method === 'remove') node.removeEventListener(event, handler, options)
@@ -148,8 +148,8 @@ Utils.resizeObserver = (callback, customOptions = {}) => {
   }
   const options = { ...defaultOptions, ...customOptions }
   let lastWindowWidth = $.viewportSize().width,
-      debounceTimer = null,
-      observer = null
+    debounceTimer = null,
+    observer = null
 
   if (!('ResizeObserver' in window)) {
     return { observer: null, cleanup: () => {} }
@@ -169,9 +169,9 @@ Utils.resizeObserver = (callback, customOptions = {}) => {
       }, options.debounceTime)
     }
 
-    options.debounceTime > 0
-      ? debounceTimeHandler()
-      : $.nextFrame(() => callback(entries))
+    options.debounceTime > 0 ?
+      debounceTimeHandler() :
+      $.nextFrame(() => callback(entries))
   }
 
   observer = new ResizeObserver(wrappedCallback)
@@ -220,20 +220,20 @@ Utils.debounce = (func, wait) => {
 // DOM utilities - for efficient class toggling
 Utils.toggleClass = (element, className, force) => {
   if (!element) return
-  $.is(force, 'boolean')
-    ? element.classList.toggle(className, force)
-    : element.classList.toggle(className)
+  $.is(force, 'boolean') ?
+    element.classList.toggle(className, force) :
+    element.classList.toggle(className)
 }
 
 // Image loading optimization - for adaptive images
 Utils.imageFormats = async () => {
   const formatSupport = { webp: false, avif: false },
-        webpSrc = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==',
-        avifSrc = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK'
+    webpSrc = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==',
+    avifSrc = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK'
 
   try {
-    const formatCheck = src => {
-      return new Promise(resolve => {
+    const formatCheck = (src) => {
+      return new Promise((resolve) => {
         const img = new Image()
         img.onload = () => resolve(true)
         img.onerror = () => resolve(false)
@@ -243,7 +243,9 @@ Utils.imageFormats = async () => {
 
     formatSupport.webp = await formatCheck('webp', webpSrc)
     formatSupport.avif = await formatCheck('avif', avifSrc)
-  } catch (e) {}
+  } catch {
+    // Silently ignore errors during format support detection
+  }
   return formatSupport
 }
 

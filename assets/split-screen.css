@@ -77,11 +77,11 @@
 
 .palette-one.split-screen__wrapper {
   color: var(--color-primary, #0B1A26);
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-two.split-screen__wrapper {
-  color: var(--color-primary-2, #FFFFFF);
+  color: var(--color-primary-2, #FFF);
   background: var(--background-primary-2, #0B1A26);
 }
 
@@ -90,7 +90,7 @@
   background: var(--background-primary-3, #F4B841);
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .split-screen__container {
     min-height: 720px;
     display: flex;

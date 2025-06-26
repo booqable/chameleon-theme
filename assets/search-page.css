@@ -26,7 +26,7 @@
 }
 
 .palette-one.search-page__wrapper {
-  background: var(--background-primary, #FFFFFF);
+  background: var(--background-primary, #FFF);
 }
 
 .palette-two.search-page__wrapper {
@@ -37,14 +37,14 @@
   background: var(--background-primary-3, #F4B841);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .search-page__results {
     justify-content: start;
     gap: 24px;
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .search-page__container--padding-top {
     padding-top: var(--padding-top, 24px);
   }
@@ -80,7 +80,7 @@
   }
 }
 
-@media (min-width: 1080px) {
+@media (width >= 1080px) {
   .search-page__results {
     gap: 20px 32px;
     grid-template-columns: repeat(var(--grid-element, 3), minmax(210px, 1fr));
