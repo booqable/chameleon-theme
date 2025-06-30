@@ -170,7 +170,7 @@ const MapRenderer = {
 
   readErrorElements (mapElement, address) {
     const errorDiv = document.createElement('div')
-    errorDiv.classList.add(MapConfig.class.error)
+    $.toggleClass(errorDiv, MapConfig.class.error, true)
     errorDiv.innerHTML = `${address} - ${MapConfig.errorMessage}`
 
     return {
@@ -321,4 +321,4 @@ const initMaps = () => {
   $.cleanup('cleanupMaps', handleLocation)
 }
 
-window.addEventListener('load', initMaps)
+$.eventListener('add', window, 'load', initMaps)
