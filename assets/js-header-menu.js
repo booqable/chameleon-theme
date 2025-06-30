@@ -90,7 +90,7 @@ const MegaMenuRenderer = {
 
   enableScrollPrevention () {
     const doc = MegaMenuDOM.elements.doc,
-          header = MegaMenuDOM.elements.header
+      header = MegaMenuDOM.elements.header
     if (!doc || !header) return
 
     const read = () => ({
@@ -127,7 +127,7 @@ const MegaMenuRenderer = {
 
   disableScrollPrevention () {
     const doc = MegaMenuDOM.elements.doc,
-          header = MegaMenuDOM.elements.header
+      header = MegaMenuDOM.elements.header
     if (!doc || !header) return
 
     const read = () => ({
@@ -184,7 +184,7 @@ const MegaMenuRenderer = {
 const MegaMenuProcessor = {
   handleMenuOverflow (event) {
     const target = $.getSibling(event?.target, MegaMenuConfig.selector.menuOpener, 'prev'),
-          menuOpener = MegaMenuDOM.elements.menuOpener
+      menuOpener = MegaMenuDOM.elements.menuOpener
 
     if (!target || target !== menuOpener) {
       // Check if search opener was clicked - close menu and restore scroll
@@ -223,7 +223,7 @@ const MegaMenuProcessor = {
 
   handleDropdownHover (event) {
     const target = event.target,
-          type = event.type
+      type = event.type
 
     switch (type) {
       case MegaMenuConfig.event.mouseenter:

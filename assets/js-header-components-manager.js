@@ -11,7 +11,7 @@ const HeaderComponents = {
   config: {
     selectors: {
       header: '.header',
-      modalOpener:'[data-modal-opener]',
+      modalOpener: '[data-modal-opener]',
       menuOpener: '#mobile-menu-opener',
       menuHasDropdown: '.has-dropdown',
       searchOpener: '#header-search-opener'
