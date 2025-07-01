@@ -44,13 +44,17 @@
   font-family: var(--font-body, sans-serif);
 }
 
-
 html {
   padding: env(safe-area-inset);
 }
 
 html:has(div[data-tid="Modal"][class*="Container-"]) {
   overflow: clip;
+}
+
+.body--scroll-locked {
+  position: sticky !important;
+  width: 100% !important;
 }
 
 /* Allow the image of the `text with image` section to be centered with text */

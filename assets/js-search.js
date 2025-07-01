@@ -24,7 +24,7 @@ const SearchConfig = {
   params: {
     q: 'q'
   },
-  focusDelay: 30
+  focusDelay: 50
 }
 
 const SearchDOM = {
@@ -82,40 +82,40 @@ const SearchState = {
 
 const SearchRenderer = {
   showClearButton () {
-    if (!SearchDOM.elements.input) return
+    const input = SearchDOM.elements.input
+    if (!input) return
 
     const read = () => {
-      const parent = SearchDOM.elements.input.parentElement
+      const parent = input.parentElement
       if (!parent) return null
 
       return {
         parent,
-        shouldShow: SearchDOM.elements.input.value.length !== 0
+        shouldShow: input.value.length !== 0
       }
     }
 
     const write = (data) => {
       if (!data) return
-      data.shouldShow ?
-        data.parent.classList.add(SearchConfig.class.filled) :
-        data.parent.classList.remove(SearchConfig.class.filled)
+      $.toggleClass(data.parent, SearchConfig.class.filled, data.shouldShow)
     }
 
     $.frameSequence(read, write)
   },
 
   clearInput () {
-    if (!SearchDOM.elements.input) return
+    const input = SearchDOM.elements.input
+    if (!input) return
 
     const read = () => ({
-      input: SearchDOM.elements.input,
-      parent: SearchDOM.elements.input.parentElement
+      input: input,
+      parent: input.parentElement
     })
 
     const write = (data) => {
       if (!data || !data.input || !data.parent) return
       data.input.value = ''
-      data.parent.classList.remove(SearchConfig.class.filled)
+      $.toggleClass(data.parent, SearchConfig.class.filled, false)
       data.input.focus()
     }
 
@@ -123,9 +123,10 @@ const SearchRenderer = {
   },
 
   focusInput () {
-    if (!SearchDOM.elements.input) return
+    const input = SearchDOM.elements.input
+    if (!input) return
 
-    const read = () => ({ input: SearchDOM.elements.input })
+    const read = () => ({ input: input })
 
     const write = (data) => {
       if (!data || !data.input) return
@@ -139,13 +140,14 @@ const SearchRenderer = {
   },
 
   autoFillInput () {
-    if (!SearchDOM.elements.input) return
+    const input = SearchDOM.elements.input
+    if (!input) return
 
     const query = SearchState.getQuery()
     if (!query || !$.is(query, 'string')) return
 
     const read = () => ({
-      input: SearchDOM.elements.input,
+      input: input,
       query
     })
 
@@ -164,21 +166,10 @@ const SearchProcessor = {
 
     if (target !== SearchDOM.elements.opener) return
 
-    const closeMobileMenu = () => {
-      const menuOpener = document.querySelector('#mobile-menu-opener')
-      if (menuOpener && menuOpener.checked) {
-        menuOpener.checked = false
-
-        const header = window.stickyHeader,
-          isFn = $.is(header.removeOverflow, 'function')
-
-        if (!header && !isFn) return null
-        header.removeOverflow()
-        header.closeMobileDrop()
-      }
+    if ($.HeaderComponents && $.HeaderComponents.api) {
+      $.HeaderComponents.api.closeMenuForSearch()
     }
 
-    $.frameSequence(() => ({}), closeMobileMenu)
     SearchRenderer.focusInput()
   },
 

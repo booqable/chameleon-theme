@@ -1,11 +1,15 @@
 {%- capture critical_scripts -%}
   [
-    "{{ 'js-header.js' | asset_url }}",
+    "{{ 'js-utils-core.js' | asset_url }}",
+    "{{ 'js-utils.js' | asset_url }}",
+    "{{ 'js-header-components-manager.js' | asset_url }}",
+    "{{ 'js-header.js' | asset_url }}"
   ]
 {%- endcapture -%}
 
 {%- capture non_critical_scripts -%}
   [
+    "{{ 'js-header-menu.js' | asset_url }}",
     "{{ 'js-touch-device-notch.js' | asset_url }}",
     "{{ 'js-cookie-notice-styles-loading.js' | asset_url }}"
   ]
