@@ -22,6 +22,7 @@ const MegaMenuConfig = {
     active: 'active'
   },
   modifier: {
+    bodyLocked: 'body--scroll-locked',
     overflow: 'overflow-hidden'
   },
   event: {
@@ -77,7 +78,6 @@ const MegaMenuState = {
 }
 
 const MegaMenuRenderer = {
-  scrollY: 0,
 
   preventBodyScroll (event) {
     // Only prevent touch/wheel events on body, not inside menu
@@ -97,21 +97,16 @@ const MegaMenuRenderer = {
       doc: MegaMenuDOM.elements.doc,
       header: MegaMenuDOM.elements.header,
       body: MegaMenuDOM.elements.body,
-      sticky: MegaMenuState.sticky,
-      currentScrollY: window.scrollY
+      sticky: MegaMenuState.sticky
     })
 
     const write = (data) => {
       if (!data || !data.doc || !data.header) return
 
-      this.scrollY = data.currentScrollY
-
       // Fix body position to prevent scrolling
       $.toggleClass(data.doc, MegaMenuConfig.modifier.overflow, true)
       if (data.body) {
-        data.body.style.position = 'fixed'
-        data.body.style.top = `-${this.scrollY}px`
-        data.body.style.width = '100%'
+        $.toggleClass(data.body, MegaMenuConfig.modifier.bodyLocked, true)
       }
 
       $.eventListener('add', document, 'touchmove', this.preventBodyScroll, { passive: false })
@@ -134,8 +129,7 @@ const MegaMenuRenderer = {
       doc: MegaMenuDOM.elements.doc,
       header: MegaMenuDOM.elements.header,
       body: MegaMenuDOM.elements.body,
-      sticky: MegaMenuState.sticky,
-      storedScrollY: this.scrollY
+      sticky: MegaMenuState.sticky
     })
 
     const write = (data) => {
@@ -143,16 +137,11 @@ const MegaMenuRenderer = {
 
       $.toggleClass(data.doc, MegaMenuConfig.modifier.overflow, false)
       if (data.body) {
-        data.body.style.position = ''
-        data.body.style.top = ''
-        data.body.style.width = ''
+        $.toggleClass(data.body, MegaMenuConfig.modifier.bodyLocked, false)
       }
 
       $.eventListener('remove', document, 'touchmove', this.preventBodyScroll, { passive: false })
       $.eventListener('remove', document, 'wheel', this.preventBodyScroll, { passive: false })
-
-      // Restore scroll position
-      window.scrollTo(0, data.storedScrollY)
 
       if (data.sticky) return
       $.toggleClass(data.header, MegaMenuConfig.classes.opened, false)
@@ -223,7 +212,11 @@ const MegaMenuProcessor = {
 
   handleDropdownHover (event) {
     const target = event.target,
-      type = event.type
+      type = event.type,
+      viewport = $.viewportSize()
+
+    // Only apply .active class on desktop (≥1100px)
+    if (viewport.width < MegaMenuConfig.mediaQuery) return
 
     switch (type) {
       case MegaMenuConfig.event.mouseenter:
