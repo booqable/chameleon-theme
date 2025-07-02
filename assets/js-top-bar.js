@@ -65,16 +65,16 @@ const TopBarDOM = {
 const TopBarHeight = {
   calculate () {
     const elements = TopBarDOM.elements,
-          cache = TopBarDOM.cacheData,
-          shiftProp = TopBarConfig.cssVar.transform,
-          barHeightProp = TopBarConfig.cssVar.barHeight
+      cache = TopBarDOM.cacheData,
+      shiftProp = TopBarConfig.cssVar.transform,
+      barHeightProp = TopBarConfig.cssVar.barHeight
 
     if (!elements.bar) return
 
     const read = () => {
       const dimensions = $.getDimensions(elements.bar),
-            shift = cache.shift,
-            isScrolled = elements.body.classList.contains(TopBarConfig.modifier.scroll)
+        shift = cache.shift,
+        isScrolled = elements.body.classList.contains(TopBarConfig.modifier.scroll)
 
       return {
         barHeight: Math.floor(dimensions.height),
@@ -106,9 +106,9 @@ const TopBarHeight = {
 const TopBarScroll = {
   handleScroll () {
     const elements = TopBarDOM.elements,
-          scrollClass = TopBarConfig.modifier.scroll,
-          property = TopBarConfig.cssVar.transform,
-          cache = TopBarDOM.cacheData
+      scrollClass = TopBarConfig.modifier.scroll,
+      property = TopBarConfig.cssVar.transform,
+      cache = TopBarDOM.cacheData
 
     if (!elements.bar || !elements.body) return false
 
@@ -116,8 +116,8 @@ const TopBarScroll = {
       if (!elements.bar || !elements.body) return null
 
       const current = window.scrollY,
-            isScroll = elements.body.classList.contains(scrollClass),
-            dimensions = $.getDimensions(elements.bar)
+        isScroll = elements.body.classList.contains(scrollClass),
+        dimensions = $.getDimensions(elements.bar)
 
       return {
         current,
