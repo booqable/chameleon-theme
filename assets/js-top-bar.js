@@ -84,7 +84,7 @@ const TopBarHeight = {
 
     const write = (data) => {
       const { barHeight, currentHeight, currentScroll } = data,
-            scrollClass = TopBarConfig.modifier.scroll
+        scrollClass = TopBarConfig.modifier.scroll
 
       cache.barHeight = barHeight
       $.setCssVar({ key: barHeightProp, value: barHeight, element: elements.doc, unit: 'px' })
