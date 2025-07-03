@@ -4,7 +4,7 @@ class Header {
 
     this.selector = {
       body: "body",
-      bar: ".top-bar",
+      bar: ".top-bar__wrapper",
       view: ".preview-bar__container",
       search: ".header__search",
       searchOpener: "#header-search-opener"
@@ -21,14 +21,8 @@ class Header {
 
     this.cssVar = {
       height: '--header-height',
-      barHeight: '--top-bar-height',
-      viewHeight: '--preview-height',
-      transform: '--header-transform'
+      viewHeight: '--preview-height'
     }
-
-
-    this.minHeight = 180;
-    this.last = 0;
   }
 
   init() {
@@ -48,22 +42,16 @@ class Header {
   }
 
   events() {
+    if (this.bar) initTopBar()
     this.headerHeight();
     document.addEventListener("click", this.closeModals.bind(this));
-    window.addEventListener("scroll", this.scrollProps.bind(this));
     window.addEventListener("resize", this.headerHeight.bind(this));
   }
 
   // getting height of header and set css variables
   headerHeight() {
     let height = this.block.getBoundingClientRect().height,
-        barHeight = 0,
         viewHeight = 0;
-
-    if (this.bar) {
-      barHeight = this.bar.getBoundingClientRect().height;
-      this.setCssVar(this.cssVar.barHeight, Math.floor(barHeight));
-    }
 
     if (this.preview) {
       viewHeight = this.preview.getBoundingClientRect().height;
@@ -76,31 +64,6 @@ class Header {
     this.setCssVar(this.cssVar.height, Math.floor(height));
   }
 
-  // setting properties when scroll page
-  scrollProps() {
-    if (!this.bar) return false;
-
-    let isScroll = this.body.classList.contains(this.modifier.scroll),
-        current = window.scrollY,
-        height = this.bar.getBoundingClientRect().height;
-
-    if (current <= this.minHeight) {
-      this.body.classList.remove(this.modifier.scroll);
-      this.setCssVar(this.cssVar.transform, 0);
-
-      return;
-    }
-
-    if (current > this.last && !isScroll) { // down
-      this.body.classList.add(this.modifier.scroll);
-      this.setCssVar(this.cssVar.transform, -height);
-    } else if (current < this.last - 10 && isScroll) { // up
-      this.body.classList.remove(this.modifier.scroll);
-      this.setCssVar(this.cssVar.transform, 0);
-    }
-
-    this.last = current;
-  }
 
 
   // close search when clicking inside header

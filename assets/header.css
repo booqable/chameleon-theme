@@ -1,3 +1,7 @@
+.scrolled-down.resize-active .header--sticky {
+  transition: none;
+}
+
 .header__content--padding-top {
   padding-top: var(--padding-top-mobile, 0);
 }
