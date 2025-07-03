@@ -73,22 +73,30 @@ const TopBarHeight = {
 
     const read = () => {
       const dimensions = $.getDimensions(elements.bar),
-        shift = cache.shift,
-        isScrolled = elements.body.classList.contains(TopBarConfig.modifier.scroll)
+        currentScroll = window.scrollY
 
       return {
         barHeight: Math.floor(dimensions.height),
         currentHeight: dimensions.height,
-        isShifted: shift !== 0 || isScrolled
+        currentScroll
       }
     }
 
     const write = (data) => {
-      const { barHeight, currentHeight, isShifted } = data
+      const { barHeight, currentHeight, currentScroll } = data,
+            scrollClass = TopBarConfig.modifier.scroll
+
       cache.barHeight = barHeight
       $.setCssVar({ key: barHeightProp, value: barHeight, element: elements.doc, unit: 'px' })
 
-      if (isShifted) {
+      const threshold = Math.max(TopBarConfig.minHeight, currentHeight)
+
+      if (currentScroll <= threshold) {
+        $.toggleClass(elements.body, scrollClass, false)
+        $.setCssVar({ key: shiftProp, value: 0, element: elements.doc, unit: 'px' })
+        cache.shift = 0
+      } else {
+        $.toggleClass(elements.body, scrollClass, true)
         const newShift = -currentHeight
         $.setCssVar({ key: shiftProp, value: newShift, element: elements.doc, unit: 'px' })
         cache.shift = newShift
@@ -148,7 +156,9 @@ const TopBarScroll = {
         cache.shift = 0
       }
 
-      if (current <= TopBarConfig.minHeight) {
+      const threshold = Math.max(TopBarConfig.minHeight, height)
+
+      if (current <= threshold) {
         shiftDestroyer()
         cache.lastScroll = current
         return
