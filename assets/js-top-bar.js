@@ -177,9 +177,7 @@ const TopBarEvents = {
     TopBarHeight.calculate()
 
     this.handlers.scroll = TopBarScroll.handleScroll.bind(TopBarScroll)
-    this.handlers.resize = $.debounce ?
-      $.debounce(TopBarHeight.recalculate.bind(TopBarHeight), TopBarConfig.debounceTime) :
-      TopBarHeight.recalculate.bind(TopBarHeight)
+    this.handlers.resize = TopBarHeight.recalculate.bind(TopBarHeight)
 
     $.eventListener('add', window, 'scroll', this.handlers.scroll, { passive: true })
     $.eventListener('add', window, 'resize', this.handlers.resize, { passive: true })
