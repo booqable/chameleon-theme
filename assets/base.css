@@ -83,7 +83,6 @@ html:has(div[data-tid="Modal"][class*="Container-"]) {
 /* Header styles */
 .header--not-sticky.header--menu-opened ~ #main {
   margin-top: var(--preview-height);
-  padding-top: calc(var(--header-height) - 1px);
 }
 
 /* Preview bar styles */

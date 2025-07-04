@@ -10,6 +10,7 @@
 const MegaMenuConfig = {
   selector: {
     body: 'body',
+    header: '.header',
     menu: '.menu',
     menuDrop: '.has-dropdown',
     menuOpener: '#mobile-menu-opener',
@@ -47,15 +48,15 @@ const MegaMenuDOM = {
     checkboxes: null
   },
 
-  init (headerBlock) {
-    if (!headerBlock) return false
+  init (element) {
+    if (!element) return false
 
     this.elements.doc = document.documentElement
     this.elements.body = document.querySelector(MegaMenuConfig.selector.body)
-    this.elements.header = headerBlock
-    this.elements.menu = headerBlock.querySelector(MegaMenuConfig.selector.menu)
-    this.elements.menuDrops = headerBlock.querySelectorAll(MegaMenuConfig.selector.menuDrop)
-    this.elements.menuOpener = headerBlock.querySelector(MegaMenuConfig.selector.menuOpener)
+    this.elements.header = element
+    this.elements.menu = element.querySelector(MegaMenuConfig.selector.menu)
+    this.elements.menuDrops = element.querySelectorAll(MegaMenuConfig.selector.menuDrop)
+    this.elements.menuOpener = element.querySelector(MegaMenuConfig.selector.menuOpener)
     this.elements.checkboxes = this.elements.menu?.querySelectorAll(MegaMenuConfig.selector.checkbox)
 
     return this.elements.menu && this.elements.menuOpener
@@ -71,9 +72,9 @@ const MegaMenuDOM = {
 const MegaMenuState = {
   sticky: false,
 
-  init (headerBlock) {
-    if (!headerBlock) return
-    this.sticky = headerBlock.classList.contains(MegaMenuConfig.classes.sticky)
+  init (header) {
+    if (!header) return
+    this.sticky = header.classList.contains(MegaMenuConfig.classes.sticky)
   }
 }
 
@@ -114,7 +115,6 @@ const MegaMenuRenderer = {
 
       if (data.sticky) return
       $.toggleClass(data.header, MegaMenuConfig.classes.opened, true)
-      data.header.style.position = 'fixed'
     }
 
     $.frameSequence(read, write)
@@ -145,7 +145,6 @@ const MegaMenuRenderer = {
 
       if (data.sticky) return
       $.toggleClass(data.header, MegaMenuConfig.classes.opened, false)
-      data.header.removeAttribute(MegaMenuConfig.attr.style)
     }
 
     $.frameSequence(read, write)
@@ -302,11 +301,11 @@ const MegaMenuEvents = {
 }
 
 const handleMegaMenu = () => {
-  const headerBlock = $.stickyHeader?.block || window.stickyHeader?.block || document.querySelector('.header')
+  const header = document.querySelector(MegaMenuConfig.selector.header)
 
-  if (!MegaMenuDOM.init(headerBlock)) return null
+  if (!MegaMenuDOM.init(header)) return null
 
-  MegaMenuState.init(headerBlock)
+  MegaMenuState.init(header)
 
   // Use requestIdle for non-critical initialization with Safari fallback
   const bindEvents = () => MegaMenuEvents.bindEvents()
