@@ -55,9 +55,8 @@
 
 .header--menu-opened {
   position: fixed;
-  top: var(--header-transform, 0);
-  left: 0;
-  right: 0;
+  top: 0;
+  width: 100%;
   transition: top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
