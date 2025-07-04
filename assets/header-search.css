@@ -107,6 +107,7 @@
   visibility: visible;
   pointer-events: all;
   opacity: 1;
+  z-index: 1;
 }
 
 .header__mobile-menu-opener-left .search__wrapper {
