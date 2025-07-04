@@ -54,7 +54,7 @@
 }
 
 .header--menu-opened {
-  position: sticky;
+  position: fixed;
   top: var(--header-transform, 0);
   left: 0;
   right: 0;
