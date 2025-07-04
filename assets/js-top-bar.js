@@ -13,6 +13,9 @@ const TopBarConfig = {
     body: 'body',
     header: '.header'
   },
+  classes: {
+    sticky: 'header--sticky'
+  },
   modifier: {
     scroll: 'scrolled-down'
   },
@@ -29,7 +32,7 @@ const TopBarDOM = {
     bar: null,
     body: null,
     doc: null,
-    headerBlock: null
+    header: null
   },
 
   cacheData: {
@@ -38,11 +41,11 @@ const TopBarDOM = {
     shift: 0
   },
 
-  init (headerBlock) {
-    this.elements.headerBlock = headerBlock
+  init (element) {
+    this.elements.header = element
     this.elements.doc = document.documentElement
     this.elements.body = document.querySelector(TopBarConfig.selector.body)
-    this.elements.bar = headerBlock?.querySelector(TopBarConfig.selector.bar)
+    this.elements.bar = element?.querySelector(TopBarConfig.selector.bar)
 
     return this.elements.bar !== null
   },
@@ -52,7 +55,7 @@ const TopBarDOM = {
       bar: null,
       body: null,
       doc: null,
-      headerBlock: null
+      header: null
     }
     this.cacheData = {
       barHeight: 0,
@@ -73,20 +76,25 @@ const TopBarHeight = {
 
     const read = () => {
       const dimensions = $.getDimensions(elements.bar),
-        currentScroll = window.scrollY
+        currentScroll = window.scrollY,
+        isSticky = elements.header?.classList.contains(TopBarConfig.classes.sticky)
 
       return {
         barHeight: Math.floor(dimensions.height),
         currentHeight: dimensions.height,
-        currentScroll
+        currentScroll,
+        isSticky
       }
     }
 
     const write = (data) => {
-      const { barHeight, currentHeight, currentScroll } = data,
+      const { barHeight, currentHeight, currentScroll, isSticky } = data,
         scrollClass = TopBarConfig.modifier.scroll
 
       cache.barHeight = barHeight
+
+      if (!isSticky) return
+
       $.setCssVar({ key: barHeightProp, value: barHeight, element: elements.doc, unit: 'px' })
 
       const threshold = Math.max(TopBarConfig.minHeight, currentHeight)
@@ -125,20 +133,24 @@ const TopBarScroll = {
 
       const current = window.scrollY,
         isScroll = elements.body.classList.contains(scrollClass),
-        dimensions = $.getDimensions(elements.bar)
+        dimensions = $.getDimensions(elements.bar),
+        isSticky = elements.header?.classList.contains(TopBarConfig.classes.sticky)
 
       return {
         current,
         isScroll,
         height: dimensions.height,
-        lastScroll: cache.lastScroll
+        lastScroll: cache.lastScroll,
+        isSticky
       }
     }
 
     const write = (data) => {
       if (!data) return
 
-      const { current, isScroll, height, lastScroll } = data
+      const { current, isScroll, height, lastScroll, isSticky } = data
+
+      if (!isSticky) return
 
       const setCssVar = (value) => {
         $.setCssVar({ key: property, value: value, element: elements.doc, unit: 'px' })
