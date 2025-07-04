@@ -241,4 +241,5 @@ const initTopBar = () => {
   $.cleanup('cleanupTopBar', handleTopBar)
 }
 
-initTopBar()
+$.initTopBar = initTopBar
+window.initTopBar = $.initTopBar

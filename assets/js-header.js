@@ -17,7 +17,7 @@ const HeaderConfig = {
     topBar: '.top-bar__wrapper'
   },
   classes: {
-    sticky: 'header--sticky',
+    sticky: 'header--sticky'
   },
   cssVar: {
     height: '--header-height',
@@ -65,9 +65,9 @@ const HeaderDOM = {
 const HeaderHeight = {
   calculate () {
     const elements = HeaderDOM.elements,
-          cache = HeaderDOM.cacheData,
-          heightProp = HeaderConfig.cssVar.height,
-          viewHeightProp = HeaderConfig.cssVar.viewHeight
+      cache = HeaderDOM.cacheData,
+      heightProp = HeaderConfig.cssVar.height,
+      viewHeightProp = HeaderConfig.cssVar.viewHeight
 
     if (!elements.header) return
 
@@ -122,8 +122,8 @@ const HeaderModals = {
     if (!searchOpener || !searchOpener.checked) return false
 
     const isSearch = event.target.closest(HeaderConfig.selector.search) ||
-                      event.target.closest(HeaderConfig.selector.searchOpener) ||
-                      event.target === searchOpener
+      event.target.closest(HeaderConfig.selector.searchOpener) ||
+      event.target === searchOpener
 
     if (isSearch) return false
 
@@ -161,7 +161,7 @@ const HeaderEvents = {
     $.eventListener('add', window, 'resize', this.handlers.resize, { passive: true })
 
     const topBar = HeaderDOM.elements.header?.querySelector(HeaderConfig.selector.topBar)
-    if (topBar) initTopBar()
+    if (topBar) $.initTopBar()
   },
 
   destroy () {
