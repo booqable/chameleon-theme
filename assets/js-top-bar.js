@@ -20,11 +20,9 @@ const TopBarConfig = {
     scroll: 'scrolled-down'
   },
   cssVar: {
-    barHeight: '--top-bar-height',
-    transform: '--header-transform'
+    barHeight: '--top-bar-height'
   },
-  minHeight: 180,
-  debounceTime: 150
+  minHeight: 180
 }
 
 const TopBarDOM = {
@@ -37,8 +35,7 @@ const TopBarDOM = {
 
   cacheData: {
     barHeight: 0,
-    lastScroll: 0,
-    shift: 0
+    lastScroll: 0
   },
 
   init (element) {
@@ -59,8 +56,7 @@ const TopBarDOM = {
     }
     this.cacheData = {
       barHeight: 0,
-      lastScroll: 0,
-      shift: 0
+      lastScroll: 0
     }
   }
 }
@@ -69,7 +65,6 @@ const TopBarHeight = {
   calculate () {
     const elements = TopBarDOM.elements,
       cache = TopBarDOM.cacheData,
-      shiftProp = TopBarConfig.cssVar.transform,
       barHeightProp = TopBarConfig.cssVar.barHeight
 
     if (!elements.bar) return
@@ -101,13 +96,8 @@ const TopBarHeight = {
 
       if (currentScroll <= threshold) {
         $.toggleClass(elements.body, scrollClass, false)
-        $.setCssVar({ key: shiftProp, value: 0, element: elements.doc, unit: 'px' })
-        cache.shift = 0
       } else {
         $.toggleClass(elements.body, scrollClass, true)
-        const newShift = -currentHeight
-        $.setCssVar({ key: shiftProp, value: newShift, element: elements.doc, unit: 'px' })
-        cache.shift = newShift
       }
     }
 
@@ -123,7 +113,6 @@ const TopBarScroll = {
   handleScroll () {
     const elements = TopBarDOM.elements,
       scrollClass = TopBarConfig.modifier.scroll,
-      property = TopBarConfig.cssVar.transform,
       cache = TopBarDOM.cacheData
 
     if (!elements.bar || !elements.body) return false
@@ -152,20 +141,13 @@ const TopBarScroll = {
 
       if (!isSticky) return
 
-      const setCssVar = (value) => {
-        $.setCssVar({ key: property, value: value, element: elements.doc, unit: 'px' })
-      }
 
       const shiftHandler = () => {
         $.toggleClass(elements.body, scrollClass, true)
-        setCssVar(-height)
-        cache.shift = -height
       }
 
       const shiftDestroyer = () => {
         $.toggleClass(elements.body, scrollClass, false)
-        setCssVar(0)
-        cache.shift = 0
       }
 
       const threshold = Math.max(TopBarConfig.minHeight, height)

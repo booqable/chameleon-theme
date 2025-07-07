@@ -198,16 +198,21 @@
 .account__agreement-modal {
   display: block !important;
   position: fixed;
-  top: calc(var(--header-height, 130px) + var(--header-transform, 0px));
+  top: var(--header-height, 130px);
   left: 0;
   width: 100%;
-  height: calc(100vh - var(--header-height, 130px) - var(--header-transform, 0px));
+  height: calc(100vh - var(--header-height, 130px));
   transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   padding: 10px;
   z-index: 1;
   backdrop-filter: blur(5px);
   visibility: hidden;
   opacity: 0;
+}
+
+.scrolled-down .account__agreement-modal {
+  top: calc(var(--header-height, 130px) - var(--top-bar-height, 0px));
+  height: calc(100vh - var(--header-height, 130px) + var(--top-bar-height, 0px));
 }
 
 .account__agreement-content {
