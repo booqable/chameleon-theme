@@ -1,5 +1,13 @@
+.scrolled-down .header--sticky {
+  top: calc(var(--preview-height, 0px) - var(--top-bar-height, 0px));
+}
+
 .scrolled-down.resize-active .header--sticky {
   transition: none;
+}
+
+.header--sticky:has(~ div div[data-tid="Modal"][class*="Container-"]) {
+  position: fixed;
 }
 
 .header__content--padding-top {

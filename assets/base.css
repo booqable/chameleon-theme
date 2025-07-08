@@ -80,9 +80,21 @@ html:has(div[data-tid="Modal"][class*="Container-"]) {
   display: block;
 }
 
-/* Header styles */
+/* Main element styles */
 .header--not-sticky.header--menu-opened ~ #main {
   margin-top: var(--preview-height);
+}
+
+.header--sticky:has(~ div div[data-tid="Modal"][class*="Container-"]) ~ #main {
+  margin-top: var(--header-height, 0);
+}
+
+.scrolld-down .header--sticky:has(~ div div[data-tid="Modal"][class*="Container-"]) ~ #main {
+  margin-top: calc(var(--header-height, 0px) - var(--top-bar-height, 0px));
+}
+
+.preview-bar__container:has(~ .header--sticky) ~ #main {
+  margin-top: var(--preview-height, 0);
 }
 
 /* Preview bar styles */
@@ -134,6 +146,7 @@ div[data-tippy-root]:has([class*="tippy-content"] [class*="DayPicker-wrapper"] [
 
 div[data-tid="Modal"][class*="Container-"],
 div[data-tid="Modal"][class*="Container-"]:has([class*="Select__control"]) [class*="Select__control"],
+div[data-tid="Modal"][class*="Container-"]:has([class*="Picker-"] [class*="Period-"]) [class*="Picker-"] > div,
 div[data-tid="Modal"]:has(> div[class*="Body-"] form > div > div) div[class*="Body-"] form > div > div,
 div[data-tid="Modal"] div[data-tid="Start and stop location dropdown"][class*="Container-"] [class*="Select__control"],
 div[data-tippy-root]:has([data-tid="Mini cart"] [data-tid*="Select dates"] > [class*="DatesBase-"] > [class*="Dates"]) [class*="DatesBase-"] > [class*="Dates"],
@@ -421,7 +434,7 @@ textarea:-webkit-autofill:active {
   }
 
   .scrolled-down:has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+    top: calc(var(--header-height) - var(--top-bar-height, 0)) !important;
   }
 
   body:has(.preview-bar__container) div[data-tippy-root]:has([data-tid="Mini cart"]) {
@@ -437,7 +450,7 @@ textarea:-webkit-autofill:active {
   }
 
   .scrolled-down:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+    top: calc(var(--header-height) - var(--top-bar-height, 0)) !important;
   }
 }
 
@@ -452,7 +465,7 @@ textarea:-webkit-autofill:active {
   }
 
   .scrolled-down:has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position) + var(--header-transform, 0)) !important;
+    top: calc(var(--header-height) - var(--menu-position) - var(--top-bar-height, 0)) !important;
   }
 
   body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
@@ -472,11 +485,11 @@ textarea:-webkit-autofill:active {
   }
 
   .scrolled-down:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) + var(--header-transform, 0)) !important;
+    top: calc(var(--header-height) - var(--top-bar-height, 0)) !important;
   }
 
   .scrolled-down:has(.preview-bar__container):has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position) + var(--header-transform, 0)) !important;
+    top: calc(var(--header-height) - var(--menu-position) - var(--top-bar-height, 0)) !important;
   }
 }
 
