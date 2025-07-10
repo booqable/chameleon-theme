@@ -110,14 +110,12 @@
             {%- for block in section.blocks -%}
               {%- assign image     = block.settings.image -%}
               {%- assign image_alt = block.settings.alt -%}
-              {%- assign image_id  = block.id -%}
 
               <div class="logos__image-wrapper" id="{{- block.id -}}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
                     image_alt: image_alt,
-                    image_id: image_id,
                     image_class: 'logos__image',
                     custom_width: '450',
                     custom_size: '450px'

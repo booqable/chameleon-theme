@@ -141,7 +141,6 @@
             {%- assign image_mobile         = block.settings.image_mobile -%}
             {%- assign image_alt            = block.settings.image_alt -%}
             {%- assign image_placeholder    = settings.image_placeholder -%}
-            {%- assign image_id             = block.id -%}
             {%- assign limit_content_width  = block.settings.limit_content_width -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
             {%- assign overlay_opacity      = block.settings.overlay_opacity -%}
@@ -424,7 +423,6 @@
                               image: image,
                               image_mobile: image_mobile,
                               image_alt: image_alt,
-                              image_id: image_id,
                               image_class: 'images__image',
                               image_size: 'xxl',
                               fetchpriority: fetch_priority,

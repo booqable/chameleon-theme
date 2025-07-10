@@ -5,7 +5,6 @@
   image - image *required,
   image_mobile - image_mobile optional,
   image_alt - "string" optional,
-  image_id - "string" *required,
   image_class - "string" optional,
   image_size - "string" *required,
   focal - image.coordinates optional,
@@ -24,7 +23,6 @@
       image_mobile: image_mobile,
       image_alt: 'image_alt',
       image_class: 'your_class',
-      image_id: id,
       image_size: 'm',  <-------- use only this ONE property
       custom_size: '170px', <---- or these TWO properties (custom_size, custom_width)
       custom_width: '170',  <---- instead of 'image_size' property
@@ -55,90 +53,199 @@
 
 {% endcomment %}
 
-{%- if image.url != blank -%}
-  {%- assign image_alt        = image_alt | default: image.alt | default: "" -%}
-  {%- assign image_main_class = image_class | append: ' image-main' -%}
-  {%- assign image_fit        = settings.card_image_fit -%}
-  {%- assign image_use_focal  = settings.use_focal_images -%}
-  {%- assign image_size       = image_size | default: "m" -%}
-  {%- assign loading_strategy = loading | default: "lazy" -%}
-  {%- assign fetch_priority   = fetchpriority | default: "auto" -%}
-  {%- assign featured_types   = "webp, jpg, jpeg, png" | split: ", " -%}
-  {%- assign featured_type    = "" -%}
-  {%- assign media_query      = "768" -%}
+{%- assign image_url          = image.url -%}
+{%- assign image_url_mobile   = image_mobile.url -%}
 
-  {%- if loading_strategy == "lazy" -%}
-    {%- assign image_placeholder_width = "25" -%}
+{%- if image_url != blank or image_url_mobile != blank -%}
+  {%- assign dynamic_url        = image_url -%}
+  {%- assign featured_type      = '' -%}
+  {%- assign featured_types     = 'webp, jpg, jpeg, png' | split: ', ' -%}
+  {%- assign fetch_priority     = fetchpriority | default: 'auto' -%}
+  {%- assign has_dimensions     = false -%}
+  {%- assign inner_height       = image.height -%}
+  {%- assign inner_width        = image.width -%}
+  {%- assign image_alt          = image_alt | default: image.alt | default: '' -%}
+  {%- assign image_fit          = settings.card_image_fit -%}
+  {%- assign image_main_class   = image_class | append: ' image-main' -%}
+  {%- assign image_use_focal    = settings.use_focal_images -%}
+  {%- assign loading_strategy   = loading | default: 'lazy' -%}
+  {%- assign breakpoint_sm      = '768' | plus: 0 -%}
+  {%- assign breakpoint_md      = '1024' | plus: 0 -%}
+  {%- assign placeholder_height = '100%' -%}
+
+  {%- if loading_strategy == 'lazy' -%}
+    {%- assign placeholder_width = '25' | plus: 0 -%}
+    {%- assign reduction_factor  = inner_width | divided_by: placeholder_width | plus: 0.0 -%}
   {%- endif -%}
 
-  {%- case image_size -%}
-    {%- when 'xs' -%}
-      {%- assign image_widths = '20, 30, 48, 75, 105, 160' -%}
-      {%- assign image_sizes = '(max-width: 320px) 20px, (max-width: 480px) 30px, (max-width: 768px) 48px, (max-width: 1200px) 75px, (max-width: 1680px) 105px, 160px' -%}
-    {%- when 's' -%}
-      {%- assign image_widths = '40, 60, 96, 150, 210, 320' -%}
-      {%- assign image_sizes = '(max-width: 320px) 40px, (max-width: 480px) 60px, (max-width: 768px) 96px, (max-width: 1200px) 150px, (max-width: 1680px) 210px, 320px' -%}
-    {%- when 'm' -%}
-      {%- assign image_widths = '80, 120, 192, 300, 420, 640' -%}
-      {%- assign image_sizes = '(max-width: 320px) 80px, (max-width: 480px) 120px, (max-width: 768px) 192px, (max-width: 1200px) 300px, (max-width: 1680px) 420px, 640px' -%}
-    {%- when 'l' -%}
-      {%- assign image_widths = '160, 240, 384, 600, 840, 1280' -%}
-      {%- assign image_sizes = '(max-width: 320px) 160px, (max-width: 480px) 240px, (max-width: 768px) 384px, (max-width: 1200px) 600px, (max-width: 1680px) 840px, 1280px' -%}
-    {%- when 'xl' -%}
-      {%- assign image_widths = '240, 360, 576, 900, 1260, 1920' -%}
-      {%- assign image_sizes = '(max-width: 320px) 240px, (max-width: 480px) 360px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 1260px, 1920px' -%}
-    {%- when 'xxl' -%}
-      {%- assign image_widths = '320, 480, 768, 1200, 1680, 2560' -%}
-      {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 768px, (max-width: 1200px) 1200px, (max-width: 1680px) 1680px, 2560px' -%}
-    {%- when 'flexible' -%}
-      {%- assign image_widths = '320, 480, 576, 900, 840, 1280' -%}
-      {%- assign image_sizes = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 840px, 1280px' -%}
-    {%- when 'logo' -%}
-      {%- assign image_widths = '420, 640' -%}
-      {%- assign image_sizes = '(max-width: 360px) 420px, 640px' -%}
-  {%- endcase -%}
-
-  {% comment %} override image_widths and image_sizes with custom values that usually have only one width/size {% endcomment %}
-  {%- if custom_width != blank and custom_size != blank -%}
-    {%- assign image_widths = custom_width -%}
-    {%- assign image_sizes  = custom_size -%}
+  {%- if image_url_mobile != blank -%}
+    {%- assign dynamic_url = image_url_mobile -%}
   {%- endif -%}
 
-  {% comment %} set falback image {% endcomment %}
-  {%- assign image_fallback_width  = "" -%}
-  {%- assign image_fallback_widths = image_widths | split: ", " -%}
-  {%- assign image_fallback_url    = image.url -%}
-
-  {%- if image_mobile.url != blank -%}
-    {%- assign image_fallback_url = image_mobile.url -%}
+  {%- if inner_width and inner_height -%}
+    {%- assign has_dimensions = true -%}
   {%- endif -%}
 
-  {%- for width in image_fallback_widths -%}
-    {%- assign image_fallback = image_fallback_url | image_url: width: width | append: " " | append: width | append: "w"  -%}
+  {% comment %} use native image dimensions to generate optimal sizes {% endcomment %}
+  {%- if has_dimensions -%}
+    {%- assign breakpoints = '' -%}
+    {%- assign paths       = '' -%}
+    {%- assign sizes       = '320, 425, 535, 750, 810, 1024, 1200, 1440, 1920, 2500' | split: ', ' -%}
+    {%- assign sizes_map   = '' -%}
+    {%- assign source_map  = '' -%}
+    {%- assign threshold   = '' -%}
 
-    {%- if forloop.first == false -%}
-      {%- assign image_fallback_width = image_fallback_width | append: ', ' -%}
+    {%- if loading_strategy == 'lazy' -%}
+      {%- assign placeholder_height = inner_height | divided_by: reduction_factor | round: 0 -%}
     {%- endif -%}
 
-    {%- assign image_fallback_width   = image_fallback_width | append: image_fallback -%}
-  {%- endfor -%}
+    {% comment %} filter out sizes larger than the original image to avoid upscaling {% endcomment %}
+    {%- for item in sizes -%}
+      {%- assign size = item | plus: 0 -%}
+
+      {%- if inner_width >= size -%}
+        {%- assign threshold = size -%}
+        {%- assign sizes_map = sizes_map | append: size | append: ', ' -%}
+        {%- continue -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {% comment %} clean up trailing signs {% endcomment %}
+    {%- assign sizes = '' -%}
+    {%- for item in sizes_map -%}
+      {%- assign size   = item -%}
+      {%- if forloop.last -%}
+        {%- assign size = item | replace_last: ', ', '' -%}
+      {%- endif -%}
+      {%- assign sizes  = sizes | append: size -%}
+    {%- endfor -%}
+
+    {% comment %} generate srcset paths and responsive breakpoints {% endcomment %}
+    {%- assign sizes_map = sizes | split: ', ' -%}
+    {%- for item in sizes_map -%}
+      {%- unless forloop.last -%}
+        {%- assign comma = ', ' -%}
+      {%- else -%}
+        {%- assign comma = '' -%}
+      {%- endunless -%}
+
+      {%- assign breakpoint = '' -%}
+      {%- assign size       = item | plus: 0 -%}
+      {%- assign url        = dynamic_url | image_url: width: size -%}
+      {%- assign path       = url | append: ' ' | append: size | append: 'w' -%}
+      {%- assign paths      = paths | append: path | append: comma -%}
+      {%- assign point      = item | append: 'px' -%}
+
+      {% comment %} add media query for sizes up to medium breakpoint {% endcomment %}
+      {%- if size <= breakpoint_md -%}
+        {%- assign breakpoint = '(max-width: ' | append: point | append: ') ' -%}
+      {%- endif -%}
+
+      {%- assign breakpoints  = breakpoints | append: breakpoint | append: point | append: comma -%}
+    {%- endfor -%}
+
+    {% comment %} add original image size if not already included in filtered sizes {% endcomment %}
+    {%- if threshold != inner_width -%}
+      {%- assign img_points   = '' -%}
+      {%- assign img_size     = inner_width | append: 'px' -%}
+      {%- assign img_path     = image_url | image_url: width: inner_width | append: ' ' | append: inner_width | append: 'w' -%}
+      {%- assign sizes        = sizes | append: ', ' | append: inner_width -%}
+      {%- assign paths        = paths | append: ', ' | append: img_path -%}
+      {%- if threshold <= breakpoint_md -%}
+        {%- assign img_points = '(max-width: ' | append: img_size | append: ') ' -%}
+      {%- endif -%}
+      {%- assign breakpoints  = breakpoints | append: ', ' | append: img_points | append: img_size -%}
+    {%- endif -%}
+
+    {%- assign source_map   = sizes | split: ', '-%}
+    {% comment %} calculate aspect ratio for native CSS aspect-ratio property {% endcomment %}
+    {%- assign aspect_ratio = inner_width | times: 1.0 | divided_by: inner_height | round: 4 -%}
+  {%- else -%}
+    {%- assign image_size = image_size | default: "m" -%}
+
+    {%- case image_size -%}
+      {%- when 'xs' -%}
+        {%- assign sizes  = '20, 30, 48, 75, 105, 160' -%}
+        {%- assign points = '(max-width: 320px) 20px, (max-width: 480px) 30px, (max-width: 768px) 48px, (max-width: 1200px) 75px, (max-width: 1680px) 105px, 160px' -%}
+        {%- assign width  = '160' -%}
+      {%- when 's' -%}
+        {%- assign sizes  = '40, 60, 96, 150, 210, 320' -%}
+        {%- assign points = '(max-width: 320px) 40px, (max-width: 480px) 60px, (max-width: 768px) 96px, (max-width: 1200px) 150px, (max-width: 1680px) 210px, 320px' -%}
+        {%- assign width  = '320' -%}
+      {%- when 'm' -%}
+        {%- assign sizes  = '80, 120, 192, 300, 420, 640' -%}
+        {%- assign points = '(max-width: 320px) 80px, (max-width: 480px) 120px, (max-width: 768px) 192px, (max-width: 1200px) 300px, (max-width: 1680px) 420px, 640px' -%}
+        {%- assign width  = '640' -%}
+      {%- when 'l' -%}
+        {%- assign sizes  = '160, 240, 384, 600, 840, 1280' -%}
+        {%- assign points = '(max-width: 320px) 160px, (max-width: 480px) 240px, (max-width: 768px) 384px, (max-width: 1200px) 600px, (max-width: 1680px) 840px, 1280px' -%}
+        {%- assign width  = '1280' -%}
+      {%- when 'xl' -%}
+        {%- assign sizes  = '240, 360, 576, 900, 1260, 1920' -%}
+        {%- assign points = '(max-width: 320px) 240px, (max-width: 480px) 360px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 1260px, 1920px' -%}
+        {%- assign width  = '1920' -%}
+      {%- when 'xxl' -%}
+        {%- assign sizes  = '320, 480, 768, 1200, 1680, 2560' -%}
+        {%- assign points = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 768px, (max-width: 1200px) 1200px, (max-width: 1680px) 1680px, 2560px' -%}
+        {%- assign width  = '2560' -%}
+      {%- when 'flexible' -%}
+        {%- assign sizes  = '320, 480, 576, 900, 840, 1280' -%}
+        {%- assign points = '(max-width: 320px) 320px, (max-width: 480px) 480px, (max-width: 768px) 576px, (max-width: 1200px) 900px, (max-width: 1680px) 840px, 1280px' -%}
+        {%- assign width  = '1280' -%}
+      {%- when 'logo' -%}
+        {%- assign sizes  = '420, 640' -%}
+        {%- assign points = '(max-width: 360px) 420px, 640px' -%}
+        {%- assign width  = '640' -%}
+    {%- endcase -%}
+
+    {% comment %} override sizes and points with custom values that usually have only one width/size {% endcomment %}
+    {%- if custom_width != blank and custom_size != blank -%}
+      {%- assign sizes  = custom_width -%}
+      {%- assign points = custom_size -%}
+      {%- assign width  = custom_width | split: ',' | last | plus: 0 -%}
+    {%- endif -%}
+
+    {% comment %} override height with custom value {% endcomment %}
+    {%- if custom_height != blank -%}
+      {%- assign height = custom_height | split: ',' | last | plus: 0 -%}
+    {%- endif -%}
+
+    {%- assign inner_height = height | default: '100%' -%}
+    {%- assign inner_width  = width -%}
+
+    {% comment %} set image src {% endcomment %}
+    {%- assign paths = '' -%}
+    {%- assign sizes = sizes | split: ', ' -%}
+
+    {%- for size in sizes -%}
+      {%- assign img_path = dynamic_url | image_url: width: size | append: " " | append: size | append: "w"  -%}
+
+      {%- if forloop.first == false -%}
+        {%- assign paths = paths | append: ', ' -%}
+      {%- endif -%}
+
+      {%- assign paths = paths | append: img_path -%}
+    {%- endfor -%}
+
+    {%- assign source_map  = sizes -%}
+    {%- assign breakpoints = points -%}
+  {%- endif -%}
 
   {% comment %} get initial image type and ensure we support it {% endcomment %}
   {%- for type in featured_types -%}
-    {%- assign image_type = "." | append: type -%}
+    {%- assign image_type = '.' | append: type -%}
 
-    {%- if featured_type == "" and image.url contains image_type -%}
+    {%- if featured_type == '' and image_url contains image_type -%}
       {%- assign featured_type = image_type -%}
       {%- break -%}
     {%- endif -%}
   {%- endfor -%}
 
   {% comment %} convert images to the most in-demand formats {% endcomment %}
-  {%- if featured_type != blank and image.url contains featured_type -%}
-    {%- assign image_jpg_sizes  = "" -%}
-    {%- assign image_png_sizes  = "" -%}
-    {%- assign image_webp_sizes = "" -%}
-    {%- assign image_widths     = image_widths | split: ", " -%}
+  {%- if featured_type != blank and image_url contains featured_type -%}
+    {%- assign src_jpg  = '' -%}
+    {%- assign src_png  = '' -%}
+    {%- assign src_webp = '' -%}
 
     {%- if featured_type != ".jpg" and featured_type != ".jpeg" -%}
       {%- assign jpg = "jpg" -%}
@@ -150,20 +257,20 @@
       {%- assign webp = "webp" -%}
     {%- endif -%}
 
-    {%- for width in image_widths -%}
-      {%- assign image_jpg  = image.url | image_url: width: width, format: jpg | append: " " | append: width | append: "w" -%}
-      {%- assign image_png  = image.url | image_url: width: width, format: png | append: " " | append: width | append: "w" -%}
-      {%- assign image_webp = image.url | image_url: width: width, format: webp | append: " " | append: width | append: "w" -%}
+    {%- for item in source_map -%}
+      {%- assign path_jpg  = image_url | image_url: width: item, format: jpg | append: " " | append: item | append: "w" -%}
+      {%- assign path_png  = image_url | image_url: width: item, format: png | append: " " | append: item | append: "w" -%}
+      {%- assign path_webp = image_url | image_url: width: item, format: webp | append: " " | append: item | append: "w" -%}
 
       {%- if forloop.first == false -%}
-        {%- assign image_jpg_sizes  = image_jpg_sizes | append: ', ' -%}
-        {%- assign image_png_sizes  = image_png_sizes | append: ', ' -%}
-        {%- assign image_webp_sizes = image_webp_sizes | append: ', ' -%}
+        {%- assign src_jpg  = src_jpg | append: ', ' -%}
+        {%- assign src_png  = src_png | append: ', ' -%}
+        {%- assign src_webp = src_webp | append: ', ' -%}
       {%- endif -%}
 
-      {%- assign image_jpg_sizes    = image_jpg_sizes | append: image_jpg -%}
-      {%- assign image_png_sizes    = image_png_sizes | append: image_png -%}
-      {%- assign image_webp_sizes   = image_webp_sizes | append: image_webp -%}
+      {%- assign src_jpg  = src_jpg | append: path_jpg -%}
+      {%- assign src_png  = src_png | append: path_png -%}
+      {%- assign src_webp = src_webp | append: path_webp -%}
     {%- endfor -%}
   {%- endif -%}
 
@@ -181,33 +288,39 @@
     {%- endif -%}
   {%- endif -%}
 
-  <span class="image-wrapper {{ image_class }}-wrapper">
+  <span class="image-wrapper {{ image_class }}-wrapper"
+    {%- if aspect_ratio -%}
+      style="aspect-ratio: {{ aspect_ratio }}; --aspect-ratio: {{ aspect_ratio }};"
+      data-aspect-ratio="{{ aspect_ratio }}"
+      data-intrinsic-width="{{ inner_width }}"
+      data-intrinsic-height="{{ inner_height }}"
+    {%- endif -%}
+  >
     {% comment %} load low quality image placeholder {% endcomment %}
     {%- if loading_strategy == "lazy" -%}
       {%- unless image_points -%}
         <img
           class="image-placeholder {{ image_class }}-placeholder"
-          src="{{ image.url | image_url: width: image_placeholder_width }}"
+          src="{{ image_url | image_url: width: placeholder_width }}"
           alt=""
-          width="100%"
-          height="100%"
+          width="{%- if placeholder_width -%}{{- placeholder_width | round: 0 -}}{%- endif -%}"
+          height="{%- if placeholder_height -%}{{- placeholder_height -}}{%- endif -%}"
           aria-hidden="true"
         >
       {%- endunless -%}
-
     {%- endif -%}
 
-    {% comment %} load high quality multiformat images {% endcomment %}
+    {% comment %} load high quality multiformat image {% endcomment %}
     <picture>
       {% unless keep_type %}
         {%- if featured_type == ".webp" or featured_type == ".jpg" or featured_type == ".jpeg" or featured_type == ".png" -%}
           <source
             type="image/webp"
-            {%- if image_mobile.url != blank -%}
-              media="(min-width: {{ media_query }}px)"
+            {%- if image_url_mobile != blank -%}
+              media="(min-width: {{ breakpoint_sm }}px)"
             {%- endif -%}
-            sizes="{{ image_sizes }}"
-            {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_webp_sizes }}"
+            sizes="{{ breakpoints }}"
+            {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ src_webp }}"
           >
         {%- endif -%}
       {% endunless %}
@@ -215,40 +328,40 @@
       {%- if featured_type == ".jpg" or featured_type == ".jpeg" -%}
         <source
           type="image/jpeg"
-          {%- if image_mobile.url != blank -%}
-            media="(min-width: {{ media_query }}px)"
+          {%- if image_url_mobile != blank -%}
+            media="(min-width: {{ breakpoint_sm }}px)"
           {%- endif -%}
-          sizes="{{ image_sizes }}"
-          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_jpg_sizes }}"
+          sizes="{{ breakpoints }}"
+          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ src_jpg }}"
         >
       {%- endif -%}
 
       {%- if featured_type == ".png" -%}
         <source
           type="image/png"
-          {%- if image_mobile.url != blank -%}
-            media="(min-width: {{ media_query }}px)"
+          {%- if image_url_mobile != blank -%}
+            media="(min-width: {{ breakpoint_sm }}px)"
           {%- endif -%}
-          sizes="{{ image_sizes }}"
-          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ image_png_sizes }}"
+          sizes="{{ breakpoints }}"
+          {%- if loading_strategy == "lazy" -%}data-source-{%- endif -%}srcset="{{ src_png }}"
         >
       {%- endif -%}
 
       <img
-        class="{{ image_main_class }}{% if image_points %} focal-image{% endif %}{% if loading_strategy == "lazy" %} hidden lazyload{%- endif -%}"
+        class="{{ image_main_class }}{% if image_points %} focal-image{% endif %}{% if loading_strategy == "lazy" %} hidden{%- endif -%}"
+        loading="{{- loading_strategy -}}"
+        srcset="{{- paths -}}"
+        src="{{ dynamic_url | image_url }}"
+        alt="{{ image_alt | escape }}"
+        width="{{ inner_width }}"
+        height="{{ inner_height }}"
+        decoding="{%- if loading_strategy == 'lazy' -%}a{%- endif -%}sync"
+        fetchpriority="{{- fetch_priority -}}"
         {%- if image_points -%}
           data-focal-x="{{- image_focal_x -}}"
           data-focal-y="{{- image_focal_y -}}"
+          style="opacity: 0;"
         {%- endif -%}
-        decoding="{%- if loading_strategy == 'lazy' -%}a{%- endif -%}sync"
-        fetchpriority="{{- fetch_priority -}}"
-        loading="{{- loading_strategy -}}"
-        src="{{ image_fallback_url | image_url: width: image_placeholder_width }}"
-        {%- if loading_strategy == "lazy" -%}data-{%- endif -%}srcset="{{- image_fallback_width -}}"
-        height="{%- if custom_height != blank -%}{{- custom_height -}}{%- else -%}100%{%- endif -%}"
-        width="{%- if custom_width != blank -%}{{- custom_width -}}{%- else -%}100%{%- endif -%}"
-        alt="{{- image_alt -}}"
-        {%- if image_points -%}style="opacity: 0;"{%- endif -%}
       >
     </picture>
   </span>
