@@ -57,6 +57,7 @@
 
 .mosaic__image {
   max-height: 50px;
+  width: auto;
   border-radius: var(--border-radius-block-rounded);
 }
 
