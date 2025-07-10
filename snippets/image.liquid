@@ -13,6 +13,7 @@
   custom_width - "string" optional,
   custom_size - "string" optional,
   keep_type - boolean optional,
+  use_ratio - boolean optional,
   fetchpriority - "string" optional, (use "high" for important above-the-fold images)
   settings - settings optional
 
@@ -29,6 +30,7 @@
       custom_height: '170',
       focal: points,
       loading: 'eager',
+      use_ratio: - true,
       fetchpriority: 'high',    - use for hero images or important visible content
       keep_type: true,          - image type will be kept (only png and jpeg)
       settings: settings
@@ -57,6 +59,8 @@
 {%- assign image_url_mobile   = image_mobile.url -%}
 
 {%- if image_url != blank or image_url_mobile != blank -%}
+  {%- assign breakpoint_md      = '1024' | plus: 0 -%}
+  {%- assign breakpoint_sm      = '768' | plus: 0 -%}
   {%- assign dynamic_url        = image_url -%}
   {%- assign featured_type      = '' -%}
   {%- assign featured_types     = 'webp, jpg, jpeg, png' | split: ', ' -%}
@@ -69,9 +73,13 @@
   {%- assign image_main_class   = image_class | append: ' image-main' -%}
   {%- assign image_use_focal    = settings.use_focal_images -%}
   {%- assign loading_strategy   = loading | default: 'lazy' -%}
-  {%- assign breakpoint_sm      = '768' | plus: 0 -%}
-  {%- assign breakpoint_md      = '1024' | plus: 0 -%}
   {%- assign placeholder_height = '100%' -%}
+
+  {%- if use_ratio == false -%}
+    {%- assign set_ratio = false -%}
+  {%- else -%}
+    {%- assign set_ratio = true -%}
+  {%- endif -%}
 
   {%- if loading_strategy == 'lazy' -%}
     {%- assign placeholder_width = '25' | plus: 0 -%}
@@ -289,7 +297,7 @@
   {%- endif -%}
 
   <span class="image-wrapper {{ image_class }}-wrapper"
-    {%- if aspect_ratio -%}
+    {%- if aspect_ratio and set_ratio -%}
       style="aspect-ratio: {{ aspect_ratio }}; --aspect-ratio: {{ aspect_ratio }};"
       data-aspect-ratio="{{ aspect_ratio }}"
       data-intrinsic-width="{{ inner_width }}"
