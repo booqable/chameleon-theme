@@ -105,7 +105,6 @@
               {%- assign index       = forloop.index -%}
               {%- assign image       = block.settings.image -%}
               {%- assign image_alt   = block.settings.image_alt -%}
-              {%- assign image_id    = block.id -%}
               {%- assign title       = block.settings.title -%}
               {%- assign description = block.settings.description -%}
               {%- assign name        = block.settings.name -%}
@@ -172,7 +171,6 @@
                             {%- render 'image',
                                 image: image,
                                 image_alt: image_alt,
-                                image_id: image_id,
                                 image_class: 'testimonials__image',
                                 image_size: 'l'
                             -%}
