@@ -22,23 +22,22 @@
     {%- render 'root-styles', settings: settings -%}
 
     {% comment %} Async CSS loading with resource hints {% endcomment %}
-    {%- assign base_url = 'base.css' | asset_url -%}
-    {%- unless section_preview -%}
-      {%- assign header_url = 'header.css' | asset_url -%}
-    {%- endunless -%}
+    {%- if section_preview -%}
+      {%- assign css_files = "critical.css, base.css" | split: ", " -%}
+    {%- else -%}
+      {%- assign css_files = "critical.css, base.css, header.css" | split: ", " -%}
+    {%- endif -%}
 
-    <link rel="preload" href="{{ base_url }}" as="style">
-    <link rel="stylesheet" href="{{ base_url }}" media="print" onload="this.media='all'">
-    {%- unless section_preview -%}
-      <link rel="preload" href="{{ header_url }}" as="style">
-      <link rel="stylesheet" href="{{ header_url }}" media="print" onload="this.media='all'">
-    {%- endunless -%}
+    {%- for css_file in css_files -%}
+      {%- assign css_url = css_file | asset_url -%}
+      <link rel="preload" href="{{ css_url }}" as="style">
+      <link rel="stylesheet" href="{{ css_url }}"{% if css_file == 'critical.css' %} data-optimize="critical"{% endif %} media="print" onload="this.media='all'">
+    {%- endfor -%}
 
     <noscript>
-      <link rel="stylesheet" href="{{ base_url }}">
-      {%- unless section_preview -%}
-        <link rel="stylesheet" href="{{ header_url }}">
-      {%- endunless -%}
+      {%- for css_file in css_files -%}
+        <link rel="stylesheet" href="{{ css_file | asset_url }}"{% if css_file == 'critical.css' %} data-optimize="critical"{%- endif -%}>
+      {%- endfor -%}
     </noscript>
 
     {%- if section_preview -%}
