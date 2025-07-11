@@ -152,14 +152,38 @@ const MainHeight = {
     if (datePickerBlockHeight !== undefined) setDatePickerBlockHeight()
   },
 
-  calculateDatePickerHeight () {
+  async calculateDatePickerHeight () {
     if (!MainDOM.elements.datePicker) return
+
+    // Safety check for method existence before binding
+    if (!$.is(this.readDatePickerDimensions, 'function') ||
+        !$.is(this.writeDatePickerVariables, 'function')) {
+      console.warn('DatePicker calculation methods not available yet')
+      return
+    }
+
+    // Wait for next frame to ensure DOM is ready
+    await new Promise(resolve => $.nextFrame(resolve))
 
     // Bind the context to ensure 'this' references the MainHeight
     const read = this.readDatePickerDimensions.bind(this),
       write = this.writeDatePickerVariables.bind(this)
 
     $.frameSequence(read, write)
+  },
+
+  // Safe wrapper for calculateDatePickerHeight that handles errors
+  safeCalculateHeight () {
+    try {
+      this.calculateDatePickerHeight()
+    } catch (error) {
+      console.warn('Error calculating date picker height:', error)
+      // Retry after a short delay
+      setTimeout(() => {
+        if (!MainDOM.elements.datePicker && !$.is(this.readDatePickerDimensions, 'function')) return
+        this.calculateDatePickerHeight()
+      }, 100)
+    }
   },
 
   setInitialHeights () {
@@ -173,7 +197,7 @@ const MainResize = {
 
   setupResizeHandlers () {
     const handleResize = () => {
-      MainHeight.calculateDatePickerHeight()
+      MainHeight.safeCalculateHeight()
       MainDOM.setClassResize()
     }
 
@@ -233,21 +257,12 @@ const handleMain = () => {
 
   if (!elements.body) return null
 
-  const delay = MainConfig.time.slowConnectionDelay,
-    laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
-    inView = $.is($.inViewport, 'function') && $.inViewport(elements.datePicker),
-    setDelay = laggy ? delay * 2 : delay
-
   MainDOM.setClassLoaded()
 
-  // Initialize date picker height with connection-aware delay
-  const calculateWithDelay = () => {
-    setTimeout(MainHeight.calculateDatePickerHeight, setDelay)
+  // Initialize date picker height calculation
+  if (elements.datePicker) {
+    MainHeight.safeCalculateHeight()
   }
-
-  elements.datePicker && inView ?
-    MainHeight.calculateDatePickerHeight() :
-    calculateWithDelay()
 
   MainResize.setupResizeHandlers()
   MainVisibility.setupIntersectionObserver()
