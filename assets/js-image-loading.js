@@ -21,9 +21,9 @@ const ImageConfig = {
   },
   viewport: {
     mobileWidth: 992,
-    defaultMultiplier: 2.5,
-    mobileMultiplier: 2.0,
-    lowMultiplier: 1.5,
+    defaultMultiplier: 2.0,
+    mobileMultiplier: 1.5,
+    lowMultiplier: 1.0,
     chunkSize: 5
   }
 }
@@ -78,27 +78,45 @@ const ImageVisibility = {
 }
 
 const ImageDevice = {
-  getViewportSize () { return $.viewportSize() },
+  cachedViewport: null,
+  cachedIsMobile: null,
+  cacheTime: 0,
+  cacheTimeout: 200,
 
-  lowMemory () {
-    return navigator.deviceMemory && navigator.deviceMemory < 4
-  },
+  getViewportSize () {
+    const now = Date.now()
+    if (this.cachedViewport && (now - this.cacheTime) < this.cacheTimeout) {
+      return this.cachedViewport
+    }
 
-  reducedData () {
-    return navigator.connection && navigator.connection.saveData
+    this.cachedViewport = $.viewportSize()
+    this.cacheTime = now
+    this.cachedIsMobile = null
+    return this.cachedViewport
   },
 
   isMobile () {
-    return this.getViewportSize().width < ImageConfig.viewport.mobileWidth
+    if (this.cachedIsMobile !== null) {
+      return this.cachedIsMobile
+    }
+
+    this.cachedIsMobile = this.getViewportSize().width < ImageConfig.viewport.mobileWidth
+    return this.cachedIsMobile
   },
 
   getAdaptiveMultiplier () {
-    if ($.slowConnection() || this.lowMemory()) {
+    if ($.slowConnection()) {
       return ImageConfig.viewport.lowMultiplier
     }
     return this.isMobile() ?
       ImageConfig.viewport.mobileMultiplier :
       ImageConfig.viewport.defaultMultiplier
+  },
+
+  clearCache () {
+    this.cachedViewport = null
+    this.cachedIsMobile = null
+    this.cacheTime = 0
   }
 }
 
@@ -159,7 +177,6 @@ const ImageLoader = {
     $.toggleClass(mainImage, ImageConfig.classes.loaded, true)
 
     if (!placeholder) return
-
     placeholder.style.opacity = '0'
     const removePlaceholder = () => placeholder.remove()
     $.eventListener('add', placeholder, 'transitionend', removePlaceholder, { once: true, passive: true })
@@ -170,32 +187,43 @@ const ImageLoader = {
     if (!mainImage.classList.contains(ImageConfig.classes.hidden)) return
 
     const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`),
-      placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`),
-      inViewport = $.inViewport(mainImage)
+      placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`)
 
-    if ($.slowConnection()) {
-      mainImage.decoding = 'async'
-      if ($.isFetchPriority()) mainImage.fetchPriority = 'low'
-      mainImage.setAttribute('importance', 'low')
-    } else if (inViewport && $.isFetchPriority()) {
-      mainImage.fetchPriority = 'high'
+    if ($.slowConnection() && $.isFetchPriority()) {
+      mainImage.fetchPriority = 'low'
     }
 
-    if (mainImage.complete) {
+    const fadeInHandler = () => {
       this.fadeInImage(mainImage, placeholder)
-    } else {
-      const handleLoad = () => this.fadeInImage(mainImage, placeholder)
+    }
+
+    const fadeInFallback = () => {
+      const handleLoad = () => fadeInHandler()
       $.eventListener('add', mainImage, 'load', handleLoad, { once: true })
     }
+
+    mainImage.complete ? fadeInHandler() : fadeInFallback()
   }
 }
 
 const ImageLoadingStrategy = {
-  prioritizeVisible () {
-    const notLoaded = document.querySelectorAll(
-      `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
-    )
+  cachedNotLoaded: null,
+  cacheTime: 0,
+  cacheTimeout: 100,
 
+  getNotLoadedImages () {
+    const now = Date.now()
+    if (this.cachedNotLoaded && (now - this.cacheTime) < this.cacheTimeout) {
+      return this.cachedNotLoaded
+    }
+
+    this.cachedNotLoaded = document.querySelectorAll(`.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`)
+    this.cacheTime = now
+    return this.cachedNotLoaded
+  },
+
+  prioritizeVisible () {
+    const notLoaded = this.getNotLoadedImages()
     if (!notLoaded.length) return
 
     const multiplier = ImageDevice.getAdaptiveMultiplier()
@@ -223,7 +251,7 @@ const ImageLoadingStrategy = {
   },
 
   readVisible (images) {
-    const multiplier = $.slowConnection() ? 2 : (ImageDevice.lowMemory() ? 3 : 4),
+    const multiplier = $.slowConnection() ? 1.5 : 3,
       viewport = ImageDevice.getViewportSize(),
       visibleImages = []
 
@@ -285,23 +313,23 @@ const ImageLoadingStrategy = {
   },
 
   handleWindowLoad () {
-    const notLoaded = document.querySelectorAll(
-      `.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`
-    )
-
+    const notLoaded = this.getNotLoadedImages()
     if (!notLoaded.length) return
-    const laggy = $.slowConnection() && $.is($.slowConnection, 'function'),
-      starved = ImageDevice.lowMemory(),
-      trimmed = ImageDevice.reducedData()
 
-    laggy || starved || trimmed ?
+    $.slowConnection() ?
       this.loadLimited(notLoaded) :
       this.loadInChunks(notLoaded)
+  },
+
+  clearCache () {
+    this.cachedNotLoaded = null
+    this.cacheTime = 0
   }
 }
 
 const ImageHandler = {
   windowLoadHandler: null,
+  resizeHandler: null,
 
   init () {
     const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`)
@@ -310,6 +338,7 @@ const ImageHandler = {
     ImageVisibility.setIntersectionObserver()
     this.processImages(wrappers)
     this.setWindowLoad()
+    this.setResizeHandler()
 
     return this.cleanup.bind(this)
   },
@@ -336,12 +365,26 @@ const ImageHandler = {
     $.eventListener('add', window, 'load', this.windowLoadHandler, { passive: true })
   },
 
+  setResizeHandler () {
+    this.resizeHandler = $.debounce(() => {
+      ImageDevice.clearCache()
+      ImageLoadingStrategy.clearCache()
+    }, 200)
+    $.eventListener('add', window, 'resize', this.resizeHandler, { passive: true })
+  },
+
   cleanup () {
     if (this.windowLoadHandler) {
       $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true })
       this.windowLoadHandler = null
     }
+    if (this.resizeHandler) {
+      $.eventListener('remove', window, 'resize', this.resizeHandler, { passive: true })
+      this.resizeHandler = null
+    }
 
+    ImageDevice.clearCache()
+    ImageLoadingStrategy.clearCache()
     ImageVisibility.cleanup()
     return null
   }

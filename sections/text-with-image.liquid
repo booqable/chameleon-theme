@@ -14,7 +14,6 @@
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign image                 = section.settings.image -%}
 {%- assign image_alt             = section.settings.image_alt -%}
-{%- assign image_id              = section.key -%}
 {%- assign image_position        = section.settings.image_position -%}
 {%- assign background_style      = settings.background_style -%}
 
@@ -181,7 +180,6 @@
                 {%- render 'image',
                   image: image,
                   image_alt: image_alt,
-                  image_id: image_id,
                   image_class: 'text-image__image',
                   image_size: 'm'
                 -%}
