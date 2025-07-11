@@ -32,7 +32,7 @@
       "settings": {
         "color_palette": "two",
         "datepicker_position": "bottom",
-        "datepicker_title": "",
+        "datepicker_title": "Check availability:",
         "effect": "slide",
         "full_width": true,
         "height": "small",

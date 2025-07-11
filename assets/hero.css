@@ -45,7 +45,7 @@
 }
 
 .hero__vision--indent {
-  bottom: calc(var(--date-picker-height, 80px) / 2 - 5px);
+  bottom: calc(var(--date-picker-height, 71px) / 2);
 }
 
 .hero__vision-wrapper {

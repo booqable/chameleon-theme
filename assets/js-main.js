@@ -184,11 +184,6 @@ const MainHeight = {
         this.calculateDatePickerHeight()
       }, 100)
     }
-  },
-
-  setInitialHeights () {
-    $.setCssVar({ key: this.height, value: 0, unit: 'px' })
-    $.setCssVar({ key: this.blockHeight, value: 0, unit: 'px' })
   }
 }
 
@@ -241,8 +236,6 @@ const MainVisibility = {
 }
 
 const handleMainLoading = () => {
-  MainHeight.setInitialHeights()
-
   const body = document.querySelector(MainConfig.selector.body),
     loaded = MainConfig.modifier.loaded
   if (body) $.toggleClass(body, loaded, true)
