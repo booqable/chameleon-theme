@@ -391,7 +391,7 @@ const ImageHandler = {
 }
 
 $.imageLoader = {
-  loadImage: ImageLoader.loadImage
+  loadImage: ImageLoader.loadImage.bind(ImageLoader)
 }
 
 const initImageLoading = () => {
