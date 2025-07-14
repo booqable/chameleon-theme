@@ -19,7 +19,8 @@ const CarouselConfig = {
     next: '.carousel__btn.next',
     prev: '.carousel__btn.prev',
     region: '.carousel__live-region',
-    wrapper: '.carousel__wrapper'
+    wrapper: '.carousel__wrapper',
+    imageHidden: '.image-main.hidden'
   },
   carouselTypes: {
     big: 'big',
@@ -410,7 +411,7 @@ const CarouselCalculator = {
       if (isBigCarousel || isHugeCarousel) return items.length > 1
 
       // Small carousel: detect if ANY content overflows (even 1px)
-      const carouselWidth = carousel.offsetWidth,
+      const carouselWidth = $.getDimensions(carousel).width,
         slideWidth = this.getSlideWidth(carousel),
         gap = this.getGap(carousel),
         horizontalPadding = this.getHorizontalPadding(carousel),
@@ -661,8 +662,11 @@ const CarouselTouch = {
         const constrainedDelta = deltaX * resistance,
           newTransform = instance.touch.initialTransform + constrainedDelta
 
-        instance.wrapper.style.transform = `translateX(${newTransform}px)`
-        instance.wrapper.style.transition = 'none'
+        const applyTransform = () => {
+          instance.wrapper.style.transform = `translateX(${newTransform}px)`
+          instance.wrapper.style.transition = 'none'
+        }
+        $.batchDOM(applyTransform)
       }
     } catch (error) {
       console.error('CarouselTouch: Failed to handle touch move', error)
@@ -679,7 +683,10 @@ const CarouselTouch = {
 
       $.toggleClass(instance.carousel, CarouselConfig.classes.swiping, false)
 
-      instance.wrapper.style.transition = ''
+      const resetTransition = () => {
+        instance.wrapper.style.transition = ''
+      }
+      $.batchDOM(resetTransition)
 
       if (instance.touch.isDragging) {
         // Determine if we should change slides
@@ -917,9 +924,22 @@ const CarouselController = {
             CarouselRenderer.updateOverlayColor(this.carousel, this.currentIndex)
           }
 
+          this.preloadCarouselImages()
+
           this.markInitialized()
         } catch (error) {
           console.error('Carousel: Failed to initialize', error)
+        }
+      },
+
+      preloadCarouselImages () {
+        try {
+          const images = this.carousel.querySelectorAll(CarouselConfig.selector.imageHidden)
+          if (!images.length || !$.imageLoader) return
+
+          images.forEach((img) => $.imageLoader.loadImage(img))
+        } catch (error) {
+          console.error('Carousel: Failed to preload images', error)
         }
       },
 
