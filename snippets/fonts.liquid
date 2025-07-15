@@ -47,27 +47,55 @@
 {%- if fonts != '' -%}
   {%- assign paths = fonts | split: separator -%}
 
+  {%- comment -%}
+    Preload font files for faster loading
+  {%- endcomment -%}
   {%- for path in paths -%}
-    <link rel="preload" as="style" href="{{ path }}">
-    <link rel="stylesheet" href="{{ path }}" media="print" onload="this.media='all'">
+    <link rel="preload" as="font" href="{{ path }}" type="font/woff2" crossorigin>
   {%- endfor -%}
 
+  {%- comment -%}
+    Generate @font-face declarations with font-display: swap for better performance
+  {%- endcomment -%}
+  <style>
+    {%- if heading_font != blank -%}
+      {%- if paths contains heading_path -%}
+        {{- heading_font | font_face: font_display: 'swap' -}}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if body_font != blank and body_font != heading_font -%}
+      {%- if paths contains body_font -%}
+        {{- body_font | font_face: font_display: 'swap' -}}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if tagline_font != blank and tagline_font != heading_font and tagline_font != body_font -%}
+      {%- if paths contains tagline_font -%}
+        {{- tagline_font | font_face: font_display: 'swap' -}}
+      {%- endif -%}
+    {%- endif -%}
+  </style>
+
+  {%- comment -%}
+    Fallback for browsers without JavaScript
+  {%- endcomment -%}
   <noscript>
     {%- if heading_font != blank -%}
       {%- if paths contains heading_path -%}
-        {{- settings.heading_font | font_link -}}
+        {{- heading_font | font_link -}}
       {%- endif -%}
     {%- endif -%}
 
     {%- if body_font != blank -%}
       {%- if paths contains body_path and body_path != heading_path -%}
-        {{- settings.body_font | font_link -}}
+        {{- body_font | font_link -}}
       {%- endif -%}
     {%- endif -%}
 
     {%- if tagline_font != blank -%}
       {%- if paths contains tagline_path and tagline_path != heading_path and tagline_path != body_path -%}
-        {{- settings.tagline_font | font_link -}}
+        {{- tagline_font | font_link -}}
       {%- endif -%}
     {%- endif -%}
   </noscript>
