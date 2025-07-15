@@ -157,13 +157,13 @@ const MainHeight = {
 
     // Safety check for method existence before binding
     if (!$.is(this.readDatePickerDimensions, 'function') ||
-        !$.is(this.writeDatePickerVariables, 'function')) {
+      !$.is(this.writeDatePickerVariables, 'function')) {
       console.warn('DatePicker calculation methods not available yet')
       return
     }
 
     // Wait for next frame to ensure DOM is ready
-    await new Promise(resolve => $.nextFrame(resolve))
+    await new Promise((resolve) => $.nextFrame(resolve))
 
     // Bind the context to ensure 'this' references the MainHeight
     const read = this.readDatePickerDimensions.bind(this),
