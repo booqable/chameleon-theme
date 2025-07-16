@@ -189,8 +189,8 @@ Utils.requestIdle = (callback, options = {}) => {
   if ('requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, options)
   }
-  const timeout = options.timeout || 50
-  const startTime = Date.now()
+  const timeout = options.timeout || 50,
+    startTime = Date.now()
   return setTimeout(() => {
     callback({
       didTimeout: false,
