@@ -182,7 +182,7 @@ const MegaMenuProcessor = {
 
       if (isSearchOpener && menuIsOpened) {
         menuOpener.checked = false
-        this.closeMenu()
+        MegaMenuProcessor.closeMenu()
       }
       return
     }
@@ -194,14 +194,14 @@ const MegaMenuProcessor = {
     }
 
     const menuOpened = menuOpener && menuOpener.checked
-    menuOpened ? this.closeMenu() : MegaMenuRenderer.enableScrollPrevention()
+    menuOpened ? MegaMenuProcessor.closeMenu() : MegaMenuRenderer.enableScrollPrevention()
   },
 
   handleMenuResize: (() => {
     const resizeHandler = () => {
       const viewport = $.viewportSize()
       if (viewport.width < MegaMenuConfig.mediaQuery) return
-      this.closeMenu()
+      MegaMenuProcessor.closeMenu()
 
       if (!MegaMenuDOM.elements.menuOpener) return
       MegaMenuDOM.elements.menuOpener.checked = false
@@ -248,7 +248,7 @@ const MegaMenuProcessor = {
     if (!menuOpener?.checked) return
 
     menuOpener.checked = false
-    this.closeMenu()
+    MegaMenuProcessor.closeMenu()
   },
 
   closeHeaderModals () {
