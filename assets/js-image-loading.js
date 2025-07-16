@@ -70,7 +70,7 @@ const ImageVisibility = {
     if ($.inViewport(img)) return { visible: true, inViewport: true }
 
     const viewport = ImageDevice.getViewportSize(),
-      rect = img.getBoundingClientRect(),
+      rect = $.getDimensions(img),
       isNearViewport = rect.top < viewport.height * multiplier
 
     return { visible: isNearViewport, inViewport: false }
@@ -256,7 +256,7 @@ const ImageLoadingStrategy = {
       visibleImages = []
 
     images.forEach((img) => {
-      const rect = img.getBoundingClientRect()
+      const rect = $.getDimensions(img)
       if (rect.top >= viewport.height * multiplier) return
       visibleImages.push(img)
     })
@@ -388,6 +388,10 @@ const ImageHandler = {
     ImageVisibility.cleanup()
     return null
   }
+}
+
+$.imageLoader = {
+  loadImage: ImageLoader.loadImage.bind(ImageLoader)
 }
 
 const initImageLoading = () => {
