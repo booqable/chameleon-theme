@@ -132,7 +132,6 @@ const CookieObserver = {
   },
 
   cleanup () {
-    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
   }

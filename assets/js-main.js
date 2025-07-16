@@ -205,7 +205,6 @@ const MainResize = {
   },
 
   cleanup () {
-    if (!this.resizeObserver || !$.is(this.resizeObserver.cleanup, 'function')) return
     this.resizeObserver.cleanup()
     this.resizeObserver = null
   }
@@ -229,7 +228,6 @@ const MainVisibility = {
   },
 
   cleanup () {
-    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
   }
