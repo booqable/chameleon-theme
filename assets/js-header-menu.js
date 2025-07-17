@@ -5,6 +5,8 @@
  * and menu positioning. Works with checkbox-based menu state management.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
+ * @requires js-utils.js
  */
 
 const MegaMenuConfig = {
@@ -307,7 +309,8 @@ const handleMegaMenu = () => {
 
   MegaMenuState.init(header)
 
-  $.slowConnection() ? MegaMenuEvents.bindEvents() : $.requestIdle(bindEvents)
+  const bindEvents = () => MegaMenuEvents.bindEvents()
+  $.slowConnection() ? bindEvents() : $.requestIdle(bindEvents)
 
   const cleanup = () => {
     MegaMenuEvents.cleanup()

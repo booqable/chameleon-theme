@@ -5,6 +5,8 @@
  * modal closing functionality, and preview bar integration.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
+ * @requires js-utils.js
  */
 
 const HeaderConfig = {
@@ -206,16 +208,12 @@ $.headerBar = {
 }
 window.headerBar = $.headerBar
 
-const initWhenReady = () => {
-  if (document.readyState === 'complete') {
-    $.requestIdle(initHeader)
-  } else {
-    $.eventListener('add', document, 'readystatechange', (e) => {
-      if (e.target.readyState === 'complete') {
-        $.requestIdle(initHeader)
-      }
-    })
-  }
+if (document.readyState === 'complete') {
+  $.requestIdle(initHeader)
+} else {
+  $.eventListener('add', document, 'readystatechange', (e) => {
+    if (e.target.readyState === 'complete') {
+      $.requestIdle(initHeader)
+    }
+  })
 }
-
-initWhenReady()

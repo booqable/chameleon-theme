@@ -5,6 +5,7 @@
  * the correct color palette from the previous section.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  * @requires js-utils.js
  */
 

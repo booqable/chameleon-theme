@@ -1,105 +1,49 @@
-{% comment %} Simple script loader that loads scripts in the order they're defined {% endcomment %}
-{% if criticals != blank or non_criticals != blank %}
+{% comment %}
+
+  This snippet is used for loading non-critical JavaScript files
+
+  scripts - [array of script URLs] *required
+
+  Usage:
+
+  {%- render 'scripts-non-critical',
+      scripts: array
+  -%}
+
+{% endcomment %}
+
+{%- if scripts != blank -%}
+  {%- assign array = scripts | split: ', ' -%}
+  {%- assign urls = '' -%}
+
+  {%- for script in array -%}
+    {%- assign url = script | strip | asset_url -%}
+    {%- if forloop.first -%}
+      {%- assign urls = url -%}
+    {%- else -%}
+      {%- assign urls = urls | append: ', ' | append: url -%}
+    {%- endif -%}
+  {%- endfor -%}
+
   <script>
-    // Set up theme global object for settings access
-    window.theme = window.theme || {};
-    window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
+    window.addEventListener('load', () => {
+      const loadScripts = () => {
+        const scriptsString = '{{ urls }}',
+              scripts = scriptsString.split(', ')
 
-    const criticalScripts = {{ criticals | default: "[]" | json }},
-          nonCriticalScripts = {{ non_criticals | default: "[]" | json }};
-
-    // Keep track of loaded scripts for cleanup and error prevention
-    window.loadedScripts = window.loadedScripts || [];
-
-    // Setup cleanup handler for page transitions
-    window.themeCleanup = () => {
-      if (window.cleanupImageLoading) window.cleanupImageLoading();
-      if (window.cleanupFocalImages) window.cleanupFocalImages();
-      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
-      if (window.cleanupTopBar) window.cleanupTopBar();
-      if (window.cleanupCarousels) window.cleanupCarousels();
-      if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
-      if (window.cleanupTouchDevice) window.cleanupTouchDevice();
-      if (window.cleanupMain) window.cleanupMain();
-      if (window.cleanupMaps) window.cleanupMaps();
-      if (window.cleanupHeaderComponents) window.cleanupHeaderComponents();
-      if (window.cleanupMegaMenu) window.cleanupMegaMenu();
-      if (window.cleanupSearch) window.cleanupSearch();
-
-      // These global utility identifiers should be preserved
-      // to avoid "undefined" errors in other components
-      window.Utils = window.Utils || {};
-      window.$ = window.$ || {};
-    }
-
-    // Create script element with proper attributes
-    const createScript = (src, isDeferred = true, isPriority = false) => {
-      if (window.loadedScripts.includes(src)) return null;
-      window.loadedScripts.push(src);
-
-      const script = document.createElement('script');
-      script.src = src;
-      script.defer = isDeferred;
-
-      const errorHandler = () => {
-        console.error(`Failed to load script: ${src}`);
-        // Remove from loaded scripts if it failed
-        const index = window.loadedScripts.indexOf(src);
-        if (index > -1) window.loadedScripts.splice(index, 1);
+        scripts.forEach(src => {
+          if (!src || src.trim() === '') return
+          const script = document.createElement('script')
+          script.src = src.trim()
+          script.defer = true
+          script.onerror = () => console.error(`Failed to load script: ${src}`)
+          document.body.appendChild(script)
+        })
       }
 
-      script.onerror = () => errorHandler();
-
-      return script;
-    }
-
-    // Load critical scripts sequentially to respect order
-    const loadCriticalScripts = (index = 0) => {
-      if (index >= criticalScripts.length) {
-        loadNonCriticalScripts();
-        return;
-      }
-
-      const script = createScript(criticalScripts[index], false);
-
-      const loadScriptsHandler = () => {
-        script.onload = () => loadCriticalScripts(index + 1);
-        script.onerror = () => loadCriticalScripts(index + 1);
-        document.body.appendChild(script);
-      }
-
-      script ? loadScriptsHandler() : loadCriticalScripts(index + 1);
-    }
-
-    const loadNonCriticalScripts = () => {
-      if (!nonCriticalScripts.length) return;
-
-      window.addEventListener('load', () => {
-        const loadScripts = () => {
-          nonCriticalScripts.forEach(src => {
-            const script = createScript(src);
-            if (script) document.body.appendChild(script);
-          })
-        }
-
-        'requestIdleCallback' in window
-          ? window.requestIdleCallback(loadScripts, { timeout: 4000 })
-          : setTimeout(loadScripts, 100);
-      }, { once: true })
-    }
-
-    criticalScripts.length ? loadCriticalScripts() : loadNonCriticalScripts();
-
-    // Register cleanup for various navigation events
-    document.addEventListener('DOMContentLoaded', () => {
-      document.addEventListener('page:before-change', () => {
-        if (window.themeCleanup) window.themeCleanup();
-      })
-
-      // Some platforms use this event
-      window.addEventListener('beforeunload', () => {
-        if (window.themeCleanup) window.themeCleanup();
-      }, {once: true})
-    })
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(loadScripts, { timeout: 4000 })
+        : setTimeout(loadScripts, 1000)
+    }, { once: true })
   </script>
-{% endif %}
+{%- endif -%}

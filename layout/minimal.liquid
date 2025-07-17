@@ -86,6 +86,11 @@
 
     {%- render 'cookie-notice-variables', settings: settings -%}
 
-    {%- render 'scripts-minimal-layout' -%}
+    {% comment %} Critical JavaScript files {% endcomment %}
+    <script src='{{ 'js-utils-minimal.js' | asset_url }}' defer></script>
+
+    {% comment %} Non-Critical JavaScript files {% endcomment %}
+    {%- assign scripts = 'js-cookie-notice-styles-loading.js' -%}
+    {%- render 'scripts-loading', scripts: scripts -%}
   </body>
 </html>

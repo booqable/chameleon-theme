@@ -66,11 +66,21 @@
 
     {%- render 'cookie-notice-variables', settings: settings -%}
 
-    {%- render 'scripts-session-layout' -%}
-
     {%- if show_mini_cart -%}
       {%- render 'variables-mini-cart', settings: settings, color_palette: "one" -%}
     {%- endif -%}
+
+    {% comment %} Critical JavaScript files {% endcomment %}
+    <script src='{{ 'js-utils-core.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-utils-minimal.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-utils.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-header-components-manager.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-top-bar.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-header.js' | asset_url }}' defer></script>
+
+    {% comment %} Non-Critical JavaScript files {% endcomment %}
+    {%- assign scripts = 'js-image-loading.js, js-header-menu.js, js-cookie-notice-styles-loading.js, js-touch-device-notch.js' -%}
+    {%- render 'scripts-loading', scripts: scripts -%}
 
     {{ content_for_body }}
 

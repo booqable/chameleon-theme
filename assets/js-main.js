@@ -9,6 +9,7 @@
  * Uses utilities like ResizeObserver, Batches DOM, etc. for better performance
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  * @requires js-utils.js
  */
 

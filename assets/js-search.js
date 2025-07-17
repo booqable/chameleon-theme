@@ -5,6 +5,7 @@
  * clear button functionality, and URL parameter management.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  */
 
 const SearchConfig = {

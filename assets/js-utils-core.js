@@ -53,19 +53,6 @@ Utils.viewportSize = () => ({
 // Animation frame utilities - critical for performance
 Utils.nextFrame = (callback) => window.requestAnimationFrame(callback)
 
-Utils.frameSequence = (readCallback, writeCallback) => {
-  return $.nextFrame(() => {
-    const result = readCallback()
-    $.nextFrame(() => {
-      writeCallback(result)
-    })
-  })
-}
-
-Utils.batchDOM = (callback) => {
-  return $.nextFrame(() => callback())
-}
-
 // Cleanup function with the global theme cleanup system
 Utils.cleanup = (cleanupName, handler) => {
   if (!cleanupName || !$.is(handler, 'function')) return
@@ -89,30 +76,6 @@ Utils.cleanup = (cleanupName, handler) => {
   }
 }
 
-// Event management - most widely used utility
-Utils.eventListener = (method, nodes, event, handler, options) => {
-  if (!nodes) return
-
-  // Handle single object case
-  if (nodes === window ||
-    nodes === document ||
-    nodes instanceof HTMLElement ||
-    (typeof nodes === 'object' &&
-      ($.is(nodes.addEventListener, 'function')))) {
-    if (method === 'add') nodes.addEventListener(event, handler, options)
-    if (method === 'remove') nodes.removeEventListener(event, handler, options)
-    return
-  }
-
-  if (!nodes.length) return
-
-  Array.from(nodes).forEach((node) => {
-    if (!node || $.is(node.addEventListener, 'function')) return
-    if (method === 'add') node.addEventListener(event, handler, options)
-    if (method === 'remove') node.removeEventListener(event, handler, options)
-  })
-}
-
 // Observer utilities - critical for modern performance patterns
 Utils.intersectionObserver = (callback, customOptions = {}) => {
   const defaultOptions = {
@@ -121,21 +84,6 @@ Utils.intersectionObserver = (callback, customOptions = {}) => {
     threshold: 0.01
   }
   return new IntersectionObserver(callback, { ...defaultOptions, ...customOptions })
-}
-
-Utils.mutationObserver = (callback, targetNode = document.body, customOptions = {}) => {
-  const defaultOptions = {
-    childList: true,
-    subtree: true,
-    attributes: false,
-    characterData: false
-  }
-  const options = { ...defaultOptions, ...customOptions }
-
-  const observer = new MutationObserver(callback)
-  observer.observe(targetNode, options)
-
-  return observer
 }
 
 Utils.resizeObserver = (callback, customOptions = {}) => {
