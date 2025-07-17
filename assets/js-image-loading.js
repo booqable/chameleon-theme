@@ -50,19 +50,16 @@ const ImageVisibility = {
   },
 
   cleanup () {
-    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
     this.observerSetup = false
   },
 
   observe (element) {
-    if (!this.observer) return
     this.observer.observe(element)
   },
 
   unobserve (element) {
-    if (!this.observer) return
     this.observer.unobserve(element)
   },
 
