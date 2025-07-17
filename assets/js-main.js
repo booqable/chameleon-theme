@@ -28,8 +28,7 @@ const MainConfig = {
   },
   time: {
     idleTimeout: 2000,
-    resizeDelay: 500,
-    slowConnectionDelay: 1000
+    resizeDelay: 500
   }
 }
 
@@ -274,6 +273,4 @@ const initMain = () => {
   $.cleanup('cleanupMain', handleMain)
 }
 
-$.is($.requestIdle, 'function') ?
-  $.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout }) :
-  setTimeout(initMain, MainConfig.time.slowConnectionDelay) // Use a short timeout to ensure body is ready
+$.requestIdle(initMain, { timeout: MainConfig.time.idleTimeout })

@@ -197,11 +197,12 @@ Utils.requestIdle = (callback, options = {}) => {
   if ('requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, options)
   }
-  const timeout = options.timeout || 50
+  const timeout = options.timeout || 50,
+    startTime = Date.now()
   return setTimeout(() => {
     callback({
       didTimeout: false,
-      timeRemaining: () => Math.max(0, 50 - (Date.now() - Date.now()))
+      timeRemaining: () => Math.max(0, 50 - (Date.now() - startTime))
     })
   }, timeout)
 }

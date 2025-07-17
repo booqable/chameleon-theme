@@ -307,14 +307,8 @@ const handleMegaMenu = () => {
 
   MegaMenuState.init(header)
 
-  // Use requestIdle for non-critical initialization with Safari fallback
-  const bindEvents = () => MegaMenuEvents.bindEvents()
-  const fallbackHandler = () => setTimeout(bindEvents, 50)
-  const idleHandler = () => {
-    $.requestIdle ? $.requestIdle(bindEvents) : fallbackHandler()
-  }
-
-  $.slowConnection() ? bindEvents() : idleHandler()
+  const bindEvents = MegaMenuEvents.bindEvents
+  $.slowConnection() ? bindEvents() : $.requestIdle(bindEvents)
 
   const cleanup = () => {
     MegaMenuEvents.cleanup()

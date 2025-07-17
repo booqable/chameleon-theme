@@ -304,9 +304,7 @@ const ImageLoadingStrategy = {
 
       if (endIndex >= totalImages) return
 
-      $.is($.requestIdle, 'function') ?
-        $.requestIdle(() => loadChunk(endIndex), { timeout: 100 }) :
-        setTimeout(() => loadChunk(endIndex), 100)
+      $.requestIdle(() => loadChunk(endIndex), { timeout: 100 })
     }
 
     loadChunk(0)
