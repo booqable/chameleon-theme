@@ -21,7 +21,7 @@ const MainConfig = {
   },
   time: {
     idleTimeout: 2000,
-    resizeDelay: 150
+    resizeDelay: 500
   }
 }
 
