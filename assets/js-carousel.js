@@ -1316,7 +1316,7 @@ const handleCarousels = () => {
   return CarouselController.init()
 }
 
-const initCarousels = () => {
+const initCarousels  = () => {
   $.cleanup('cleanupCarousels', handleCarousels)
 }
 
