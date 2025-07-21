@@ -106,11 +106,11 @@ const initHeaderComponents = () => {
   $.cleanup('cleanupHeaderComponents', handleHeaderComponents)
 }
 
-$.HeaderComponents = HeaderComponents
-window.HeaderComponents = HeaderComponents
-
 if (document.readyState === 'loading') {
   $.eventListener('add', document, 'DOMContentLoaded', initHeaderComponents)
 } else {
   initHeaderComponents()
 }
+
+$.HeaderComponents = HeaderComponents
+window.HeaderComponents = HeaderComponents

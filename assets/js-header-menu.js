@@ -331,11 +331,11 @@ const initMegaMenu = () => {
   $.cleanup('cleanupMegaMenu', handleMegaMenu)
 }
 
+initMegaMenu()
+
 $.MegaMenu = {
   init: initMegaMenu,
   processor: MegaMenuProcessor,
   renderer: MegaMenuRenderer
 }
 window.MegaMenu = $.MegaMenu
-
-initMegaMenu()

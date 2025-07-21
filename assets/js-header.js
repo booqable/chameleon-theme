@@ -202,12 +202,6 @@ const initHeader = () => {
   $.cleanup('cleanupHeader', handleHeader)
 }
 
-$.headerBar = {
-  removeOverflow: HeaderDestroyer.removeOverflow,
-  closeMobileDrop: HeaderDestroyer.closeMobileDrop
-}
-window.headerBar = $.headerBar
-
 if (document.readyState === 'complete') {
   $.requestIdle(initHeader)
 } else {
@@ -217,3 +211,9 @@ if (document.readyState === 'complete') {
     }
   })
 }
+
+$.headerBar = {
+  removeOverflow: HeaderDestroyer.removeOverflow,
+  closeMobileDrop: HeaderDestroyer.closeMobileDrop
+}
+window.headerBar = $.headerBar

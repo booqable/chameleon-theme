@@ -2,15 +2,96 @@
 
   This snippet is used for loading non-critical JavaScript files
 
-  scripts - [array of script URLs] *required
+  settings - { obj } optional, - contains theme settings
+  sections - { obj } optional, - contains all sections
+  scripts - [ arr ] optional - contains custom scripts to load instead of the default ones
 
   Usage:
 
   {%- render 'scripts-non-critical',
-      scripts: array
+      settings: settings,                   <-- use these two variables
+      sections: sections,                       to load all scripts dynamically
+      scripts: 'js-file1.js, js-file2.js'   <-- or use this one to load scripts from your list (as example, the minimal and checkout layouts)
   -%}
 
 {% endcomment %}
+
+{%- unless scripts or scripts != blank -%}
+  {%- assign sections_with_images = 'images, products, testimonials, logos, collections, collection-page, columns, contact-form, hero, hero-search, list-collections, text-with-image, numbered-blocks, mosaic, call-to-action' | split: ', ' -%}
+  {%- assign sections_with_carousel = 'images, products, testimonials' | split: ', ' -%}
+  {%- assign sections_with_products = 'products, collection-page, search' | split: ', ' -%}
+  {%- assign sections_with_date_picker = 'images, hero, hero-product, hero-search' |  split: ', ' -%}
+  {%- assign sections_with_text_image = 'text-with-image' |  split: ', ' -%}
+  {%- assign script_image_loading = '' -%}
+  {%- assign script_carousel = '' -%}
+  {%- assign script_focal_image = '' -%}
+  {%- assign script_date_picker = '' -%}
+  {%- assign script_text_image = '' -%}
+  {%- assign scripts = 'js-main.js' -%}
+
+  {%- for section in sections.all -%}
+    {%- for item in sections_with_date_picker -%}
+      {%- if section.type == item -%}
+        {%- assign date_picker = 'js-date-picker.js' -%}
+
+        {%- unless script_date_picker contains date_picker -%}
+          {%- assign script_date_picker = date_picker -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_date_picker -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_images -%}
+      {%- if section.type == item -%}
+        {%- assign image_loading = 'js-image-loading.js' -%}
+
+        {%- unless script_image_loading contains image_loading -%}
+          {%- assign script_image_loading = image_loading -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_image_loading -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_carousel -%}
+      {%- if section.type == item -%}
+        {%- assign carousel = 'js-carousel.js' -%}
+
+        {%- unless script_carousel contains carousel -%}
+          {%- assign script_carousel = carousel -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_carousel -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_products -%}
+      {%- if section.type == item -%}
+        {%- assign focal_image = 'js-focal-image.js' -%}
+
+        {%- unless script_focal_image contains focal_image -%}
+          {%- assign script_focal_image = focal_image -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_focal_image -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_text_image -%}
+      {%- if section.type == item -%}
+        {%- assign text_with_image = 'js-text-with-image.js' -%}
+
+        {%- unless script_text_image contains text_with_image -%}
+          {%- assign script_text_image = text_with_image -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_text_image -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+
+  {%- if settings.cookie_notice_activated -%}
+    {%- assign scripts = scripts | append: ', js-cookie-notice-styles-loading.js' -%}
+  {%- endif -%}
+
+  {%- assign scripts = scripts | append: ', js-header-menu.js, js-search.js, js-touch-device-notch.js' -%}
+{%- endunless -%}
 
 {%- if scripts != blank -%}
   {%- assign array = scripts | split: ', ' -%}
@@ -41,9 +122,7 @@
         })
       }
 
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(loadScripts, { timeout: 4000 })
-        : setTimeout(loadScripts, 1000)
+      window.requestIdleCallback(loadScripts, { timeout: 3000 })
     }, { once: true })
   </script>
 {%- endif -%}

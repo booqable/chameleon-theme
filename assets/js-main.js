@@ -2,7 +2,6 @@
  * Main Component
  *
  * Handles core functionality for the site:
- * - Date picker height calculation
  * - Window resize handling
  * - Page loaded state management
  *
@@ -10,39 +9,25 @@
  *
  * @requires js-utils-core.js
  * @requires js-utils-minimal.js
- * @requires js-utils.js
  */
 
 const MainConfig = {
   selector: {
-    body: 'body',
-    datePicker: 'bq-date-picker',
-    datePickerBlock: '.date-picker-instance'
+    body: 'body'
   },
   modifier: {
     loaded: 'loaded',
     resize: 'resize-active'
   },
-  cssVar: {
-    datePickerHeight: '--date-picker-height',
-    datePickerBlockHeight: '--date-picker-block-height'
-  },
   time: {
     idleTimeout: 2000,
-    resizeDelay: 500
+    resizeDelay: 150
   }
 }
 
 const MainDOM = {
   elements: {
-    body: null,
-    datePicker: null,
-    datePickerBlock: null
-  },
-
-  cacheData: {
-    datePickerHeight: 0,
-    datePickerBlockHeight: 0
+    body: null
   },
 
   isResizing: false,
@@ -50,9 +35,7 @@ const MainDOM = {
 
   init () {
     this.elements.body = document.querySelector(MainConfig.selector.body)
-    this.elements.datePicker = document.querySelector(MainConfig.selector.datePicker)
-    this.elements.datePickerBlock = document.querySelector(MainConfig.selector.datePickerBlock)
-    return this.elements
+    return this.elements.body !== null
   },
 
   setClassLoaded () {
@@ -89,110 +72,21 @@ const MainDOM = {
       this.resizeTimer = null
     }
 
-    // Clean up state
     if (this.isResizing && this.elements.body) {
       $.toggleClass(this.elements.body, MainConfig.modifier.resize, false)
       this.isResizing = false
     }
 
-    // Clear cached data
-    this.cacheData = {
-      datePickerHeight: 0,
-      datePickerBlockHeight: 0
-    }
-
-    Object.keys(this.elements).forEach((key) => {
-      this.elements[key] = null
-    })
+    this.elements.body = null
   }
 }
 
-const MainHeight = {
-  height: MainConfig.cssVar.datePickerHeight,
-  blockHeight: MainConfig.cssVar.datePickerBlockHeight,
-
-  readDatePickerDimensions () {
-    if (!MainDOM.elements.datePicker) return null
-
-    const datePickerHeight = parseInt(MainDOM.elements.datePicker ?
-      $.getDimensions(MainDOM.elements.datePicker).height :
-      0) || 0
-
-    const datePickerBlockHeight = parseInt(MainDOM.elements.datePickerBlock ?
-      $.getDimensions(MainDOM.elements.datePickerBlock).height :
-      0) || 0
-
-    // Only return dimensions that have changed
-    const result = {}
-
-    if (datePickerHeight !== MainDOM.cacheData.datePickerHeight) {
-      result.datePickerHeight = datePickerHeight
-      MainDOM.cacheData.datePickerHeight = datePickerHeight
-    }
-
-    if (datePickerBlockHeight !== MainDOM.cacheData.datePickerBlockHeight) {
-      result.datePickerBlockHeight = datePickerBlockHeight
-      MainDOM.cacheData.datePickerBlockHeight = datePickerBlockHeight
-    }
-
-    return Object.keys(result).length ? result : null // If nothing changed, return null to skip write phase
-  },
-
-  writeDatePickerVariables (dimensions) {
-    if (!dimensions) return
-    const { datePickerHeight, datePickerBlockHeight } = dimensions
-    const setDatePickerHeight = () => {
-      $.setCssVar({ key: this.height, value: datePickerHeight, unit: 'px' })
-    }
-    const setDatePickerBlockHeight = () => {
-      $.setCssVar({ key: this.blockHeight, value: datePickerBlockHeight, unit: 'px' })
-    }
-
-    if (datePickerHeight !== undefined) setDatePickerHeight()
-    if (datePickerBlockHeight !== undefined) setDatePickerBlockHeight()
-  },
-
-  async calculateDatePickerHeight () {
-    if (!MainDOM.elements.datePicker) return
-
-    // Safety check for method existence before binding
-    if (!$.is(this.readDatePickerDimensions, 'function') ||
-      !$.is(this.writeDatePickerVariables, 'function')) {
-      console.warn('DatePicker calculation methods not available yet')
-      return
-    }
-
-    // Wait for next frame to ensure DOM is ready
-    await new Promise((resolve) => $.nextFrame(resolve))
-
-    // Bind the context to ensure 'this' references the MainHeight
-    const read = this.readDatePickerDimensions.bind(this),
-      write = this.writeDatePickerVariables.bind(this)
-
-    $.frameSequence(read, write)
-  },
-
-  // Safe wrapper for calculateDatePickerHeight that handles errors
-  safeCalculateHeight () {
-    try {
-      this.calculateDatePickerHeight()
-    } catch (error) {
-      console.warn('Error calculating date picker height:', error)
-      // Retry after a short delay
-      setTimeout(() => {
-        if (!MainDOM.elements.datePicker && !$.is(this.readDatePickerDimensions, 'function')) return
-        this.calculateDatePickerHeight()
-      }, 100)
-    }
-  }
-}
 
 const MainResize = {
   resizeObserver: null,
 
   setupResizeHandlers () {
     const handleResize = () => {
-      MainHeight.safeCalculateHeight()
       MainDOM.setClassResize()
     }
 
@@ -210,28 +104,6 @@ const MainResize = {
   }
 }
 
-const MainVisibility = {
-  observer: null,
-
-  setupIntersectionObserver () {
-    if (!MainDOM.elements.datePicker) return
-
-    const handleIntersection = (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return
-        MainHeight.calculateDatePickerHeight()
-      })
-    }
-
-    this.observer = $.intersectionObserver(handleIntersection)
-    this.observer.observe(MainDOM.elements.datePicker)
-  },
-
-  cleanup () {
-    this.observer.disconnect()
-    this.observer = null
-  }
-}
 
 const handleMainLoading = () => {
   const body = document.querySelector(MainConfig.selector.body),
@@ -242,25 +114,15 @@ const handleMainLoading = () => {
 handleMainLoading()
 
 const handleMain = () => {
-  MainDOM.init()
-
-  const elements = MainDOM.elements
-
-  if (!elements.body) return null
+  if (!MainDOM.init()) return null
 
   MainDOM.setClassLoaded()
-
-  // Initialize date picker height calculation
-  if (elements.datePicker) {
-    MainHeight.safeCalculateHeight()
-  }
-
   MainResize.setupResizeHandlers()
-  MainVisibility.setupIntersectionObserver()
+
+  if ($.initDatePicker) $.initDatePicker()
 
   const cleanup = () => {
     MainResize.cleanup()
-    MainVisibility.cleanup()
     MainDOM.cleanup()
     return null
   }

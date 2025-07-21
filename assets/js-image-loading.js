@@ -387,12 +387,12 @@ const ImageHandler = {
   }
 }
 
-$.imageLoader = {
-  loadImage: ImageLoader.loadImage.bind(ImageLoader)
-}
-
 const initImageLoading = () => {
   $.cleanup('cleanupImageLoading', () => ImageHandler.init())
 }
 
 initImageLoading()
+
+$.imageLoader = {
+  loadImage: ImageLoader.loadImage.bind(ImageLoader)
+}

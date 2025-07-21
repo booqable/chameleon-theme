@@ -64,7 +64,9 @@
 
     {% section 'footer' %}
 
-    {%- render 'cookie-notice-variables', settings: settings -%}
+    {%- if settings.cookie_notice_activated -%}
+      {%- render 'cookie-notice-variables', settings: settings -%}
+    {%- endif -%}
 
     {%- if show_mini_cart -%}
       {%- render 'variables-mini-cart', settings: settings, color_palette: "one" -%}
@@ -79,8 +81,7 @@
     <script src='{{ 'js-header.js' | asset_url }}' defer></script>
 
     {% comment %} Non-Critical JavaScript files {% endcomment %}
-    {%- assign scripts = 'js-image-loading.js, js-header-menu.js, js-cookie-notice-styles-loading.js, js-touch-device-notch.js' -%}
-    {%- render 'scripts-loading', scripts: scripts -%}
+    {%- render 'scripts-loading', sections: sections, settings: settings -%}
 
     {{ content_for_body }}
 
