@@ -12,11 +12,6 @@
     {%- assign loading_strategy    = 'eager' -%}
   {%- endif -%}
 
-  {%- if image_placeholder != blank -%}
-    {%- assign image_placeholder = image_placeholder | image_url: width: 600, height: 600, crop: 'center' -%}
-  {%- else -%}
-    {%- assign image_placeholder = blank -%}
-  {%- endif -%}
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
     {%- case padding_top -%}
