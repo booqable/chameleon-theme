@@ -48,10 +48,6 @@
   {%- assign paths = fonts | split: separator -%}
 
   {%- for path in paths -%}
-    {%- unless path contains 'display=swap' -%}
-      {%- assign path = path | append: '&display=swap' -%}
-    {%- endunless -%}
-
     <link rel="preload" as="style" href="{{ path }}" crossorigin>
     <link rel="stylesheet" href="{{ path }}" media="print" onload="this.media='all'">
   {%- endfor -%}
