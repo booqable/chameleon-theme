@@ -5,6 +5,7 @@
  * Uses IntersectionObserver for lazy processing and performance optimization.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  */
 
 const FocalConfig = {

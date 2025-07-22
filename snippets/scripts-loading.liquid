@@ -1,105 +1,128 @@
-{% comment %} Simple script loader that loads scripts in the order they're defined {% endcomment %}
-{% if criticals != blank or non_criticals != blank %}
+{% comment %}
+
+  This snippet is used for loading non-critical JavaScript files
+
+  settings - { obj } optional, - contains theme settings
+  sections - { obj } optional, - contains all sections
+  scripts - [ arr ] optional - contains custom scripts to load instead of the default ones
+
+  Usage:
+
+  {%- render 'scripts-non-critical',
+      settings: settings,                   <-- use these two variables
+      sections: sections,                       to load all scripts dynamically
+      scripts: 'js-file1.js, js-file2.js'   <-- or use this one to load scripts from your list (as example, the minimal and checkout layouts)
+  -%}
+
+{% endcomment %}
+
+{%- unless scripts or scripts != blank -%}
+  {%- assign sections_with_images = 'images, products, testimonials, logos, collections, collection-page, columns, contact-form, hero, hero-search, list-collections, text-with-image, numbered-blocks, mosaic, call-to-action' | split: ', ' -%}
+  {%- assign sections_with_carousel = 'images, products, testimonials' | split: ', ' -%}
+  {%- assign sections_with_products = 'products, collection-page, search' | split: ', ' -%}
+  {%- assign sections_with_date_picker = 'images, hero, hero-product, hero-search' |  split: ', ' -%}
+  {%- assign sections_with_text_image = 'text-with-image' |  split: ', ' -%}
+  {%- assign script_image_loading = '' -%}
+  {%- assign script_carousel = '' -%}
+  {%- assign script_focal_image = '' -%}
+  {%- assign script_date_picker = '' -%}
+  {%- assign script_text_image = '' -%}
+  {%- assign scripts = 'js-main.js' -%}
+
+  {%- for section in sections.all -%}
+    {%- for item in sections_with_date_picker -%}
+      {%- if section.type == item -%}
+        {%- assign date_picker = 'js-date-picker.js' -%}
+
+        {%- unless script_date_picker contains date_picker -%}
+          {%- assign script_date_picker = date_picker -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_date_picker -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_images -%}
+      {%- if section.type == item -%}
+        {%- assign image_loading = 'js-image-loading.js' -%}
+
+        {%- unless script_image_loading contains image_loading -%}
+          {%- assign script_image_loading = image_loading -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_image_loading -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_carousel -%}
+      {%- if section.type == item -%}
+        {%- assign carousel = 'js-carousel.js' -%}
+
+        {%- unless script_carousel contains carousel -%}
+          {%- assign script_carousel = carousel -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_carousel -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_products -%}
+      {%- if section.type == item -%}
+        {%- assign focal_image = 'js-focal-image.js' -%}
+
+        {%- unless script_focal_image contains focal_image -%}
+          {%- assign script_focal_image = focal_image -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_focal_image -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- for item in sections_with_text_image -%}
+      {%- if section.type == item -%}
+        {%- assign text_with_image = 'js-text-with-image.js' -%}
+
+        {%- unless script_text_image contains text_with_image -%}
+          {%- assign script_text_image = text_with_image -%}
+          {%- assign scripts = scripts | append: ', ' | append: script_text_image -%}
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+
+  {%- if settings.cookie_notice_activated -%}
+    {%- assign scripts = scripts | append: ', js-cookie-notice-styles-loading.js' -%}
+  {%- endif -%}
+
+  {%- assign scripts = scripts | append: ', js-header-menu.js, js-search.js, js-touch-device-notch.js' -%}
+{%- endunless -%}
+
+{%- if scripts != blank -%}
+  {%- assign array = scripts | split: ', ' -%}
+  {%- assign urls = '' -%}
+
+  {%- for script in array -%}
+    {%- assign url = script | strip | asset_url -%}
+    {%- if forloop.first -%}
+      {%- assign urls = url -%}
+    {%- else -%}
+      {%- assign urls = urls | append: ', ' | append: url -%}
+    {%- endif -%}
+  {%- endfor -%}
+
   <script>
-    // Set up theme global object for settings access
-    window.theme = window.theme || {};
-    window.theme.assets_url = "{{ 'blank.gif' | asset_url | split: 'blank.gif' | first }}";
+    window.addEventListener('load', () => {
+      const loadScripts = () => {
+        const scriptsString = '{{ urls }}',
+              scripts = scriptsString.split(', ')
 
-    const criticalScripts = {{ criticals | default: "[]" | json }},
-          nonCriticalScripts = {{ non_criticals | default: "[]" | json }};
-
-    // Keep track of loaded scripts for cleanup and error prevention
-    window.loadedScripts = window.loadedScripts || [];
-
-    // Setup cleanup handler for page transitions
-    window.themeCleanup = () => {
-      if (window.cleanupImageLoading) window.cleanupImageLoading();
-      if (window.cleanupFocalImages) window.cleanupFocalImages();
-      if (window.cleanupImageSpacer) window.cleanupImageSpacer();
-      if (window.cleanupTopBar) window.cleanupTopBar();
-      if (window.cleanupCarousels) window.cleanupCarousels();
-      if (window.cleanupCookiesListeners) window.cleanupCookiesListeners();
-      if (window.cleanupTouchDevice) window.cleanupTouchDevice();
-      if (window.cleanupMain) window.cleanupMain();
-      if (window.cleanupMaps) window.cleanupMaps();
-      if (window.cleanupHeaderComponents) window.cleanupHeaderComponents();
-      if (window.cleanupMegaMenu) window.cleanupMegaMenu();
-      if (window.cleanupSearch) window.cleanupSearch();
-
-      // These global utility identifiers should be preserved
-      // to avoid "undefined" errors in other components
-      window.Utils = window.Utils || {};
-      window.$ = window.$ || {};
-    }
-
-    // Create script element with proper attributes
-    const createScript = (src, isDeferred = true, isPriority = false) => {
-      if (window.loadedScripts.includes(src)) return null;
-      window.loadedScripts.push(src);
-
-      const script = document.createElement('script');
-      script.src = src;
-      script.defer = isDeferred;
-
-      const errorHandler = () => {
-        console.error(`Failed to load script: ${src}`);
-        // Remove from loaded scripts if it failed
-        const index = window.loadedScripts.indexOf(src);
-        if (index > -1) window.loadedScripts.splice(index, 1);
+        scripts.forEach(src => {
+          if (!src || src.trim() === '') return
+          const script = document.createElement('script')
+          script.src = src.trim()
+          script.defer = true
+          script.onerror = () => console.error(`Failed to load script: ${src}`)
+          document.body.appendChild(script)
+        })
       }
 
-      script.onerror = () => errorHandler();
-
-      return script;
-    }
-
-    // Load critical scripts sequentially to respect order
-    const loadCriticalScripts = (index = 0) => {
-      if (index >= criticalScripts.length) {
-        loadNonCriticalScripts();
-        return;
-      }
-
-      const script = createScript(criticalScripts[index], false);
-
-      const loadScriptsHandler = () => {
-        script.onload = () => loadCriticalScripts(index + 1);
-        script.onerror = () => loadCriticalScripts(index + 1);
-        document.body.appendChild(script);
-      }
-
-      script ? loadScriptsHandler() : loadCriticalScripts(index + 1);
-    }
-
-    const loadNonCriticalScripts = () => {
-      if (!nonCriticalScripts.length) return;
-
-      window.addEventListener('load', () => {
-        const loadScripts = () => {
-          nonCriticalScripts.forEach(src => {
-            const script = createScript(src);
-            if (script) document.body.appendChild(script);
-          })
-        }
-
-        'requestIdleCallback' in window
-          ? window.requestIdleCallback(loadScripts, { timeout: 4000 })
-          : setTimeout(loadScripts, 100);
-      }, { once: true })
-    }
-
-    criticalScripts.length ? loadCriticalScripts() : loadNonCriticalScripts();
-
-    // Register cleanup for various navigation events
-    document.addEventListener('DOMContentLoaded', () => {
-      document.addEventListener('page:before-change', () => {
-        if (window.themeCleanup) window.themeCleanup();
-      })
-
-      // Some platforms use this event
-      window.addEventListener('beforeunload', () => {
-        if (window.themeCleanup) window.themeCleanup();
-      }, {once: true})
-    })
+      window.requestIdleCallback(loadScripts, { timeout: 3000 })
+    }, { once: true })
   </script>
-{% endif %}
+{%- endif -%}

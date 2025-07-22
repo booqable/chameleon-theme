@@ -5,6 +5,7 @@
  * Handles mobile menu/search interactions and modal state coordination.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  */
 
 const HeaderComponents = {
@@ -98,12 +99,7 @@ const HeaderComponents = {
 const handleHeaderComponents = () => {
   HeaderComponents.init()
 
-  const cleanup = () => {
-    // Cleanup would go here if needed for event listeners
-    return null
-  }
-
-  return cleanup
+  return null
 }
 
 const initHeaderComponents = () => {
