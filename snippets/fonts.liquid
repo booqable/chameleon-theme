@@ -51,31 +51,14 @@
     Preload font files for faster loading
   {%- endcomment -%}
   {%- for path in paths -%}
-    <link rel="preload" as="font" href="{{ path }}" type="font/woff2" crossorigin>
+    {%- assign type = 'font/woff2' -%}
+    {%- if path contains '.woff' -%}
+      {%- assign type = 'font/woff' -%}
+    {%- endif -%}
+
+    <link rel="preload" as="font" href="{{ path }}" type="{{- type -}}" crossorigin>
+    <link rel="stylesheet" href="{{ path | append: '&display=swap' }}" media="print" onload="this.media='all'">
   {%- endfor -%}
-
-  {%- comment -%}
-    Generate @font-face declarations with font-display: swap for better performance
-  {%- endcomment -%}
-  <style>
-    {%- if heading_font != blank -%}
-      {%- if paths contains heading_path -%}
-        {{- heading_font | font_face: font_display: 'swap' -}}
-      {%- endif -%}
-    {%- endif -%}
-
-    {%- if body_font != blank and body_font != heading_font -%}
-      {%- if paths contains body_font -%}
-        {{- body_font | font_face: font_display: 'swap' -}}
-      {%- endif -%}
-    {%- endif -%}
-
-    {%- if tagline_font != blank and tagline_font != heading_font and tagline_font != body_font -%}
-      {%- if paths contains tagline_font -%}
-        {{- tagline_font | font_face: font_display: 'swap' -}}
-      {%- endif -%}
-    {%- endif -%}
-  </style>
 
   {%- comment -%}
     Fallback for browsers without JavaScript
