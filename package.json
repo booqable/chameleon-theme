@@ -17,5 +17,14 @@
   },
   "engines": {
     "node": ">=22.0.0"
-  }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 5 Chrome versions",
+    "last 5 Firefox versions",
+    "last 5 Safari versions",
+    "last 5 Edge versions",
+    "not IE 11",
+    "not dead"
+  ]
 }

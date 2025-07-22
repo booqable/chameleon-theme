@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /node_modules/
+Disallow: /assets/node_modules/
+Disallow: /.git/
+Disallow: /.github/
+Disallow: /config/
+Disallow: /snippets/
+Disallow: /templates/
+Disallow: /.stylelintrc.json
+Disallow: /eslint.config.mjs
+Disallow: /package-lock.json
+Disallow: /package.json
+Allow: /
