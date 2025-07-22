@@ -3,14 +3,16 @@
   This snippet is used for rendering the product card
 
   product - { product } *required,
-  img_size - string optional,
-  settings - { settings } *required
+  settings - { settings } *required,
+  image_loading - "string" optional,
+  img_size - "string" optional
 
   Usage:
 
   {%- render 'product-card',
-      product: your_id,
-      img_size: your_string,
+      product: product,
+      img_size: "your_string",
+      image_loading: "your_string",
       settings: settings
   -%}
 
@@ -90,7 +92,8 @@
         image_size: img_size,
         focal: points,
         settings: settings,
-        use_ratio: false
+        use_ratio: false,
+        loading: image_loading
       -%}
     {%- endif -%}
 

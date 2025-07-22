@@ -4,12 +4,17 @@
 {%- assign custom_description    = section.settings.custom_description -%}
 {%- assign custom_title          = section.settings.custom_title -%}
 {%- assign image                 = section.settings.image -%}
+{%- assign loading_strategy      = 'lazy' -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign show_datepicker       = section.settings.show_datepicker -%}
+
+{%- if section_preview -%}
+  {%- assign loading_strategy    = 'eager' -%}
+{%- endif -%}
 
 {%- if show_datepicker -%}
   {%- render 'background-accent', color_palette: color_palette, settings: settings -%}
@@ -114,7 +119,8 @@
           {%- render 'image',
             image: image,
             image_class: 'hero__image',
-            image_size: 'xxl'
+            image_size: 'xxl',
+            loading: loading_strategy
           -%}
       </div>
       <div class="hero__vision-wrapper-overlay container"></div>

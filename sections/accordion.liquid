@@ -2,11 +2,6 @@
 
 {%- if blocks.size > 0 -%}
 
-  {%- if section_preview -%}
-    {{ "accordion.css" | asset_url | stylesheet_tag }}
-    {{ "accordion-block.css" | asset_url | stylesheet_tag }}
-  {%- endif -%}
-
   {%- assign behavior              = section.settings.behavior -%}
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign padding_top           = section.settings.padding_top -%}
