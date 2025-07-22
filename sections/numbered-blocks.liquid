@@ -72,7 +72,6 @@
           {%- assign button_url_2   = block.settings.button_url_2 -%}
           {%- assign image          = block.settings.image -%}
           {%- assign image_alt      = block.settings.image_alt -%}
-          {%- assign image_id       = block.id -%}
           {%- assign image_position = block.settings.image_position -%}
 
           {%- if image != blank -%}
@@ -144,7 +143,6 @@
                 {%- render 'image',
                   image: image,
                   image_alt: image_alt,
-                  image_id: image_id,
                   image_class: 'numbered-blocks__image',
                   image_size: 'm'
                 -%}

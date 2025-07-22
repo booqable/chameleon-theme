@@ -2,7 +2,6 @@
 
 {%- assign logo	                  = section.settings.logo -%}
 {%- assign logo_alt               = section.settings.logo_alt -%}
-{%- assign logo_id	              = section.key -%}
 {%- assign custom_title	          = section.settings.custom_title -%}
 {%- assign bottom_text            = section.settings.bottom_text -%}
 {%- assign bottom_menu            = section.settings.bottom_menu -%}
@@ -75,7 +74,6 @@
 
     {%- render 'image',
         image: logo,
-        image_id: logo_id,
         image_alt: logo_alt,
         image_class: 'footer__logo-image',
         image_size: 'logo',

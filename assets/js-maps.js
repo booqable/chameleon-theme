@@ -276,7 +276,6 @@ const MapVisibility = {
   },
 
   cleanup () {
-    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
     this.observerSetup = false
@@ -298,13 +297,11 @@ const handleLocation = () => {
       })
     }
 
-    $.is($.requestIdle, 'function') ?
-      $.requestIdle(() => { handleWrappers() }, { timeout: MapConfig.idleTimeout }) :
-      handleWrappers()
+    $.requestIdle(() => { handleWrappers() }, { timeout: MapConfig.idleTimeout })
   }
 
   // Initialize with connection-aware delay
-  $.slowConnection() && $.is($.slowConnection, 'function') ?
+  $.slowConnection() ?
     setTimeout(wrappersWithDelay, MapConfig.slowConnectionDelay) :
     wrappersWithDelay()
 

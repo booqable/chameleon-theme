@@ -116,7 +116,6 @@ const FocalVisibility = {
   },
 
   cleanup () {
-    if (!this.observer) return
     this.observer.disconnect()
     this.observer = null
     this.observerSetup = false

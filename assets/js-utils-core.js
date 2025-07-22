@@ -115,7 +115,6 @@ Utils.eventListener = (method, nodes, event, handler, options) => {
 
 // Observer utilities - critical for modern performance patterns
 Utils.intersectionObserver = (callback, customOptions = {}) => {
-  if (!('IntersectionObserver' in window)) return null
   const defaultOptions = {
     root: null,
     rootMargin: '100px',
@@ -125,7 +124,6 @@ Utils.intersectionObserver = (callback, customOptions = {}) => {
 }
 
 Utils.mutationObserver = (callback, targetNode = document.body, customOptions = {}) => {
-  if (!('MutationObserver' in window)) return null
   const defaultOptions = {
     childList: true,
     subtree: true,
@@ -150,10 +148,6 @@ Utils.resizeObserver = (callback, customOptions = {}) => {
   let lastWindowWidth = $.viewportSize().width,
     debounceTimer = null,
     observer = null
-
-  if (!('ResizeObserver' in window)) {
-    return { observer: null, cleanup: () => {} }
-  }
 
   const wrappedCallback = (entries) => {
     if (options.trackWidth) {
@@ -180,10 +174,8 @@ Utils.resizeObserver = (callback, customOptions = {}) => {
   return {
     observer,
     cleanup: () => {
-      if (observer) {
-        observer.disconnect()
-        observer = null
-      }
+      observer.disconnect()
+      observer = null
       if (debounceTimer) {
         clearTimeout(debounceTimer)
         debounceTimer = null
@@ -197,11 +189,12 @@ Utils.requestIdle = (callback, options = {}) => {
   if ('requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, options)
   }
-  const timeout = options.timeout || 50
+  const timeout = options.timeout || 50,
+    startTime = Date.now()
   return setTimeout(() => {
     callback({
       didTimeout: false,
-      timeRemaining: () => Math.max(0, 50 - (Date.now() - Date.now()))
+      timeRemaining: () => Math.max(0, 50 - (Date.now() - startTime))
     })
   }, timeout)
 }
