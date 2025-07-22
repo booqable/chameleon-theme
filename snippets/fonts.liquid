@@ -47,22 +47,15 @@
 {%- if fonts != '' -%}
   {%- assign paths = fonts | split: separator -%}
 
-  {%- comment -%}
-    Preload font files for faster loading
-  {%- endcomment -%}
   {%- for path in paths -%}
-    {%- assign type = 'font/woff2' -%}
-    {%- if path contains '.woff' -%}
-      {%- assign type = 'font/woff' -%}
-    {%- endif -%}
+    {%- unless path contains 'display=swap' -%}
+      {%- assign path = path | append: '&display=swap' -%}
+    {%- endunless -%}
 
-    <link rel="preload" as="font" href="{{ path }}" type="{{- type -}}" crossorigin>
-    <link rel="stylesheet" href="{{ path | append: '&display=swap' }}" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="{{ path }}" crossorigin>
+    <link rel="stylesheet" href="{{ path }}" media="print" onload="this.media='all'">
   {%- endfor -%}
 
-  {%- comment -%}
-    Fallback for browsers without JavaScript
-  {%- endcomment -%}
   <noscript>
     {%- if heading_font != blank -%}
       {%- if paths contains heading_path -%}
@@ -85,4 +78,4 @@
 {%- endif -%}
 
 <link rel="preload" href="https://kit.fontawesome.com/ff3b3de2b5.js" as="script" crossorigin="anonymous">
-<script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous" defer></script>
+<script src="https://kit.fontawesome.com/ff3b3de2b5.js" crossorigin="anonymous" async></script>
