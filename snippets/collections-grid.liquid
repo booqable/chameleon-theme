@@ -23,7 +23,18 @@
   {%- endif -%}
 {%- endfor -%}
 
-<ul class="collections__list collections__list-{{ items.size }}{% if multiple %} collections__list--multiple{%- endif -%}">
+{% comment %} CSS variables start {% endcomment %}
+{%- capture item_variables -%}
+  {%- case image_fit -%}
+    {%- when 'cover' -%}
+      --object-fit: cover;
+    {%- when 'contain' -%}
+      --object-fit: contain;
+  {%- endcase -%}
+{%- endcapture -%}
+{% comment %} CSS variables end {% endcomment %}
+
+<ul class="collections__list collections__list-{{ items.size }}{% if multiple %} collections__list--multiple{%- endif -%}"{% if image_fit != blank %} style="{{- item_variables | escape -}}"{%- endif -%}>
   {%- for item in items -%}
     {%- case items_type -%}
       {%- when "blocks" -%}

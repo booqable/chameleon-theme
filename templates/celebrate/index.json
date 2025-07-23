@@ -106,6 +106,7 @@
       ],
       "settings": {
         "color_palette": "two",
+        "image_fit": "cover",
         "overlay_background": "#0B1A26",
         "overlay_color": "#FFFFFF",
         "padding_bottom": "medium",
@@ -156,6 +157,7 @@
       ],
       "settings": {
         "color_palette": "two",
+        "image_fit": "cover",
         "overlay_background": "#0B1A26",
         "overlay_color": "#FFFFFF",
         "padding_top": "small",

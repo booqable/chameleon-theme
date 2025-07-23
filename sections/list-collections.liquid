@@ -9,6 +9,7 @@
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+{%- assign image_fit             = section.settings.image_fit -%}
 {%- assign image_placeholder     = settings.image_placeholder -%}
 {%- assign element_design        = settings.element_design -%}
 
@@ -77,6 +78,7 @@
         {%- render 'collections-grid',
             items: collections,
             items_type: "collections",
+            image_fit: image_fit,
             placeholder: image_placeholder
         -%}
 
@@ -126,6 +128,22 @@
         "min": 4,
         "max": 24,
         "default": 8
+      },
+      {
+        "type": "select",
+        "id": "image_fit",
+        "label": "Image fit",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Cover"
+          },
+          {
+            "value": "contain",
+            "label": "Contain"
+          }
+        ],
+        "default": "cover"
       },
       {
         "type": "header",

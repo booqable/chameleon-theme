@@ -41,6 +41,7 @@
       "type": "list-collections",
       "settings": {
         "color_palette": "one",
+        "image_fit": "cover",
         "limit": 8,
         "overlay_background": "#000000",
         "overlay_color": "#FFFFFF",

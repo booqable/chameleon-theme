@@ -155,6 +155,7 @@
       ],
       "settings": {
         "color_palette": "one",
+        "image_fit": "cover",
         "overlay_background": "#0B1A26",
         "overlay_color": "#FFFFFF",
         "padding_bottom": "large",
