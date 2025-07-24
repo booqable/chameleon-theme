@@ -21,24 +21,16 @@
     {% comment %} Load root styles {% endcomment %}
     {%- render 'root-styles', settings: settings -%}
 
-    {% comment %} Load critical above-the-fold styles {% endcomment %}
-    {%- render 'critical-css' -%}
-
     {% comment %} Async CSS loading with resource hints {% endcomment %}
-    {%- assign css_files = "base.css, rx.css, header.css, mega-menu.css, top-bar.css" | split: ", " -%}
+    {%- assign css_files = "critical.css, base.css, rx.css, header.css, mega-menu.css, top-bar.css" | split: ", " -%}
 
     {%- for css_file in css_files -%}
       {%- assign css_url = css_file | asset_url -%}
       <link rel="preload" href="{{ css_url }}" as="style">
-      <link rel="stylesheet" href="{{ css_url }}" media="print" onload="this.media='all'">
+      <link rel="stylesheet" href="{{ css_url }}"{% if css_file == 'critical.css' %} data-optimize="critical"{% endif %} media="print" onload="this.media='all'">
     {%- endfor -%}
 
-    <noscript>
-      {%- for css_file in css_files -%}
-        <link rel="stylesheet" href="{{ css_file | asset_url }}">
-      {%- endfor -%}
-    </noscript>
-
+    {{ sections_assets }}
     {{ content_for_header }}
 
     {%- render 'page-social-share-meta',

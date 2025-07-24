@@ -8,11 +8,16 @@
 {%- assign image                 = section.settings.image -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
+{%- assign loading_strategy      = 'lazy' -%}
 {%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign background_style      = settings.background_style -%}
+
+{%- if section_preview -%}
+  {%- assign loading_strategy    = 'eager' -%}
+{%- endif -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -99,7 +104,8 @@
       {%- render 'image',
         image: image,
         image_class: 'cta__image',
-        image_size: 'xxl'
+        image_size: 'xxl',
+        loading: loading_strategy
       -%}
     </div>
   {%- else -%}

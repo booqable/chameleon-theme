@@ -1,5 +1,6 @@
 {%- unless section.blocks.size == 0 -%}
 
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign title                 = section.settings.title -%}
   {%- assign text_position         = section.settings.text_position -%}
   {%- assign text_position_mobile  = section.settings.text_position_mobile -%}
@@ -8,6 +9,10 @@
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -118,7 +123,8 @@
                     image_alt: image_alt,
                     image_class: 'logos__image',
                     custom_width: '450',
-                    custom_size: '450px'
+                    custom_size: '450px',
+                    loading: loading_strategy
                   -%}
                 {%- endif -%}
               </div>

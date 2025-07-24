@@ -5,12 +5,17 @@
   {%- assign show_navigation       = section.settings.show_navigation -%}
   {%- assign show_pagination       = section.settings.show_pagination -%}
   {%- assign color_palette         = section.settings.color_palette -%}
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
   {%- assign timer                 = section.settings.timer -%}
   {%- assign image_position        = section.settings.image_position -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {%- assign carousel = false -%}
 
@@ -172,7 +177,8 @@
                                 image: image,
                                 image_alt: image_alt,
                                 image_class: 'testimonials__image',
-                                image_size: 'l'
+                                image_size: 'l',
+                                loading: loading_strategy
                             -%}
                           </div>
                         </div>

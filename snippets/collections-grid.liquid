@@ -4,6 +4,7 @@
 
   items - { object } *required
   items_type - "string" *required,
+  image_loading - "string" optional,
   placeholder - image optional
 
   Usage:
@@ -11,6 +12,7 @@
   {%- render 'collections-grid',
       items: your_id,
       items_type: "your_string",
+      image_loading: "your_string",
       placeholder: your_id
   -%}
 
@@ -60,7 +62,8 @@
               image: image,
               image_class: 'collections__image',
               image_size: 'm',
-              use_ratio: false
+              use_ratio: false,
+              loading: image_loading
             -%}
           </span>
       {%- if collection != blank -%}
