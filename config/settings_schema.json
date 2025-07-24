@@ -275,40 +275,6 @@
       },
       {
         "type": "header",
-        "content": "Image settings"
-      },
-      {
-        "type": "select",
-        "id": "card_image_fit",
-        "label": "Image fit",
-        "options": [
-          {
-            "value": "cover",
-            "label": "Cover"
-          },
-          {
-            "value": "contain",
-            "label": "Contain"
-          }
-        ],
-        "default": "cover"
-      },
-      {
-        "type": "checkbox",
-        "id": "use_focal_images",
-        "label": "Use focal images",
-        "default": true,
-        "info": "Display point focused image instead of full sized. Works with 'Cover' image fit option together"
-      },
-      {
-        "type": "checkbox",
-        "id": "card_image_background",
-        "label": "Use transparent background",
-        "default": false,
-        "info": "Display gaps above and below image. Works with 'Contain' image fit option together"
-      },
-      {
-        "type": "header",
         "content": "Text settings"
       },
       {
@@ -530,6 +496,60 @@
         "id": "image_placeholder",
         "label": "Image placeholder",
         "info": "This image displays on products and collections if they don't have any images"
+      },
+      {
+        "type": "header",
+        "content": "Product image settings"
+      },
+      {
+        "type": "select",
+        "id": "card_image_fit",
+        "label": "Image fit",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Cover"
+          },
+          {
+            "value": "contain",
+            "label": "Contain"
+          }
+        ],
+        "default": "cover"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_focal_images",
+        "label": "Use focal images",
+        "default": true,
+        "info": "Display point focused image instead of full sized. Works with 'Cover' image fit option together"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_image_background",
+        "label": "Use transparent background",
+        "default": false,
+        "info": "Display gaps above and below image. Works with 'Contain' image fit option together"
+      },
+      {
+        "type": "header",
+        "content": "Collection image settings"
+      },
+      {
+        "type": "select",
+        "id": "collection_card_image_fit",
+        "label": "Image fit",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Cover"
+          },
+          {
+            "value": "contain",
+            "label": "Contain"
+          }
+        ],
+        "default": "cover"
       }
     ]
   },
