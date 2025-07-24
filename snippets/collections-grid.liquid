@@ -4,6 +4,7 @@
 
   items - { object } *required
   items_type - "string" *required,
+  settings - { settings } *required,
   placeholder - image optional
 
   Usage:
@@ -11,11 +12,13 @@
   {%- render 'collections-grid',
       items: your_id,
       items_type: "your_string",
+      settings: settings,
       placeholder: your_id
   -%}
 
 {% endcomment %}
 {%- assign multiple = false -%}
+{%- assign image_fit = settings.collection_card_image_fit -%}
 
 {%- for item in items -%}
   {%- if items.size > 1 -%}
