@@ -34,12 +34,6 @@
       <link rel="stylesheet" href="{{ css_url }}"{% if css_file == 'critical.css' %} data-optimize="critical"{% endif %} media="print" onload="this.media='all'">
     {%- endfor -%}
 
-    <noscript>
-      {%- for css_file in css_files -%}
-        <link rel="stylesheet" href="{{ css_file | asset_url }}"{% if css_file == 'critical.css' %} data-optimize="critical"{%- endif -%}>
-      {%- endfor -%}
-    </noscript>
-
     {%- if section_preview -%}
       {{ options_and_scripts }}
       {{ content_for_styles }}
