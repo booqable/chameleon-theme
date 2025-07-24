@@ -51,24 +51,4 @@
     <link rel="preload" as="style" href="{{ path }}" crossorigin>
     <link rel="stylesheet" href="{{ path }}" media="print" onload="this.media='all'">
   {%- endfor -%}
-
-  <noscript>
-    {%- if heading_font != blank -%}
-      {%- if paths contains heading_path -%}
-        {{- heading_font | font_link -}}
-      {%- endif -%}
-    {%- endif -%}
-
-    {%- if body_font != blank -%}
-      {%- if paths contains body_path and body_path != heading_path -%}
-        {{- body_font | font_link -}}
-      {%- endif -%}
-    {%- endif -%}
-
-    {%- if tagline_font != blank -%}
-      {%- if paths contains tagline_path and tagline_path != heading_path and tagline_path != body_path -%}
-        {{- tagline_font | font_link -}}
-      {%- endif -%}
-    {%- endif -%}
-  </noscript>
 {%- endif -%}
