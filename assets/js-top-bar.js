@@ -5,6 +5,8 @@
  * Manages sticky header transform animations and body scroll classes.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
+ * @requires js-utils.js
  */
 
 const TopBarConfig = {

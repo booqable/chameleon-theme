@@ -5,6 +5,8 @@
  * modal closing functionality, and preview bar integration.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
+ * @requires js-utils.js
  */
 
 const HeaderConfig = {
@@ -200,22 +202,18 @@ const initHeader = () => {
   $.cleanup('cleanupHeader', handleHeader)
 }
 
+if (document.readyState === 'complete') {
+  $.requestIdle(initHeader)
+} else {
+  $.eventListener('add', document, 'readystatechange', (e) => {
+    if (e.target.readyState === 'complete') {
+      $.requestIdle(initHeader)
+    }
+  })
+}
+
 $.headerBar = {
   removeOverflow: HeaderDestroyer.removeOverflow,
   closeMobileDrop: HeaderDestroyer.closeMobileDrop
 }
 window.headerBar = $.headerBar
-
-const initWhenReady = () => {
-  if (document.readyState === 'complete') {
-    $.requestIdle(initHeader)
-  } else {
-    $.eventListener('add', document, 'readystatechange', (e) => {
-      if (e.target.readyState === 'complete') {
-        $.requestIdle(initHeader)
-      }
-    })
-  }
-}
-
-initWhenReady()

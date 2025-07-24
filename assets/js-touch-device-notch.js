@@ -6,6 +6,7 @@
  * Optimized for performance with throttling and minimal DOM updates.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  * @requires js-utils.js
  */
 

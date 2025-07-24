@@ -5,6 +5,8 @@
  * Optimizes initial load and uses IntersectionObserver for lazy loading.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
+ * @requires js-utils.js
  */
 
 const ImageConfig = {
@@ -385,20 +387,12 @@ const ImageHandler = {
   }
 }
 
-$.imageLoader = {
-  loadImage: ImageLoader.loadImage.bind(ImageLoader)
-}
-
 const initImageLoading = () => {
-  window.cleanupImageLoading = ImageHandler.init()
-
-  // Ensure cleanup is idempotent
-  const originalCleanup = window.cleanupImageLoading
-  window.cleanupImageLoading = () => {
-    if (!$.is(originalCleanup, 'function')) return
-    originalCleanup()
-    window.cleanupImageLoading = () => {} // Replace with no-op after cleanup
-  }
+  $.cleanup('cleanupImageLoading', () => ImageHandler.init())
 }
 
 initImageLoading()
+
+$.imageLoader = {
+  loadImage: ImageLoader.loadImage.bind(ImageLoader)
+}

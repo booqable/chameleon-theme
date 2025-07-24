@@ -65,13 +65,24 @@
 
     {% section 'footer' %}
 
-    {%- render 'cookie-notice-variables', settings: settings -%}
-
-    {%- render 'scripts-base-layout' -%}
+    {%- if settings.cookie_notice_activated -%}
+      {%- render 'cookie-notice-variables', settings: settings -%}
+    {%- endif -%}
 
     {%- if show_mini_cart -%}
       {%- render 'variables-mini-cart', settings: settings, color_palette: "one" -%}
     {%- endif -%}
+
+    {% comment %} Critical JavaScript files {% endcomment %}
+    <script src='{{ 'js-utils-core.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-utils-minimal.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-utils.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-header-components-manager.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-top-bar.js' | asset_url }}' defer></script>
+    <script src='{{ 'js-header.js' | asset_url }}' defer></script>
+
+    {% comment %} Non-Critical JavaScript files {% endcomment %}
+    {%- render 'scripts-loading', sections: sections, settings: settings -%}
 
     {{ content_for_body }}
 

@@ -38,8 +38,15 @@
 
     {{ content_for_body }}
 
-    {%- render 'cookie-notice-variables', settings: settings -%}
+    {%- if settings.cookie_notice_activated -%}
+      {%- render 'cookie-notice-variables', settings: settings -%}
+    {%- endif -%}
 
-    {%- render 'scripts-checkout-layout' -%}
+    {% comment %} Critical JavaScript files {% endcomment %}
+    <script src='{{ 'js-utils-minimal.js' | asset_url }}' defer></script>
+
+    {% comment %} Non-Critical JavaScript files {% endcomment %}
+    {%- assign scripts = 'js-cookie-notice-styles-loading.js' -%}
+    {%- render 'scripts-loading', scripts: scripts -%}
   </body>
 </html>

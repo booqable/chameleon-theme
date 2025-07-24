@@ -5,6 +5,7 @@
  * appears in the DOM using MutationObserver for optimal performance.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  */
 
 const CookieConfig = {
@@ -202,7 +203,7 @@ const CookieHandler = {
 }
 
 const initCookieStyles = () => {
-  window.cleanupCookiesListeners = CookieHandler.init()
+  $.cleanup('cleanupCookiesListeners', () => CookieHandler.init())
 }
 
 initCookieStyles()

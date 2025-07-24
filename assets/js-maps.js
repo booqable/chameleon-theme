@@ -5,6 +5,7 @@
  * Uses lazy loading strategy to only render maps when they're needed.
  *
  * @requires js-utils-core.js
+ * @requires js-utils-minimal.js
  * @requires js-utils.js
  */
 
