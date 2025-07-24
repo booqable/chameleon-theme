@@ -2,8 +2,6 @@
 
 {%- if blocks.size > 0 -%}
 
-  {{ "mosaic.css" | asset_url | stylesheet_tag }}
-
   {%- assign button_label          = section.settings.button_label -%}
   {%- assign button_url            = section.settings.button_url -%}
   {%- assign layout                = section.settings.layout -%}
@@ -89,9 +87,8 @@
               {%- if image.url != blank -%}
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'mosaic__image',
-                  size: 'm'
+                  image_class: 'mosaic__image',
+                  image_size: 'm'
                 -%}
               {%- endif -%}
             </div>
@@ -141,6 +138,14 @@
     "description": "Add text with images in various layouts",
     "tag": "section",
     "class": "mosaic",
+    "css_assets": [
+      {
+        "file": "mosaic.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

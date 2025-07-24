@@ -48,7 +48,7 @@
         {%- assign image = first_product.images.first -%}
       {%- endif -%}
     {%- else -%}
-      {%- assign image = placeholder -%}
+      {%- assign image    = placeholder -%}
     {%- endif -%}
 
     <li class="collections__item" id="{{- id -}}">
@@ -58,9 +58,9 @@
           <span class="collections__image-item">
             {%- render 'image',
               image: image,
-              loading: 'lazy',
-              class: 'collections__image',
-              size: 'm'
+              image_class: 'collections__image',
+              image_size: 'm',
+              use_ratio: false
             -%}
           </span>
       {%- if collection != blank -%}
