@@ -78,7 +78,6 @@
       ],
       "settings": {
         "color_palette": "two",
-        "image_fit": "cover",
         "overlay_background": "#131314",
         "overlay_color": "#ffffff",
         "padding_bottom": "small",
