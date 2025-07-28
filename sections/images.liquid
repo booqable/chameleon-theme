@@ -147,6 +147,7 @@
             {%- assign text_position        = block.settings.text_position -%}
             {%- assign text_position_mobile = block.settings.text_position_mobile -%}
             {%- assign video_url            = block.settings.video_url | strip -%}
+            {%- assign show_video_poster    = block.settings.show_video_poster -%}
             {%- assign index                = forloop.index -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
@@ -382,7 +383,7 @@
                   <div class="images__vision{% if video_url != blank %} images__vision--video{%- endif -%}" {% if show_overlay %}style="{{- image_variables | escape -}}"{%- endif -%}>
 
                     {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "vimeo.com" -%}
-                      <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}" data-video-container data-video-url="{{- video_url | escape -}}"></div>
+                      <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}" data-video-container data-video-url="{{- video_url | escape -}}"{% if show_video_poster %} data-video-poster="true"{%- endif -%}></div>
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
@@ -512,6 +513,12 @@
             "id": "video_url",
             "label": "Video URL (optional)",
             "info": "Youtube, Vimeo. If you paste video link here, any images will be ignored. Preferred format 16:9"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_video_poster",
+            "label": "Show video poster",
+            "default": false
           },
           {
             "type": "text",

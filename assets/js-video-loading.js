@@ -8,7 +8,6 @@
  * @requires js-utils.js
  */
 
-// Utility functions
 const VideoHelpers = {
   execute (fn) {
     return $.batchDOM?.(fn) || fn()
@@ -87,10 +86,7 @@ const VideoCache = {
   },
 
   set (key, data) {
-    VideoConfig.cache.data.set(key, {
-      data,
-      timestamp: Date.now()
-    })
+    VideoConfig.cache.data.set(key, { data, timestamp: Date.now() })
   },
 
   clear () {
@@ -301,12 +297,13 @@ const VideoUtils = {
 
 const VideoLoader = {
   createPosterImage (container, videoId, platform) {
-    const posterUrl = VideoHelpers.safely(
-      () => VideoUtils.getPosterUrl(videoId, platform),
-      'Failed to generate poster URL',
-      { videoId, platform },
-      null
-    )
+    if (!container.hasAttribute(VideoConfig.attr.videoPoster)) {
+      return null
+    }
+
+    const getPosterUrl = () => VideoUtils.getPosterUrl(videoId, platform)
+    const msg = `Failed to generate poster URL`
+    const posterUrl = VideoHelpers.safely(getPosterUrl, msg, { videoId, platform }, null)
 
     if (!posterUrl) return null
 
@@ -368,11 +365,9 @@ const VideoLoader = {
       if (platform === 'youtube') iframeOptions.vq = 'small'
     }
 
-    const iframe = VideoHelpers.safely(
-      () => VideoUtils.createIframe(videoId, platform, iframeOptions),
-      'Failed to create video iframe',
-      { videoId, platform }
-    )
+    const createIframe = () => VideoUtils.createIframe(videoId, platform, iframeOptions)
+    const msg = 'Failed to create video iframe'
+    const iframe = VideoHelpers.safely(createIframe, msg, { videoId, platform })
 
     if (!iframe) return
 
@@ -394,11 +389,9 @@ const VideoLoader = {
     const videoUrl = container.dataset.videoUrl
     if (!videoUrl) return
 
-    const result = VideoHelpers.safely(
-      () => VideoUtils.parseVideoUrl(videoUrl),
-      'Failed to parse video URL',
-      videoUrl
-    )
+    const parseVideo = () => VideoUtils.parseVideoUrl(videoUrl)
+    const msg = 'Failed to parse video URL'
+    const result = VideoHelpers.safely(parseVideo, msg, videoUrl)
 
     if (!result || !result.platform || !result.videoId) {
       console.warn('VideoLoader: Invalid video URL or unsupported platform', videoUrl)
@@ -439,11 +432,9 @@ const VideoLoadingStrategy = {
       const videoUrl = container.dataset.videoUrl
       if (!videoUrl) return
 
-      const result = VideoHelpers.safely(
-        () => VideoUtils.parseVideoUrl(videoUrl),
-        'Failed to parse video URL',
-        videoUrl
-      )
+      const parseVideo = () => VideoUtils.parseVideoUrl(videoUrl)
+      const msg = 'Failed to parse video URL'
+      const result = VideoHelpers.safely(parseVideo, msg, videoUrl)
 
       if (!result || !result.platform || !result.videoId) return
 
