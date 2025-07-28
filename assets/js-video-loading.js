@@ -8,6 +8,33 @@
  * @requires js-utils.js
  */
 
+// Utility functions
+const VideoHelpers = {
+  execute (fn) {
+    return $.batchDOM?.(fn) || fn()
+  },
+
+  slowly (isSlowConnection) {
+    return isSlowConnection ?? VideoDevice.isSlowConnection()
+  },
+
+  cleanupElements (selector, cleanupFn = null) {
+    document.querySelectorAll(selector).forEach((element) => {
+      if (cleanupFn) cleanupFn(element)
+      element.remove()
+    })
+  },
+
+  safely (fn, operation, context = null, fallback = null) {
+    try {
+      return fn()
+    } catch (error) {
+      console.warn(`VideoLoader: ${operation}`, context, error)
+      return fallback
+    }
+  }
+}
+
 const VideoConfig = {
   selectors: {
     container: '[data-video-container]',
@@ -274,7 +301,13 @@ const VideoUtils = {
 
 const VideoLoader = {
   createPosterImage (container, videoId, platform) {
-    const posterUrl = VideoUtils.getPosterUrl(videoId, platform)
+    const posterUrl = VideoHelpers.safely(
+      () => VideoUtils.getPosterUrl(videoId, platform),
+      'Failed to generate poster URL',
+      { videoId, platform },
+      null
+    )
+
     if (!posterUrl) return null
 
     const posterImg = document.createElement('img')
@@ -282,15 +315,15 @@ const VideoLoader = {
     posterImg.dataset.videoPoster = 'true'
     posterImg.alt = 'Video thumbnail'
 
-    const isSlowConnection = VideoDevice.isSlowConnection()
+    const slowConnection = VideoHelpers.slowly()
     if ($.isFetchPriority()) posterImg.fetchPriority = 'low'
-    if (isSlowConnection) posterImg.loading = 'lazy'
+    if (slowConnection) posterImg.loading = 'lazy'
 
     const handlePosterLoad = () => {
       const updatePoster = () => {
         container.classList.add(VideoConfig.classes.posterLoaded)
       }
-      $.batchDOM?.(updatePoster) || updatePoster()
+      VideoHelpers.execute(updatePoster)
     }
 
     const handlePosterError = () => {
@@ -328,14 +361,20 @@ const VideoLoader = {
 
   createVideoIframe (container, videoId, platform, isSlowConnection = null) {
     const iframeOptions = {},
-      slowConnection = isSlowConnection ?? VideoDevice.isSlowConnection()
+      slowConnection = VideoHelpers.slowly(isSlowConnection)
 
     if (slowConnection) {
       iframeOptions.quality = 'small'
       if (platform === 'youtube') iframeOptions.vq = 'small'
     }
 
-    const iframe = VideoUtils.createIframe(videoId, platform, iframeOptions)
+    const iframe = VideoHelpers.safely(
+      () => VideoUtils.createIframe(videoId, platform, iframeOptions),
+      'Failed to create video iframe',
+      { videoId, platform }
+    )
+
+    if (!iframe) return
 
     const handleIframeLoad = () => {
       const posterImg = container.querySelector(`[${VideoConfig.attr.videoPoster}]`)
@@ -355,21 +394,27 @@ const VideoLoader = {
     const videoUrl = container.dataset.videoUrl
     if (!videoUrl) return
 
-    const { platform, videoId } = VideoUtils.parseVideoUrl(videoUrl)
+    const result = VideoHelpers.safely(
+      () => VideoUtils.parseVideoUrl(videoUrl),
+      'Failed to parse video URL',
+      videoUrl
+    )
 
-    if (!platform || !videoId) {
+    if (!result || !result.platform || !result.videoId) {
       console.warn('VideoLoader: Invalid video URL or unsupported platform', videoUrl)
       return
     }
 
-    const slowConnection = isSlowConnection ?? VideoDevice.isSlowConnection()
+    const { platform, videoId } = result
+
+    const slowConnection = VideoHelpers.slowly(isSlowConnection)
     const delay = slowConnection ?
       VideoConfig.timing.slowConnectionDelay :
       VideoConfig.timing.autoplayDelay
 
     const loadVideoFrame = () => {
       const createIframe = () => this.createVideoIframe(container, videoId, platform, slowConnection)
-      $.batchDOM?.(createIframe) || createIframe()
+      VideoHelpers.execute(createIframe)
     }
 
     $.requestIdle(loadVideoFrame, { timeout: delay })
@@ -394,25 +439,29 @@ const VideoLoadingStrategy = {
       const videoUrl = container.dataset.videoUrl
       if (!videoUrl) return
 
-      const { platform, videoId } = VideoUtils.parseVideoUrl(videoUrl)
+      const result = VideoHelpers.safely(
+        () => VideoUtils.parseVideoUrl(videoUrl),
+        'Failed to parse video URL',
+        videoUrl
+      )
 
-      if (!platform || !videoId) return
+      if (!result || !result.platform || !result.videoId) return
 
-      processQueue.push({ container, videoId, platform })
+      processQueue.push({ container, videoId: result.videoId, platform: result.platform })
     })
 
     const batchProcess = () => {
-      const isSlowConnection = VideoDevice.isSlowConnection()
+      const slowConnection = VideoHelpers.slowly()
       processQueue.forEach(({ container, videoId, platform }) => {
         VideoLoader.createPosterImage(container, videoId, platform)
 
         $.inViewport?.(container) ?
-          VideoLoader.loadVideo(container, isSlowConnection) :
+          VideoLoader.loadVideo(container, slowConnection) :
           VideoVisibility.observe(container)
       })
     }
 
-    $.batchDOM?.(batchProcess) || batchProcess()
+    VideoHelpers.execute(batchProcess)
   },
 
   loadInChunks (containers) {
@@ -425,7 +474,7 @@ const VideoLoadingStrategy = {
 
       const processChunk = () => this.processContainers(chunk)
 
-      $.batchDOM?.(processChunk) || processChunk()
+      VideoHelpers.execute(processChunk)
 
       if (endIndex >= totalContainers) return
 
@@ -476,26 +525,13 @@ const VideoHandler = {
     this.eventListeners.clear()
     this.resizeHandler = null
 
-    const cleanupIframes = () => {
-      const iframes = document.querySelectorAll(VideoConfig.selectors.iframe)
-      iframes.forEach((iframe) => {
-        iframe.src = 'about:blank'
-        iframe.remove()
-      })
-    }
-
-    const cleanupPosters = () => {
-      const posters = document.querySelectorAll(VideoConfig.selectors.poster)
-      posters.forEach((poster) => {
-        poster.remove()
-      })
-    }
-
     const performCleanup = () => {
-      cleanupIframes()
-      cleanupPosters()
+      VideoHelpers.cleanupElements(VideoConfig.selectors.iframe, (iframe) => {
+        iframe.src = 'about:blank'
+      })
+      VideoHelpers.cleanupElements(VideoConfig.selectors.poster)
     }
-    $.batchDOM?.(performCleanup) || performCleanup()
+    VideoHelpers.execute(performCleanup)
 
     VideoDevice.clearCache()
     VideoVisibility.cleanup()
