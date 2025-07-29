@@ -5,6 +5,7 @@
   items - { object } *required
   items_type - "string" *required,
   image_loading - "string" optional,
+  settings - { settings } *required,
   placeholder - image optional
 
   Usage:
@@ -13,11 +14,13 @@
       items: your_id,
       items_type: "your_string",
       image_loading: "your_string",
+      settings: settings,
       placeholder: your_id
   -%}
 
 {% endcomment %}
-{%- assign multiple = false -%}
+{%- assign multiple  = false -%}
+{%- assign image_fit = settings.collection_card_image_fit -%}
 
 {%- for item in items -%}
   {%- if items.size > 1 -%}
@@ -25,7 +28,18 @@
   {%- endif -%}
 {%- endfor -%}
 
-<ul class="collections__list collections__list-{{ items.size }}{% if multiple %} collections__list--multiple{%- endif -%}">
+{% comment %} CSS variables start {% endcomment %}
+{%- capture item_variables -%}
+  {%- case image_fit -%}
+    {%- when 'cover' -%}
+      --object-fit: cover;
+    {%- when 'contain' -%}
+      --object-fit: contain;
+  {%- endcase -%}
+{%- endcapture -%}
+{% comment %} CSS variables end {% endcomment %}
+
+<ul class="collections__list collections__list-{{ items.size }}{% if multiple %} collections__list--multiple{%- endif -%}"{% if image_fit != blank %} style="{{- item_variables | escape -}}"{%- endif -%}>
   {%- for item in items -%}
     {%- case items_type -%}
       {%- when "blocks" -%}
@@ -34,13 +48,13 @@
         {%- assign collection = item -%}
     {%- endcase -%}
 
-    {%- assign id = item.id -%}
-    {%- assign url = "" -%}
-    {%- assign name = "" -%}
+    {%- assign id    = item.id -%}
+    {%- assign url   = "" -%}
+    {%- assign name  = "" -%}
     {%- assign image = "" -%}
 
     {%- if collection != blank -%}
-      {%- assign url = collection.url -%}
+      {%- assign url  = collection.url -%}
       {%- assign name = collection.name -%}
       {%- assign first_product = collection.products | first -%}
 
@@ -50,7 +64,7 @@
         {%- assign image = first_product.images.first -%}
       {%- endif -%}
     {%- else -%}
-      {%- assign image    = placeholder -%}
+      {%- assign image   = placeholder -%}
     {%- endif -%}
 
     <li class="collections__item" id="{{- id -}}">
