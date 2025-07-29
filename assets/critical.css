@@ -74,7 +74,7 @@ textarea {
 }
 
 .touch {
-  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Container styles */
@@ -220,17 +220,17 @@ img {
 .header {
   position: relative;
   z-index: 1001;
-  margin-top: var(--preview-height, 0px) !important;
+  margin-top: var(--preview-height, 0) !important;
   margin-bottom: -1px;
   contain: layout style;
 }
 
 .header--sticky {
   position: sticky;
-  top: var(--preview-height, 0px);
+  top: var(--preview-height, 0);
   left: 0;
   right: 0;
-  margin-top: 0px !important;
+  margin-top: 0 !important;
   transition: top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
@@ -244,7 +244,7 @@ img {
   font-weight: var(--font-weight-semibold, 600);
   line-height: var(--line-height-sm, 1.2);
   letter-spacing: -0.01em;
-  color: currentColor;
+  color: currentcolor;
   border: 1px solid transparent;
   border-radius: var(--border-radius-dynamic, 0);
   background: none;
@@ -273,7 +273,7 @@ img {
   padding: 14px 24px;
 }
 
-/* The first section critical styles*/
+/* The first section critical styles */
 #main {
   flex: 1 1 auto;
   display: flex;
@@ -341,10 +341,7 @@ img {
 
 .images__vision {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow: hidden;
   z-index: -1;
 }
@@ -380,13 +377,13 @@ img {
 }
 
 /* Basic responsive styles */
-@media (min-width: 428px) {
+@media (width >= 428px) {
   .images__container {
     min-height: 560px;
   }
 }
 
-@media (min-width: 992px) {
+@media (width >= 992px) {
   .images__container {
     min-height: calc(var(--height, auto) - var(--header-height, 105px));
   }
@@ -407,18 +404,18 @@ img {
   }
 
   .images__description {
-    padding-left: var(--padding-left, 0px);
-    padding-right: var(--padding-right, 0px);
+    padding-left: var(--padding-left, 0);
+    padding-right: var(--padding-right, 0);
   }
 }
 
-@media (min-width: 1100px) {
+@media (width >= 1100px) {
   .tagline {
     margin: 0 0 16px;
   }
 }
 
-@media (min-width: 1248px) {
+@media (width >= 1248px) {
   .images__text-area {
     padding: 0 var(--padding-no-full-width, 56px);
   }
