@@ -302,7 +302,7 @@ const VideoLoader = {
     }
 
     const getPosterUrl = () => VideoUtils.getPosterUrl(videoId, platform)
-    const msg = `Failed to generate poster URL`
+    const msg = 'Failed to generate poster URL'
     const posterUrl = VideoHelpers.safely(getPosterUrl, msg, { videoId, platform }, null)
 
     if (!posterUrl) return null
