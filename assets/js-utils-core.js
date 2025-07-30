@@ -182,8 +182,8 @@ Utils.imageFormats = async () => {
       })
     }
 
-    formatSupport.webp = await formatCheck('webp', webpSrc)
-    formatSupport.avif = await formatCheck('avif', avifSrc)
+    formatSupport.webp = await formatCheck(webpSrc)
+    formatSupport.avif = await formatCheck(avifSrc)
   } catch {
     // Silently ignore errors during format support detection
   }
