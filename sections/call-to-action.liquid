@@ -1,4 +1,3 @@
-{{ "call-to-action.css" | asset_url | stylesheet_tag }}
 
 {%- assign title                 = section.settings.title -%}
 {%- assign description           = section.settings.description -%}
@@ -9,15 +8,20 @@
 {%- assign image                 = section.settings.image -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
+{%- assign loading_strategy      = 'lazy' -%}
 {%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign background_style      = settings.background_style -%}
 
+{%- if section_preview -%}
+  {%- assign loading_strategy    = 'eager' -%}
+{%- endif -%}
+
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
-  --overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }};
+  --opacity-overlay: {{ overlay_opacity | divided_by: 100.0 }};
 
   {%- case padding_top -%}
       {%- when 'none' -%}
@@ -99,9 +103,9 @@
     <div class="cta__image-wrapper">
       {%- render 'image',
         image: image,
-        loading: 'lazy',
-        class: 'cta__image',
-        size: 'xxl'
+        image_class: 'cta__image',
+        image_size: 'xxl',
+        loading: loading_strategy
       -%}
     </div>
   {%- else -%}
@@ -130,6 +134,11 @@
     "description": "Draw visitors' attentionwith a CTA section",
     "tag": "section",
     "class": "cta",
+    "css_assets": [
+      {
+        "file": "call-to-action.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

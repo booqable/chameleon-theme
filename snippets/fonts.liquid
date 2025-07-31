@@ -1,13 +1,54 @@
-{%- if settings.heading_font != blank or settings.body_font != blank or settings.tagline_font != blank -%}
-  <link rel="preconnect" href="https://fonts.bunny.net">
+{%- comment -%}
+  A fonts snippet that collects, filters and preloads fonts.
+{%- endcomment -%}
+
+{%- assign fonts = '' -%}
+{%- assign separator = '|FONT_SEP|' -%}
+{%- assign body_font = settings.body_font -%}
+{%- assign heading_font = settings.heading_font -%}
+{%- assign tagline_font = settings.tagline_font -%}
+
+{%- if heading_font != blank -%}
+  {%- assign heading_path = heading_font.path -%}
+
+  {%- unless fonts contains heading_path -%}
+    {%- if fonts == '' -%}
+      {%- assign fonts = heading_path -%}
+    {%- else -%}
+      {%- assign fonts = fonts | append: separator | append: heading_path -%}
+    {%- endif -%}
+  {%- endunless -%}
 {%- endif -%}
 
-{%- if settings.heading_font != blank -%}
-  {{- settings.heading_font | font_link -}}
+{%- if body_font != blank -%}
+  {%- assign body_path = body_font.path -%}
+
+  {%- unless fonts contains body_path -%}
+    {%- if fonts == '' -%}
+      {%- assign fonts = body_path -%}
+    {%- else -%}
+      {%- assign fonts = fonts | append: separator | append: body_path -%}
+    {%- endif -%}
+  {%- endunless -%}
 {%- endif -%}
-{%- if settings.body_font != blank -%}
-  {{- settings.body_font | font_link -}}
+
+{%- if tagline_font != blank -%}
+  {%- assign tagline_path = tagline_font.path -%}
+
+  {%- unless fonts contains tagline_path -%}
+    {%- if fonts == '' -%}
+      {%- assign fonts = tagline_path -%}
+    {%- else -%}
+      {%- assign fonts = fonts | append: separator | append: tagline_path -%}
+    {%- endif -%}
+  {%- endunless -%}
 {%- endif -%}
-{%- if settings.tagline_font != blank -%}
-  {{- settings.tagline_font | font_link -}}
+
+{%- if fonts != '' -%}
+  {%- assign paths = fonts | split: separator -%}
+
+  {%- for path in paths -%}
+    <link rel="preload" as="style" href="{{ path }}" crossorigin>
+    <link rel="stylesheet" href="{{ path }}" media="print" onload="this.media='all'">
+  {%- endfor -%}
 {%- endif -%}

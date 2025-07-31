@@ -45,7 +45,7 @@
 }
 
 .hero__vision--indent {
-  bottom: calc(var(--date-picker-height, 80px) / 2 - 5px);
+  bottom: calc(var(--date-picker-height, 71px) / 2);
 }
 
 .hero__vision-wrapper {
@@ -59,7 +59,7 @@
   left: 50%;
   top: 0;
   transform: translate(-50%, 0);
-  opacity: var(--overlay-opacity, 1);
+  opacity: var(--opacity-overlay, 0.7);
 }
 
 .hero__vision-wrapper-overlay::after {
@@ -77,14 +77,6 @@
   inset: 0;
 }
 
-.hero__image {
-  opacity: calc(1 - var(--overlay-opacity, 1));
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-}
-
 .hero__vision-wrapper svg {
   position: absolute;
   top: 50%;
@@ -92,7 +84,7 @@
   transform: translate(-50%, -50%);
   height: 100%;
   min-width: 100%;
-  opacity: calc(1 - var(--overlay-opacity, 1));
+  opacity: calc(1 - var(--opacity-overlay, 0.3));
 }
 
 .hero__vision-floral-wrapper {
@@ -105,6 +97,18 @@
   bottom: 0;
   opacity: 0.2;
   max-height: 100%;
+}
+
+.hero__image-wrapper {
+  display: initial;
+}
+
+.hero__image {
+  opacity: calc(1 - var(--opacity-overlay, 0.3));
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
 }
 
 .hero .hero__wrapper .date-picker__instance {

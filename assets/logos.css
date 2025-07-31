@@ -37,6 +37,7 @@
 
 .logos__image-wrapper img {
   max-height: 64px;
+  width: auto;
 }
 
 .palette-one.logos__wrapper {
