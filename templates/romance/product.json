@@ -30,8 +30,7 @@
         "padding_top_mobile": "small",
         "show_breadcrumbs": true,
         "show_controls": true,
-        "show_thumbnails": true,
-        "variation_label": "Variant"
+        "show_thumbnails": true
       },
       "disabled": null
     },
