@@ -10,7 +10,7 @@
 {%- assign quantity                      = product | product_button -%}
 {%- assign price                         = product | product_price -%}
 {%- assign period                        = product | product_price_label -%}
-{%- assign variation_label               = 'store.variant' | user_t | default: section.settings.variation_label -%}
+{%- assign variation_label               = 'store.variant' | user_t -%}
 {%- assign message_label                 = section.settings.message_label -%}
 {%- assign show_controls                 = section.settings.show_controls -%}
 {%- assign show_thumbnails               = section.settings.show_thumbnails -%}
