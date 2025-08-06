@@ -79,7 +79,7 @@
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .product-main__availability bq-product-availability-calendar:hover {

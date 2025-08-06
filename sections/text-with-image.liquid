@@ -1,4 +1,3 @@
-{{ "text-with-image.css" | asset_url | stylesheet_tag }}
 
 {%- assign tag                   = section.settings.tag -%}
 {%- assign title                 = section.settings.title -%}
@@ -9,13 +8,19 @@
 {%- assign button_url_2          = section.settings.button_url_2 -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign space_height          = section.settings.space_height -%}
+{%- assign loading_strategy      = 'lazy' -%}
 {%- assign padding_top           = section.settings.padding_top -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
 {%- assign image                 = section.settings.image -%}
+{%- assign image_alt             = section.settings.image_alt -%}
 {%- assign image_position        = section.settings.image_position -%}
 {%- assign background_style      = settings.background_style -%}
+
+{%- if section_preview -%}
+  {%- assign loading_strategy    = 'eager' -%}
+{%- endif -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture spacer_variable -%}
@@ -179,9 +184,10 @@
               {%- if image.url != blank -%}
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'text-image__image',
-                  size: 'm'
+                  image_alt: image_alt,
+                  image_class: 'text-image__image',
+                  image_size: 'm',
+                  loading: loading_strategy
                 -%}
               {%- endif -%}
             </div>
@@ -211,6 +217,11 @@
     "description": "Add text with an optional image to highlight a page or product",
     "tag": "section",
     "class": "text-image",
+    "css_assets": [
+      {
+        "file": "text-with-image.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",
@@ -240,6 +251,12 @@
         "id": "image",
         "label": "Image (optional)",
         "default": "booqable://assets/image-placeholder.png"
+      },
+      {
+        "type": "text",
+        "id": "image_alt",
+        "label": "Alternative text (optional)",
+        "info": "For SEO and Accessibility purposes"
       },
       {
         "type": "select",

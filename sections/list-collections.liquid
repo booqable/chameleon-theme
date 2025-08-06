@@ -1,4 +1,3 @@
-{{ "collections.css" | asset_url | stylesheet_tag }}
 
 {%- assign limit                 = section.settings.limit -%}
 {%- assign color_palette         = section.settings.color_palette -%}
@@ -95,6 +94,14 @@
     "name": "Collections",
     "tag": "section",
     "class": "collections",
+    "css_assets": [
+      {
+        "file": "collections.css"
+      },
+      {
+        "file": "pagination.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

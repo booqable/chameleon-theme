@@ -72,7 +72,7 @@
   content: "";
   position: absolute;
   inset: 0 0 -120px;
-  opacity: var(--overlay-opacity, 1);
+  opacity: var(--opacity-overlay, 0.7);
 }
 
 .cta__image-floral-wrapper {
