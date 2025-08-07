@@ -118,7 +118,7 @@
 
   <div class="images__wrapper{% if full_width %} images__wrapper-full-width{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} section-with-date-picker{% endif %}{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}">
     {%- if carousel -%}
-      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-role="Gallery" data-dafault-color="{{- default_color -}}">
+      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-role="Gallery" data-default-color="{{- default_color -}}">
         <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
         <div class="carousel__wrapper">
     {%- endif -%}
@@ -375,7 +375,10 @@
                           class="images__video"
                           width="1920"
                           height="1080"
-                          src="https://www.youtube.com/embed/{{- video_id -}}?playlist={{- video_id -}}&autoplay=1&mute=1&loop=1&controls=0&disablekb=1&fs=0&playsinline=1&enablejsapi=1&iv_load_policy=3&modestbranding=1"
+                          data-video-id="{{- video_id -}}"
+                          data-src="https://www.youtube.com/embed/{{- video_id -}}?playlist={{- video_id -}}&autoplay=1&mute=1&loop=1&controls=0&disablekb=1&fs=0&playsinline=1&enablejsapi=1&iv_load_policy=3&modestbranding=1"
+                          {% unless first %}data-lazy="true"{% endunless %}
+                          {% if first %}src="https://www.youtube.com/embed/{{- video_id -}}?playlist={{- video_id -}}&autoplay=1&mute=1&loop=1&controls=0&disablekb=1&fs=0&playsinline=1&enablejsapi=1&iv_load_policy=3&modestbranding=1"{% endif %}
                           frameborder="0"
                           allow="autoplay; muted; encrypted-media; fullscreen"
                           allowfullscreen
@@ -393,9 +396,12 @@
                       <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
                         <iframe
                           class="images__video"
-                          src="https://player.vimeo.com/video/{{- video_id -}}?autoplay=1&muted=1&loop=1&autopause=0&controls=0&background=1"
                           width="1920"
                           height="1080"
+                          data-video-id="{{- video_id -}}"
+                          data-src="https://player.vimeo.com/video/{{- video_id -}}?autoplay=1&muted=1&loop=1&autopause=0&controls=0&background=1"
+                          {% unless first %}data-lazy="true"{% endunless %}
+                          {% if first %}src="https://player.vimeo.com/video/{{- video_id -}}?autoplay=1&muted=1&loop=1&autopause=0&controls=0&background=1"{% endif %}
                           frameborder="0"
                           allow="autoplay; fullscreen"
                           allowfullscreen

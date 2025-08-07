@@ -12,7 +12,8 @@ class Carousel {
       wrapper: '.carousel__wrapper',
       item: '.carousel__item',
       timer: '.carousel__timer',
-      count: '.carousel__count'
+      count: '.carousel__count',
+      video: '.images__video'
     }
 
     this.classes = {
@@ -37,7 +38,7 @@ class Carousel {
     this.data = {
       index: 'data-index',
       overlayColor: 'data-overlay-color',
-      defaultColor: 'data-dafault-color'
+      defaultColor: 'data-default-color'
     }
 
     this.cssVar = {
@@ -81,6 +82,7 @@ class Carousel {
     this.dots = this.block.querySelectorAll(this.selector.dot)
     this.count = this.block.querySelector(this.selector.count)
     this.timers = this.block.querySelectorAll(this.selector.timer)
+    this.videos = this.block.querySelectorAll(this.selector.video)
   }
 
   events () {
@@ -90,6 +92,7 @@ class Carousel {
     this.hideControls()
     this.hidePaginationDots()
     this.setOverlay(1)
+    this.initVideoLoading()
 
     this.listener(this.dots, 'click', this.pagination)
     this.listener(this.dots, 'click', this.navigation)
@@ -173,7 +176,6 @@ class Carousel {
           currentScroll: left,
           clientVal: clientX,
           scrollVal: scrollX,
-          scrollToVal: valueLeft,
           size: width,
           trigger: prev
         }
@@ -196,7 +198,6 @@ class Carousel {
           currentScroll: left,
           clientVal: clientX,
           scrollVal: scrollX,
-          scrollToVal: valueLeft,
           size: width,
           trigger: next
         }
@@ -311,6 +312,7 @@ class Carousel {
     this.counter(index)
     this.fadeClass(index)
     this.setOverlay(index)
+    this.manageVideos(index)
   }
 
   // hide not used dots of the pagination
@@ -532,6 +534,89 @@ class Carousel {
     nodes.forEach((node) => {
       node.addEventListener(`${event}`, func.bind(this))
     })
+  }
+
+  initVideoLoading () {
+    if (!this.videos || !this.videos.length) return false
+
+    // Load second video immediately since page is already fully loaded
+    if (this.videos.length > 1) {
+      const secondVideo = this.videos[1]
+      if (secondVideo && secondVideo.hasAttribute('data-lazy')) {
+        const dataSrc = secondVideo.getAttribute('data-src')
+        if (dataSrc && !secondVideo.src) {
+          secondVideo.src = dataSrc
+          secondVideo.removeAttribute('data-lazy')
+        }
+      }
+    }
+  }
+
+  manageVideos (activeIndex) {
+    if (!this.videos || !this.videos.length) return false
+
+    const nextIndex = activeIndex >= this.videos.length ? 1 : activeIndex + 1
+    const nextVideo = this.videos[nextIndex - 1]
+
+    this.videos.forEach((video, videoIndex) => {
+      const slideIndex = videoIndex + 1
+      const isCurrentSlide = slideIndex === activeIndex
+      const isNextSlide = slideIndex === nextIndex
+      const hasLazyAttr = video.hasAttribute('data-lazy')
+      const dataSrc = video.getAttribute('data-src')
+
+      if (isCurrentSlide) {
+        // Play current video
+        if (hasLazyAttr && dataSrc && !video.src) {
+          video.src = dataSrc
+          video.removeAttribute('data-lazy')
+        }
+        this.playVideo(video)
+
+        // Load next video if not already loaded
+        if (nextVideo && nextVideo.hasAttribute('data-lazy')) {
+          const nextDataSrc = nextVideo.getAttribute('data-src')
+          if (nextDataSrc && !nextVideo.src) {
+            setTimeout(() => {
+              nextVideo.src = nextDataSrc
+              nextVideo.removeAttribute('data-lazy')
+            }, 500)
+          }
+        }
+      } else if (isNextSlide) {
+        this.pauseVideo(video)
+      } else {
+        this.pauseVideo(video)
+      }
+    })
+  }
+
+  playVideo (video) {
+    try {
+      if (video && video.contentWindow) {
+        if (video.src && video.src.includes('youtube')) {
+          video.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+        } else if (video.src && video.src.includes('vimeo')) {
+          video.contentWindow.postMessage('{"method":"play"}', '*')
+        }
+      }
+    } catch (e) {
+      console.warn('Video play failed:', e)
+    }
+  }
+
+  pauseVideo (video) {
+    try {
+      if (video && video.contentWindow) {
+        if (video.src && video.src.includes('youtube')) {
+          video.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
+        } else if (video.src && video.src.includes('vimeo')) {
+          video.contentWindow.postMessage('{"method":"pause"}', '*')
+        }
+      }
+    } catch (e) {
+      console.warn('Video pause failed:', e)
+    }
   }
 }
 
