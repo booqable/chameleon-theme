@@ -13,7 +13,154 @@
             "button_url_2": "booqable://root/",
             "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
             "image": "booqable://assets/image-tough-hero.jpg",
-            "image_mobile": "booqable://assets/image-tough-hero-mobile.jpg",
+            "video_url": "https://www.youtube.com/watch?v=8SoY7hiXc4M",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958483": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=_Bpwo7JlmII",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958484": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=E7AXalS3uX4",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958485": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=VNrLu4Daueo",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958486": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=1Izund94NNY",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958487": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=pgGY2XgaxG4",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958488": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=_PMRqrna4sU",
+            "limit_content_width": false,
+            "overlay_background": "#0B1A26",
+            "overlay_color": "#FFFFFF",
+            "overlay_opacity": 80,
+            "show_overlay": true,
+            "text_position": "middle-left",
+            "text_position_mobile": "top-left",
+            "title": "Rent construction<br> equipment"
+          },
+          "disabled": null
+        },
+        "slide_958489": {
+          "type": "slide",
+          "settings": {
+            "button_1": "Check out products",
+            "button_2": "More info",
+            "button_url_1": "booqable://products/",
+            "button_url_2": "booqable://root/",
+            "description": "Empower your construction endeavors with our<br> vast inventory of premium equipment rentals.",
+            "image": "booqable://assets/image-tough-hero.jpg",
+            "video_url": "https://www.youtube.com/watch?v=7xHQIDYTHiw",
             "limit_content_width": false,
             "overlay_background": "#0B1A26",
             "overlay_color": "#FFFFFF",
@@ -27,7 +174,14 @@
         }
       },
       "block_order": [
-        "slide"
+        "slide",
+        "slide_958483",
+        "slide_958484",
+        "slide_958485",
+        "slide_958486",
+        "slide_958487",
+        "slide_958488",
+        "slide_958489"
       ],
       "settings": {
         "color_palette": "two",
