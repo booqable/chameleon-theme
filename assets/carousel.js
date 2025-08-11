@@ -13,7 +13,8 @@ class Carousel {
       item: '.carousel__item',
       timer: '.carousel__timer',
       count: '.carousel__count',
-      video: '.images__video'
+      video: '[data-video-container]',
+      iframe: '[data-video-iframe]'
     }
 
     this.classes = {
@@ -92,7 +93,6 @@ class Carousel {
     this.hideControls()
     this.hidePaginationDots()
     this.setOverlay(1)
-    this.initVideoLoading()
 
     this.listener(this.dots, 'click', this.pagination)
     this.listener(this.dots, 'click', this.navigation)
@@ -312,7 +312,7 @@ class Carousel {
     this.counter(index)
     this.fadeClass(index)
     this.setOverlay(index)
-    this.manageVideos(index)
+    this.manageVideoPlayback(index)
   }
 
   // hide not used dots of the pagination
@@ -536,88 +536,59 @@ class Carousel {
     })
   }
 
-  initVideoLoading () {
+  // Manage video playback on slide change
+  manageVideoPlayback (activeIndex) {
     if (!this.videos || !this.videos.length) return false
 
-    // Load second video immediately since page is already fully loaded
-    if (this.videos.length > 1) {
-      const secondVideo = this.videos[1]
-      if (secondVideo && secondVideo.hasAttribute('data-lazy')) {
-        const dataSrc = secondVideo.getAttribute('data-src')
-        if (dataSrc && !secondVideo.src) {
-          secondVideo.src = dataSrc
-          secondVideo.removeAttribute('data-lazy')
+    // Throttle video management calls to prevent multiple triggers
+    if (this.lastVideoManagementIndex === activeIndex &&
+      Date.now() - (this.lastVideoManagementTime || 0) < 100) {
+      return false
+    }
+
+    const videoLoading = window.videoLoadingInstance
+
+    this.lastVideoManagementIndex = activeIndex
+    this.lastVideoManagementTime = Date.now()
+
+    const videoPlayback = () => {
+      this.videos.forEach((container, containerIndex) => {
+        const slideIndex = containerIndex + 1,
+          isActive = slideIndex === activeIndex,
+          iframe = container.querySelector(this.selector.iframe)
+
+        if (isActive && iframe) {
+          this.playVideo(iframe)
+        } else if (iframe) {
+          this.pauseVideo(iframe)
         }
-      }
+      })
+    }
+
+    // Use the smart video loading system if available
+    if (videoLoading && videoLoading.onSlideChange) {
+      videoLoading.onSlideChange(activeIndex)
+      videoPlayback()
+    } else {
+      // Fallback to basic video management if smart system not available
+      videoPlayback()
     }
   }
 
-  manageVideos (activeIndex) {
-    if (!this.videos || !this.videos.length) return false
+  playbackVideo (iframe, action) {
+    if (!iframe || !iframe.contentWindow || !iframe.src) return
 
-    const nextIndex = activeIndex >= this.videos.length ? 1 : activeIndex + 1
-    const nextVideo = this.videos[nextIndex - 1]
-
-    this.videos.forEach((video, videoIndex) => {
-      const slideIndex = videoIndex + 1
-      const isCurrentSlide = slideIndex === activeIndex
-      const isNextSlide = slideIndex === nextIndex
-      const hasLazyAttr = video.hasAttribute('data-lazy')
-      const dataSrc = video.getAttribute('data-src')
-
-      if (isCurrentSlide) {
-        // Play current video
-        if (hasLazyAttr && dataSrc && !video.src) {
-          video.src = dataSrc
-          video.removeAttribute('data-lazy')
-        }
-        this.playVideo(video)
-
-        // Load next video if not already loaded
-        if (nextVideo && nextVideo.hasAttribute('data-lazy')) {
-          const nextDataSrc = nextVideo.getAttribute('data-src')
-          if (nextDataSrc && !nextVideo.src) {
-            setTimeout(() => {
-              nextVideo.src = nextDataSrc
-              nextVideo.removeAttribute('data-lazy')
-            }, 500)
-          }
-        }
-      } else if (isNextSlide) {
-        this.pauseVideo(video)
-      } else {
-        this.pauseVideo(video)
-      }
-    })
-  }
-
-  playVideo (video) {
-    try {
-      if (video && video.contentWindow) {
-        if (video.src && video.src.includes('youtube')) {
-          video.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
-        } else if (video.src && video.src.includes('vimeo')) {
-          video.contentWindow.postMessage('{"method":"play"}', '*')
-        }
-      }
-    } catch (e) {
-      console.warn('Video play failed:', e)
+    if (iframe.src.includes('youtube')) {
+      const command = action === 'play' ? 'playVideo' : 'pauseVideo'
+      iframe.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*')
+    } else if (iframe.src.includes('vimeo')) {
+      iframe.contentWindow.postMessage(`{"method":"${action}"}`, '*')
     }
   }
 
-  pauseVideo (video) {
-    try {
-      if (video && video.contentWindow) {
-        if (video.src && video.src.includes('youtube')) {
-          video.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
-        } else if (video.src && video.src.includes('vimeo')) {
-          video.contentWindow.postMessage('{"method":"pause"}', '*')
-        }
-      }
-    } catch (e) {
-      console.warn('Video pause failed:', e)
-    }
-  }
+  playVideo (iframe) { this.playbackVideo(iframe, 'play') }
+
+  pauseVideo (iframe) { this.playbackVideo(iframe, 'pause') }
 }
 
 const initCarousel = (el = '.carousel') => {
