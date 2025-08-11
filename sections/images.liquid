@@ -21,7 +21,7 @@
   {%- for block in blocks -%}
     {%- assign video_url = block.settings.video_url | strip -%}
 
-    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "vimeo.com" -%}
+    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "youtu.be" or video_url != blank and video_url contains "vimeo.com" -%}
       {%- assign has_video = true -%}
 
       {%- break -%}
