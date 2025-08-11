@@ -94,20 +94,16 @@ class VideoLoading {
             const currentTime = data.info.currentTime,
               existingState = this.videoStates.get(videoUrl)
 
-            const shouldSave = !existingState ||
-              currentTime > existingState.currentTime || // Prefer later timestamps
-              (existingState.estimated && !data.estimated) || // Prefer API over estimated
-              (Date.now() - existingState.timestamp) > 2000 // Or if state is old
-
-            const options = {
-              currentTime: currentTime,
-              slideIndex: activeSlideIndex,
-              timestamp: Date.now(),
-              global: true,
-              source: 'global_api'
+            if (this.shouldSaveState(existingState, currentTime, 'global_api')) {
+              const options = {
+                currentTime: currentTime,
+                slideIndex: activeSlideIndex,
+                timestamp: Date.now(),
+                global: true,
+                source: 'global_api'
+              }
+              this.videoStates.set(videoUrl, options)
             }
-
-            if (shouldSave) this.videoStates.set(videoUrl, options)
           }
         }
       } catch {
@@ -188,11 +184,12 @@ class VideoLoading {
         if (!container) continue
 
         const iframe = container.querySelector(this.config.selectors.iframe)
-        if (!iframe && !iframe.src && iframe.src.includes('about:blank')) return
+        if (!this.isValidIframe(iframe)) return
 
         try {
-          const msg = iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
-          if (iframe.src.includes('youtube')) msg
+          if (iframe.src.includes('youtube')) {
+            this.sendYouTubeCommand(iframe, 'getCurrentTime')
+          }
         } catch {
           // Ignore errors - this is periodic tracking
         }
@@ -209,8 +206,8 @@ class VideoLoading {
     const container = this.containers[containerIndex],
       iframe = container?.querySelector(this.config.selectors.iframe)
 
-    if (!iframe && !iframe.src && iframe.src.includes('about:blank')) return
-    this.requestVideoTimeSync(iframe, container.dataset.videoUrl, slideIndex)
+    if (!this.isValidIframe(iframe)) return
+    this.requestVideoTime(iframe, container.dataset.videoUrl, slideIndex)
   }
 
   shouldVideoBeLoaded (containerIndex, activeIndex) {
@@ -230,7 +227,7 @@ class VideoLoading {
     const iframe = container.querySelector(this.config.selectors.iframe),
       videoUrl = container.dataset.videoUrl
 
-    if (!iframe || !iframe.src || iframe.src.includes('about:blank')) return
+    if (!this.isValidIframe(iframe)) return
     if (!videoUrl) return
 
     // Use estimated time as fallback for blocked YouTube API
@@ -238,21 +235,16 @@ class VideoLoading {
     if (estimatedTime > 0 && estimatedTime < 7200 && estimatedTime !== Infinity) {
       const currentState = this.videoStates.get(videoUrl)
 
-      // Only save estimated time if it's better than what we have
-      const shouldSave = !currentState ||
-        (currentState.estimated && estimatedTime > currentState.currentTime) || // Better estimated time
-        (!currentState.estimated && !currentState.global && estimatedTime > currentState.currentTime) || // Better than non-global API
-        (Date.now() - currentState.timestamp) > 5000 // Or if state is very old
-
-      const options = {
-        currentTime: estimatedTime,
-        slideIndex: slideIndex,
-        timestamp: Date.now(),
-        estimated: true,
-        source: 'estimated'
+      if (this.shouldSaveState(currentState, estimatedTime, 'estimated')) {
+        const options = {
+          currentTime: estimatedTime,
+          slideIndex: slideIndex,
+          timestamp: Date.now(),
+          estimated: true,
+          source: 'estimated'
+        }
+        this.videoStates.set(videoUrl, options)
       }
-
-      if (shouldSave) this.videoStates.set(videoUrl, options)
     }
 
     this.requestVideoTime(iframe, videoUrl, slideIndex)
@@ -286,10 +278,6 @@ class VideoLoading {
   }
 
   requestVideoTime (iframe, videoUrl, slideIndex) {
-    this.requestVideoTimeSync(iframe, videoUrl, slideIndex)
-  }
-
-  requestVideoTimeSync (iframe, videoUrl, slideIndex) {
     if (!iframe || !videoUrl) return
 
     const requestKey = `${videoUrl}-${slideIndex}`
@@ -321,8 +309,7 @@ class VideoLoading {
         if (data.event === 'onReady' || data.event === 'video-progress') {
           playerReady = true
 
-          const msg = iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
-          setTimeout(() => msg, 100)
+          setTimeout(() => this.sendYouTubeCommand(iframe, 'getCurrentTime'), 100)
         }
       } catch {
         // Ignore non-JSON messages
@@ -341,8 +328,8 @@ class VideoLoading {
       }
 
       try {
-        iframe.contentWindow.postMessage('{"event":"listening","id":"widget","channel":"widget"}', '*')
-        iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*')
+        this.sendYouTubeCommand(iframe, 'listening', '', 'widget', 'widget')
+        this.sendYouTubeCommand(iframe, 'getCurrentTime')
 
         setTimeout(pollForReady, 500)
       } catch {
@@ -365,20 +352,16 @@ class VideoLoading {
           const currentTime = info.currentTime,
             existingState = this.videoStates.get(videoUrl)
 
-          const shouldSave = !existingState ||
-            currentTime > existingState.currentTime || // Prefer later timestamps
-            existingState.estimated || // Prefer API over estimated
-            (Date.now() - existingState.timestamp) > 2000 // Or if state is old
-
-          const options = {
-            currentTime: currentTime,
-            slideIndex: slideIndex,
-            timestamp: Date.now(),
-            priority: true,
-            source: 'sync_api'
+          if (this.shouldSaveState(existingState, currentTime, 'sync_api')) {
+            const options = {
+              currentTime: currentTime,
+              slideIndex: slideIndex,
+              timestamp: Date.now(),
+              priority: true,
+              source: 'sync_api'
+            }
+            this.videoStates.set(videoUrl, options)
           }
-
-          if (shouldSave) this.videoStates.set(videoUrl, options)
 
           this.pendingTimeRequests.delete(requestKey)
           window.removeEventListener('message', handleMessage)
@@ -405,20 +388,16 @@ class VideoLoading {
           const currentTime = data.data,
             existingState = this.videoStates.get(videoUrl)
 
-          const shouldSave = !existingState ||
-            currentTime > existingState.currentTime || // Prefer later timestamps
-            existingState.estimated || // Prefer API over estimated
-            (Date.now() - existingState.timestamp) > 2000 // Or if state is old
-
-          const options = {
-            currentTime: currentTime,
-            slideIndex: slideIndex,
-            timestamp: Date.now(),
-            priority: true,
-            source: 'vimeo_api'
+          if (this.shouldSaveState(existingState, currentTime, 'vimeo_api')) {
+            const options = {
+              currentTime: currentTime,
+              slideIndex: slideIndex,
+              timestamp: Date.now(),
+              priority: true,
+              source: 'vimeo_api'
+            }
+            this.videoStates.set(videoUrl, options)
           }
-
-          if (shouldSave) this.videoStates.set(videoUrl, options)
 
           this.pendingTimeRequests.delete(requestKey)
           window.removeEventListener('message', handleMessage)
@@ -613,7 +592,7 @@ class VideoLoading {
 
       try {
         if (platform === 'youtube') {
-          iframe.contentWindow.postMessage('{"event":"listening","id":"widget","channel":"widget"}', '*')
+          this.sendYouTubeCommand(iframe, 'listening', '', 'widget', 'widget')
 
           const readyListener = (event) => {
             try {
@@ -649,7 +628,7 @@ class VideoLoading {
   seekToTime (iframe, time, platform) {
     try {
       if (platform === 'youtube') {
-        iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":[${time}, true]}`, '*')
+        this.sendYouTubeCommand(iframe, 'seekTo', [time, true])
       } else if (platform === 'vimeo') {
         iframe.contentWindow.postMessage(`{"method":"setCurrentTime","value":${time}}`, '*')
       }
@@ -664,7 +643,7 @@ class VideoLoading {
         const detectedPlatform = platform || (iframe.src.includes('youtube') ? 'youtube' : 'vimeo')
 
         if (detectedPlatform === 'youtube') {
-          iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+          this.sendYouTubeCommand(iframe, 'playVideo')
         } else if (detectedPlatform === 'vimeo') {
           iframe.contentWindow.postMessage('{"method":"play"}', '*')
         }
@@ -844,11 +823,6 @@ class VideoLoading {
     }
   }
 
-  // Public method for carousel to call when slide changes
-  onSlideChange (slideIndex) {
-    this.updateActiveSlide(slideIndex)
-  }
-
   cleanup () {
     if (this.resizeHandler) {
       window.removeEventListener('resize', this.resizeHandler)
@@ -881,6 +855,46 @@ class VideoLoading {
     this.videoStartTimes.clear()
 
     return null
+  }
+
+  // Helper methods
+  isValidIframe (iframe) {
+    return iframe && iframe.src && !iframe.src.includes('about:blank')
+  }
+
+  sendYouTubeCommand (iframe, func, args = '', id = '', channel = '') {
+    if (!iframe || !iframe.contentWindow) return
+
+    let message
+    if (func === 'listening') {
+      message = `{"event":"${func}","id":"${id}","channel":"${channel}"}`
+    } else {
+      const argsStr = Array.isArray(args) ? JSON.stringify(args) : (args ? `"${args}"` : '""')
+      message = `{"event":"command","func":"${func}","args":${argsStr}}`
+    }
+
+    iframe.contentWindow.postMessage(message, '*')
+  }
+
+  shouldSaveState (existingState, newTime, source) {
+    if (!existingState) return true
+
+    if (newTime > existingState.currentTime) return true // Always prefer later timestamps
+
+    if (existingState.estimated && source !== 'estimated') return true // Prefer API data over estimated data
+
+    if (source === 'estimated' && existingState.estimated && newTime > existingState.currentTime) return true // Only save if it's better than existing estimated data
+
+    const maxAge = source === 'estimated' ? 5000 : 2000 // Save if existing state is old (more than 2-5 seconds depending on source)
+    if ((Date.now() - existingState.timestamp) > maxAge) return true
+
+    return false
+  }
+
+
+  // Public method for carousel to call when slide changes
+  onSlideChange (slideIndex) {
+    this.updateActiveSlide(slideIndex)
   }
 }
 
