@@ -175,13 +175,16 @@ class VideoLoading {
     if (this.periodicTracker) clearInterval(this.periodicTracker)
 
     this.periodicTracker = setInterval(() => {
-      for (let offset = -1; offset <= 1; offset++) {
-        const slideIndex = activeSlideIndex + offset
-        if (slideIndex < 1 || slideIndex > this.containers.length) continue
+      const totalSlides = this.containers.length,
+        nextSlideIndex = activeSlideIndex === totalSlides ? 1 : activeSlideIndex + 1,
+        slidesToTrack = [activeSlideIndex, nextSlideIndex]
+
+      slidesToTrack.forEach((slideIndex) => {
+        if (slideIndex < 1 || slideIndex > totalSlides) return
 
         const containerIndex = slideIndex - 1,
           container = this.containers[containerIndex]
-        if (!container) continue
+        if (!container) return
 
         const iframe = container.querySelector(this.config.selectors.iframe)
         if (!this.isValidIframe(iframe)) return
@@ -193,7 +196,7 @@ class VideoLoading {
         } catch {
           // Ignore errors - this is periodic tracking
         }
-      }
+      })
     }, 2000)
   }
 
@@ -214,13 +217,12 @@ class VideoLoading {
     const slideIndex = containerIndex + 1,
       totalSlides = this.containers.length
 
-    const distance = Math.min(
-      Math.abs(slideIndex - activeIndex),
-      Math.abs(slideIndex - activeIndex + totalSlides),
-      Math.abs(slideIndex - activeIndex - totalSlides)
-    )
+    if (slideIndex === activeIndex) return true
 
-    return distance <= 1 // Load: prev (distance=1), current (distance=0), next (distance=1)
+    const nextSlide = activeIndex === totalSlides ? 1 : activeIndex + 1
+    if (slideIndex === nextSlide) return true
+
+    return false
   }
 
   saveVideoState (container, slideIndex) {
@@ -464,7 +466,7 @@ class VideoLoading {
         initialVideosToLoad = []
 
       processQueue.forEach(({ container, containerIndex }) => {
-        // Only load videos within the 3-video window initially (with circular logic)
+        // Only load current and next videos initially (with circular logic)
         if (this.shouldVideoBeLoaded(containerIndex, this.currentSlideIndex)) {
           this.loadVideo(container, slowConnection)
           initialVideosToLoad.push(containerIndex + 1)
