@@ -418,7 +418,7 @@ class VideoLoading {
 
     if (videoUrl) {
       const finalTime = this.stopEstimatedTimeTracking(videoUrl)
-      if (finalTime <= 0 && finalTime >= 7200) return
+      if (finalTime <= 0 || finalTime >= 7200) return
 
       const options = {
         currentTime: finalTime,
@@ -513,7 +513,7 @@ class VideoLoading {
       }
     } else if (url.includes('vimeo.com')) {
       platform = 'vimeo'
-      const match = url.match(/vimeo\.com\/(?:video\/)?(\\d+)/)
+      const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
       videoId = match ? match[1] : null
     }
 
