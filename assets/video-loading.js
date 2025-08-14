@@ -114,7 +114,7 @@ class VideoLoading {
     window.addEventListener('message', this.globalMessageHandler)
   }
 
-  updateActiveSlide (slideIndex) {
+  updateActiveSlide (slideIndex, isAutoRotate = false) {
     if (this.currentSlideIndex === slideIndex) return
 
     const now = Date.now()
@@ -129,6 +129,8 @@ class VideoLoading {
     this.saveCurrentVideoState(previousSlideIndex)
 
     this.startPeriodicTracking(slideIndex)
+
+    const managementDelay = isAutoRotate ? 1200 : 500
 
     // Wait longer for state to be saved, then proceed with memory management
     setTimeout(() => {
@@ -146,29 +148,24 @@ class VideoLoading {
         }
       })
 
-      // Process video management: destroy, save state, and load new videos
-      const newLoads = []
-
-      videosToDestroy.forEach((videoSlideIndex) => {
-        const containerIndex = videoSlideIndex - 1
-        const container = this.containers[containerIndex]
-        if (container) {
+      // Process video management asynchronously to avoid blocking
+      this.requestIdle(() => {
+        // Process videos with unified loop
+        this.processVideoSlides(videosToDestroy, (container, videoSlideIndex) => {
           this.saveVideoState(container, videoSlideIndex)
           this.destroyVideoIframe(container, videoSlideIndex)
-        }
-      })
+        })
 
-      videosToKeep.forEach((videoSlideIndex) => {
-        if (!this.loadedVideos.has(videoSlideIndex)) {
-          const containerIndex = videoSlideIndex - 1
-          const container = this.containers[containerIndex]
-          if (container) {
-            newLoads.push(videoSlideIndex)
+        // Then load new videos with additional delay for auto-rotate
+        const loadDelay = isAutoRotate ? 800 : 0
+        setTimeout(() => {
+          this.processVideoSlides(videosToKeep, (container, videoSlideIndex) => {
+            if (this.loadedVideos.has(videoSlideIndex)) return
             this.loadVideo(container)
-          }
-        }
+          })
+        }, loadDelay)
       })
-    }, 500)
+    }, managementDelay)
   }
 
   startPeriodicTracking (activeSlideIndex) {
@@ -902,9 +899,19 @@ class VideoLoading {
   }
 
 
+  // Helper method to process video slides and avoid duplicate container logic
+  processVideoSlides (videoSlideIndexes, callback) {
+    videoSlideIndexes.forEach((videoSlideIndex) => {
+      const containerIndex = videoSlideIndex - 1,
+        container = this.containers[containerIndex]
+      if (!container) return
+      callback(container, videoSlideIndex)
+    })
+  }
+
   // Public method for carousel to call when slide changes
-  onSlideChange (slideIndex) {
-    this.updateActiveSlide(slideIndex)
+  onSlideChange (slideIndex, isAutoRotate = false) {
+    this.updateActiveSlide(slideIndex, isAutoRotate)
   }
 }
 

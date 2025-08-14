@@ -64,8 +64,9 @@ class Carousel {
     this.wheelTimeout
     this.isWheeling = false
     this.infinite = true
-    this.navigationDebounceTime = 2000 // Prevent rapid navigation: slide transition + video load + play time
+    this.navigationDebounceTime = 2500 // Prevent rapid navigation: slide transition + video load + play time
     this.lastNavigationTime = 0
+    this.isAutoRotating = false
   }
 
   init () {
@@ -120,7 +121,14 @@ class Carousel {
   autoRotate (time) {
     if (!time) return false
 
-    this.interval = setInterval(() => this.navigation(undefined, time), time)
+    this.interval = setInterval(() => {
+      this.isAutoRotating = true
+      this.navigation(undefined, time)
+      // Reset auto-rotate flag after navigation completes
+      setTimeout(() => {
+        this.isAutoRotating = false
+      }, 100)
+    }, time)
 
     return () => clearInterval(this.interval)
   }
@@ -597,7 +605,7 @@ class Carousel {
 
     // Use the smart video loading system if available
     if (videoLoading && videoLoading.onSlideChange) {
-      videoLoading.onSlideChange(activeIndex)
+      videoLoading.onSlideChange(activeIndex, this.isAutoRotating)
       videoPlayback()
     } else {
       // Fallback to basic video management if smart system not available
