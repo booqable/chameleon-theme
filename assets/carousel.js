@@ -64,6 +64,8 @@ class Carousel {
     this.wheelTimeout
     this.isWheeling = false
     this.infinite = true
+    this.navigationDebounceTime = 2000 // Prevent rapid navigation: slide transition + video load + play time
+    this.lastNavigationTime = 0
   }
 
   init () {
@@ -149,6 +151,11 @@ class Carousel {
       isDot = target?.classList.contains(this.classes.dot)
 
     if (!isPrev && !isNext && !isDot && !time) return false
+
+    // Prevent rapid navigation that can cause page crashes
+    if (!time && this.debounceNavigation()) {
+      return false
+    }
 
     const isFade = this.block.classList.contains(this.classes.fade),
       isFull = this.block.classList.contains(this.classes.full),
@@ -299,6 +306,11 @@ class Carousel {
 
     if (!isDot && typeof index === 'undefined') return false
 
+    // Prevent rapid dot navigation
+    if (isDot && this.debounceNavigation()) {
+      return false
+    }
+
     this.dots.forEach((dot) => {
       const activeIndex = parseInt(dot.getAttribute(this.data.index))
 
@@ -350,6 +362,22 @@ class Carousel {
       this.pagi?.classList.add(this.modifiers.hidden)) :
       (this.navi?.classList.remove(this.modifiers.hidden),
       this.pagi?.classList.remove(this.modifiers.hidden))
+  }
+
+  // Check if navigation should be debounced
+  debounceNavigation () {
+    // Skip debouncing if no videos present - debouncing is only needed for video loading protection
+    if (!this.videos || !this.videos.length) return false
+
+    const now = Date.now(),
+      timeSinceLastNavigation = now - this.lastNavigationTime
+
+    if (timeSinceLastNavigation < this.navigationDebounceTime) {
+      return true
+    }
+
+    this.lastNavigationTime = now
+    return false
   }
 
   // change index of counter of slides
@@ -557,10 +585,12 @@ class Carousel {
           isActive = slideIndex === activeIndex,
           iframe = container.querySelector(this.selector.iframe)
 
-        if (isActive && iframe) {
-          this.playVideo(iframe)
-        } else if (iframe) {
-          this.pauseVideo(iframe)
+        const videoLoading = window.videoLoadingInstance
+
+        if (isActive && iframe && videoLoading) {
+          videoLoading.playVideo(iframe)
+        } else if (iframe && videoLoading) {
+          videoLoading.pauseVideo(iframe)
         }
       })
     }
@@ -574,21 +604,6 @@ class Carousel {
       videoPlayback()
     }
   }
-
-  playbackVideo (iframe, action) {
-    if (!iframe || !iframe.contentWindow || !iframe.src) return
-
-    if (iframe.src.includes('youtube')) {
-      const command = action === 'play' ? 'playVideo' : 'pauseVideo'
-      iframe.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*')
-    } else if (iframe.src.includes('vimeo')) {
-      iframe.contentWindow.postMessage(`{"method":"${action}"}`, '*')
-    }
-  }
-
-  playVideo (iframe) { this.playbackVideo(iframe, 'play') }
-
-  pauseVideo (iframe) { this.playbackVideo(iframe, 'pause') }
 }
 
 const initCarousel = (el = '.carousel') => {

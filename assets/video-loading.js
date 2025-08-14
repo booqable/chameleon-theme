@@ -639,20 +639,28 @@ class VideoLoading {
     }
   }
 
-  playVideo (iframe, platform = null) {
+  playbackVideo (iframe, action, platform = null) {
     try {
       if (iframe && iframe.contentWindow && iframe.src) {
         const detectedPlatform = platform || (iframe.src.includes('youtube') ? 'youtube' : 'vimeo')
 
         if (detectedPlatform === 'youtube') {
-          this.sendYouTubeCommand(iframe, 'playVideo')
+          this.sendYouTubeCommand(iframe, `${action}Video`)
         } else if (detectedPlatform === 'vimeo') {
-          iframe.contentWindow.postMessage('{"method":"play"}', '*')
+          iframe.contentWindow.postMessage(`{"method":"${action}"}`, '*')
         }
       }
     } catch (e) {
-      console.warn('Video play failed:', e)
+      console.warn(`Video ${action} failed:`, e)
     }
+  }
+
+  playVideo (iframe, platform) {
+    this.playbackVideo(iframe, 'play', platform)
+  }
+
+  pauseVideo (iframe, platform) {
+    this.playbackVideo(iframe, 'pause', platform)
   }
 
   createIframe (videoId, platform, slowConnection = false, startTime = 0) {
