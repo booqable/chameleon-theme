@@ -134,6 +134,32 @@
   max-width: none;
 }
 
+.video-iframe {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-width: none;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity calc(var(--animation-duration, 200ms) + 200ms) var(--transition-function-ease-in-out);
+  will-change: opacity;
+}
+
+.video-loaded .video-iframe {
+  opacity: 1;
+}
+
+[data-video-container] {
+  position: relative;
+  overflow: clip;
+  background: #000;
+}
+
 .images__date-picker:not(:last-child) {
   margin-bottom: 36px;
 }

@@ -12,7 +12,9 @@ class Carousel {
       wrapper: '.carousel__wrapper',
       item: '.carousel__item',
       timer: '.carousel__timer',
-      count: '.carousel__count'
+      count: '.carousel__count',
+      video: '[data-video-container]',
+      iframe: '[data-video-iframe]'
     }
 
     this.classes = {
@@ -37,7 +39,7 @@ class Carousel {
     this.data = {
       index: 'data-index',
       overlayColor: 'data-overlay-color',
-      defaultColor: 'data-dafault-color'
+      defaultColor: 'data-default-color'
     }
 
     this.cssVar = {
@@ -81,6 +83,7 @@ class Carousel {
     this.dots = this.block.querySelectorAll(this.selector.dot)
     this.count = this.block.querySelector(this.selector.count)
     this.timers = this.block.querySelectorAll(this.selector.timer)
+    this.videos = this.block.querySelectorAll(this.selector.video)
   }
 
   events () {
@@ -173,7 +176,6 @@ class Carousel {
           currentScroll: left,
           clientVal: clientX,
           scrollVal: scrollX,
-          scrollToVal: valueLeft,
           size: width,
           trigger: prev
         }
@@ -196,7 +198,6 @@ class Carousel {
           currentScroll: left,
           clientVal: clientX,
           scrollVal: scrollX,
-          scrollToVal: valueLeft,
           size: width,
           trigger: next
         }
@@ -311,6 +312,7 @@ class Carousel {
     this.counter(index)
     this.fadeClass(index)
     this.setOverlay(index)
+    this.manageVideoPlayback(index)
   }
 
   // hide not used dots of the pagination
@@ -533,6 +535,60 @@ class Carousel {
       node.addEventListener(`${event}`, func.bind(this))
     })
   }
+
+  // Manage video playback on slide change
+  manageVideoPlayback (activeIndex) {
+    if (!this.videos || !this.videos.length) return false
+
+    // Throttle video management calls to prevent multiple triggers
+    if (this.lastVideoManagementIndex === activeIndex &&
+      Date.now() - (this.lastVideoManagementTime || 0) < 100) {
+      return false
+    }
+
+    const videoLoading = window.videoLoadingInstance
+
+    this.lastVideoManagementIndex = activeIndex
+    this.lastVideoManagementTime = Date.now()
+
+    const videoPlayback = () => {
+      this.videos.forEach((container, containerIndex) => {
+        const slideIndex = containerIndex + 1,
+          isActive = slideIndex === activeIndex,
+          iframe = container.querySelector(this.selector.iframe)
+
+        if (isActive && iframe) {
+          this.playVideo(iframe)
+        } else if (iframe) {
+          this.pauseVideo(iframe)
+        }
+      })
+    }
+
+    // Use the smart video loading system if available
+    if (videoLoading && videoLoading.onSlideChange) {
+      videoLoading.onSlideChange(activeIndex)
+      videoPlayback()
+    } else {
+      // Fallback to basic video management if smart system not available
+      videoPlayback()
+    }
+  }
+
+  playbackVideo (iframe, action) {
+    if (!iframe || !iframe.contentWindow || !iframe.src) return
+
+    if (iframe.src.includes('youtube')) {
+      const command = action === 'play' ? 'playVideo' : 'pauseVideo'
+      iframe.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*')
+    } else if (iframe.src.includes('vimeo')) {
+      iframe.contentWindow.postMessage(`{"method":"${action}"}`, '*')
+    }
+  }
+
+  playVideo (iframe) { this.playbackVideo(iframe, 'play') }
+
+  pauseVideo (iframe) { this.playbackVideo(iframe, 'pause') }
 }
 
 const initCarousel = (el = '.carousel') => {
