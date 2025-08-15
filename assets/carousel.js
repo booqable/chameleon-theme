@@ -64,7 +64,7 @@ class Carousel {
     this.wheelTimeout
     this.isWheeling = false
     this.infinite = true
-    this.navigationDebounceTime = 2500 // Prevent rapid navigation: slide transition + video load + play time
+    this.navigationThrottleTime = 2500 // Prevent rapid navigation: slide transition + video load + play time
     this.lastNavigationTime = 0
     this.isAutoRotating = false
   }
@@ -161,7 +161,7 @@ class Carousel {
     if (!isPrev && !isNext && !isDot && !time) return false
 
     // Prevent rapid navigation that can cause page crashes
-    if (!time && this.debounceNavigation()) {
+    if (!time && this.throttleNavigation()) {
       return false
     }
 
@@ -315,7 +315,7 @@ class Carousel {
     if (!isDot && typeof index === 'undefined') return false
 
     // Prevent rapid dot navigation
-    if (isDot && this.debounceNavigation()) {
+    if (isDot && this.throttleNavigation()) {
       return false
     }
 
@@ -372,15 +372,15 @@ class Carousel {
       this.pagi?.classList.remove(this.modifiers.hidden))
   }
 
-  // Check if navigation should be debounced
-  debounceNavigation () {
-    // Skip debouncing if no videos present - debouncing is only needed for video loading protection
+  // Check if navigation should be throttled
+  throttleNavigation () {
+    // Skip throttling if no videos present - throttling is only needed for video loading protection
     if (!this.videos || !this.videos.length) return false
 
     const now = Date.now(),
       timeSinceLastNavigation = now - this.lastNavigationTime
 
-    if (timeSinceLastNavigation < this.navigationDebounceTime) {
+    if (timeSinceLastNavigation < this.navigationThrottleTime) {
       return true
     }
 
