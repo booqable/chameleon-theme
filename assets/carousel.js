@@ -64,6 +64,9 @@ class Carousel {
     this.wheelTimeout
     this.isWheeling = false
     this.infinite = true
+    this.navigationThrottleTime = 2500 // Prevent rapid navigation: slide transition + video load + play time
+    this.lastNavigationTime = 0
+    this.isAutoRotating = false
   }
 
   init () {
@@ -118,7 +121,14 @@ class Carousel {
   autoRotate (time) {
     if (!time) return false
 
-    this.interval = setInterval(() => this.navigation(undefined, time), time)
+    this.interval = setInterval(() => {
+      this.isAutoRotating = true
+      this.navigation(undefined, time)
+      // Reset auto-rotate flag after navigation completes
+      setTimeout(() => {
+        this.isAutoRotating = false
+      }, 100)
+    }, time)
 
     return () => clearInterval(this.interval)
   }
@@ -149,6 +159,11 @@ class Carousel {
       isDot = target?.classList.contains(this.classes.dot)
 
     if (!isPrev && !isNext && !isDot && !time) return false
+
+    // Prevent rapid navigation that can cause page crashes
+    if (!time && this.throttleNavigation()) {
+      return false
+    }
 
     const isFade = this.block.classList.contains(this.classes.fade),
       isFull = this.block.classList.contains(this.classes.full),
@@ -299,6 +314,11 @@ class Carousel {
 
     if (!isDot && typeof index === 'undefined') return false
 
+    // Prevent rapid dot navigation
+    if (isDot && this.throttleNavigation()) {
+      return false
+    }
+
     this.dots.forEach((dot) => {
       const activeIndex = parseInt(dot.getAttribute(this.data.index))
 
@@ -350,6 +370,22 @@ class Carousel {
       this.pagi?.classList.add(this.modifiers.hidden)) :
       (this.navi?.classList.remove(this.modifiers.hidden),
       this.pagi?.classList.remove(this.modifiers.hidden))
+  }
+
+  // Check if navigation should be throttled
+  throttleNavigation () {
+    // Skip throttling if no videos present - throttling is only needed for video loading protection
+    if (!this.videos || !this.videos.length) return false
+
+    const now = Date.now(),
+      timeSinceLastNavigation = now - this.lastNavigationTime
+
+    if (timeSinceLastNavigation < this.navigationThrottleTime) {
+      return true
+    }
+
+    this.lastNavigationTime = now
+    return false
   }
 
   // change index of counter of slides
@@ -557,38 +593,25 @@ class Carousel {
           isActive = slideIndex === activeIndex,
           iframe = container.querySelector(this.selector.iframe)
 
-        if (isActive && iframe) {
-          this.playVideo(iframe)
-        } else if (iframe) {
-          this.pauseVideo(iframe)
+        const videoLoading = window.videoLoadingInstance
+
+        if (isActive && iframe && videoLoading) {
+          videoLoading.playVideo(iframe)
+        } else if (iframe && videoLoading) {
+          videoLoading.pauseVideo(iframe)
         }
       })
     }
 
     // Use the smart video loading system if available
     if (videoLoading && videoLoading.onSlideChange) {
-      videoLoading.onSlideChange(activeIndex)
+      videoLoading.onSlideChange(activeIndex, this.isAutoRotating)
       videoPlayback()
     } else {
       // Fallback to basic video management if smart system not available
       videoPlayback()
     }
   }
-
-  playbackVideo (iframe, action) {
-    if (!iframe || !iframe.contentWindow || !iframe.src) return
-
-    if (iframe.src.includes('youtube')) {
-      const command = action === 'play' ? 'playVideo' : 'pauseVideo'
-      iframe.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*')
-    } else if (iframe.src.includes('vimeo')) {
-      iframe.contentWindow.postMessage(`{"method":"${action}"}`, '*')
-    }
-  }
-
-  playVideo (iframe) { this.playbackVideo(iframe, 'play') }
-
-  pauseVideo (iframe) { this.playbackVideo(iframe, 'pause') }
 }
 
 const initCarousel = (el = '.carousel') => {
