@@ -309,7 +309,7 @@ const handleMegaMenu = () => {
 
   MegaMenuState.init(header)
 
-  $.slowConnection() ? MegaMenuEvents.bindEvents() : $.requestIdle(MegaMenuEvents.bindEvents())
+  $.slowConnection() ? MegaMenuEvents.bindEvents() : $.requestIdle(() => MegaMenuEvents.bindEvents())
 
   const cleanup = () => {
     MegaMenuEvents.cleanup()
