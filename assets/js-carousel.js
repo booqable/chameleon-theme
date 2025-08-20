@@ -9,6 +9,8 @@
  * @requires js-utils.js
  */
 
+/* global VideoHelpers */
+
 const CarouselConfig = {
   selector: {
     carousel: '.carousel',
