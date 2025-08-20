@@ -22,7 +22,8 @@ const CarouselConfig = {
     prev: '.carousel__btn.prev',
     region: '.carousel__live-region',
     wrapper: '.carousel__wrapper',
-    imageHidden: '.image-main.hidden'
+    imageHidden: '.image-main.hidden',
+    video: '[data-video-container]'
   },
   carouselTypes: {
     big: 'big',
@@ -898,8 +899,8 @@ const CarouselController = {
       timer: $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0,
       autoScrollTimer: null,
       isPaused: false,
-      lastNavigationTime: 0,
-      hasVideos: carousel.querySelectorAll('[data-video-container]').length > 0,
+      hasVideos: carousel.querySelectorAll(CarouselConfig.selector.video).length > 0,
+      throttler: null,
       eventHandlers: {
         prev: null,
         next: null,
@@ -1057,15 +1058,24 @@ const CarouselController = {
             if (video.throttlingNavigation()) return true
           }
 
-          const now = Date.now(),
-            timeSinceLastNavigation = now - this.lastNavigationTime
-
-          if (timeSinceLastNavigation < CarouselConfig.navigation.throttleTime) {
-            return true
+          // Initialize throttler if not exists
+          if (!this.throttler) {
+            if (typeof VideoHelpers !== 'undefined' && VideoHelpers.createThrottler) {
+              this.throttler = VideoHelpers.createThrottler(CarouselConfig.navigation.throttleTime)
+            } else {
+              // Fallback if VideoHelpers not available
+              this.lastNavigationTime = this.lastNavigationTime || 0
+              this.throttler = () => {
+                const now = Date.now()
+                const timeSinceLastNavigation = now - this.lastNavigationTime
+                if (timeSinceLastNavigation < CarouselConfig.navigation.throttleTime) return true
+                this.lastNavigationTime = now
+                return false
+              }
+            }
           }
 
-          this.lastNavigationTime = now
-          return false
+          return this.throttler()
         } catch (error) {
           console.warn('Carousel: Failed to check navigation throttling', error)
           return false
@@ -1074,19 +1084,27 @@ const CarouselController = {
 
       goToPrev () {
         if (this.throttleNavigation()) return
-        this.goToSlide(this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
+        const prevIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getPrevIndex) ?
+          VideoHelpers.getPrevIndex(this.currentIndex, this.maxIndex, true) :
+          (this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
+        this.goToSlide(prevIndex)
       },
 
       goToNext () {
         if (this.throttleNavigation()) return
-        this.goToSlide(this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
+        const nextIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getNextIndex) ?
+          VideoHelpers.getNextIndex(this.currentIndex, this.maxIndex, true) :
+          (this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
+        this.goToSlide(nextIndex)
       },
 
       goToSlide (targetIndex) {
         try {
           if (targetIndex === this.currentIndex) return
 
-          const newIndex = Math.max(0, Math.min(targetIndex, this.maxIndex))
+          const newIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.clampIndex) ?
+            VideoHelpers.clampIndex(targetIndex, this.maxIndex) :
+            Math.max(0, Math.min(targetIndex, this.maxIndex))
           if (newIndex === this.currentIndex) return
 
           this.currentIndex = newIndex
@@ -1129,7 +1147,10 @@ const CarouselController = {
           const video = window.videoLoadingInstance
           if (video && video.onSlideChange && this.hasVideos) {
             const isAutoRotating = this.autoScrollTimer !== null
-            video.onSlideChange(slideIndex + 1, isAutoRotating) // Convert to 1-based index for video system
+            const videoSlideIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.containerIndexToSlideIndex) ?
+              VideoHelpers.containerIndexToSlideIndex(slideIndex) :
+              (slideIndex + 1)
+            video.onSlideChange(videoSlideIndex, isAutoRotating)
           }
         } catch (error) {
           console.warn('Carousel: Failed to integrate with video system', error)
