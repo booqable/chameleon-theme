@@ -596,8 +596,8 @@ const VideoAPITracker = {
 const VideoMemoryManager = {
   shouldVideoBeLoaded (containerIndex, activeIndex, totalSlides) {
     try {
-      const slideIndex = VideoHelpers.containerIndexToSlideIndex(containerIndex)
-      const maxSlideIndex = totalSlides
+      const slideIndex = VideoHelpers.containerIndexToSlideIndex(containerIndex),
+        maxSlideIndex = totalSlides
 
       // Always load current slide
       if (slideIndex === activeIndex) return true
@@ -1044,7 +1044,7 @@ const VideoLoadingStrategy = {
   },
 
   loadInChunks (containers) {
-    const chunkSize = 5,
+    const chunkSize = 3,
       totalContainers = containers.length
 
     const loadChunk = (startIndex) => {

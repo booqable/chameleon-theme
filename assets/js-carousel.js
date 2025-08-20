@@ -74,7 +74,7 @@ const CarouselConfig = {
     desktop: 294,
     mobile: 298
   },
-  navigation: {
+  time: {
     throttleTime: 150 // Basic throttling for carousel navigation
   }
 }
@@ -1058,17 +1058,16 @@ const CarouselController = {
             if (video.throttlingNavigation()) return true
           }
 
-          // Initialize throttler if not exists
           if (!this.throttler) {
             if (typeof VideoHelpers !== 'undefined' && VideoHelpers.createThrottler) {
-              this.throttler = VideoHelpers.createThrottler(CarouselConfig.navigation.throttleTime)
+              this.throttler = VideoHelpers.createThrottler(CarouselConfig.time.throttleTime)
             } else {
               // Fallback if VideoHelpers not available
               this.lastNavigationTime = this.lastNavigationTime || 0
               this.throttler = () => {
-                const now = Date.now()
-                const timeSinceLastNavigation = now - this.lastNavigationTime
-                if (timeSinceLastNavigation < CarouselConfig.navigation.throttleTime) return true
+                const now = Date.now(),
+                  timeSinceLastNavigation = now - this.lastNavigationTime
+                if (timeSinceLastNavigation < CarouselConfig.time.throttleTime) return true
                 this.lastNavigationTime = now
                 return false
               }
