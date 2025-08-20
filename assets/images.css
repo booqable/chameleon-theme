@@ -23,6 +23,9 @@
    linear-gradient(180deg, var(--background-overlay, #0B1A26) 6.67%, var(--background-overlay-00, #0B1A2600) 105.81%),
    linear-gradient(0deg, var(--background-overlay-45, #0B1A2673), var(--background-overlay-45, #0B1A2673));
   z-index: 2;
+  will-change: opacity, transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .images__vision--video {

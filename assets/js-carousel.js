@@ -72,6 +72,9 @@ const CarouselConfig = {
   width: {
     desktop: 294,
     mobile: 298
+  },
+  navigation: {
+    throttleTime: 150 // Basic throttling for carousel navigation
   }
 }
 
@@ -895,6 +898,8 @@ const CarouselController = {
       timer: $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0,
       autoScrollTimer: null,
       isPaused: false,
+      lastNavigationTime: 0,
+      hasVideos: carousel.querySelectorAll('[data-video-container]').length > 0,
       eventHandlers: {
         prev: null,
         next: null,
@@ -1028,7 +1033,11 @@ const CarouselController = {
 
           dots.forEach((dot, index) => {
             if (index <= maxIndex) {
-              const handler = () => this.goToSlide(index)
+              const handler = () => {
+                if (!this.throttleNavigation()) {
+                  this.goToSlide(index)
+                }
+              }
               this.eventHandlers.dots[index] = handler
               $.eventListener('add', dot, 'click', handler)
               $.toggleClass(dot, CarouselConfig.classes.hidden, false)
@@ -1041,11 +1050,35 @@ const CarouselController = {
         $.frameSequence(read, write)
       },
 
+      throttleNavigation () {
+        try {
+          const video = window.videoLoadingInstance
+          if (video && video.throttlingNavigation) {
+            if (video.throttlingNavigation()) return true
+          }
+
+          const now = Date.now(),
+            timeSinceLastNavigation = now - this.lastNavigationTime
+
+          if (timeSinceLastNavigation < CarouselConfig.navigation.throttleTime) {
+            return true
+          }
+
+          this.lastNavigationTime = now
+          return false
+        } catch (error) {
+          console.warn('Carousel: Failed to check navigation throttling', error)
+          return false
+        }
+      },
+
       goToPrev () {
+        if (this.throttleNavigation()) return
         this.goToSlide(this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
       },
 
       goToNext () {
+        if (this.throttleNavigation()) return
         this.goToSlide(this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
       },
 
@@ -1083,8 +1116,23 @@ const CarouselController = {
 
           // Announce slide change for accessibility
           CarouselAccessibility.announceSlideChange(this)
+
+          // Integrate with video system if available
+          this.handleVideoIntegration(this.currentIndex)
         } catch (error) {
           console.error('Carousel: Failed to go to slide', error)
+        }
+      },
+
+      handleVideoIntegration (slideIndex) {
+        try {
+          const video = window.videoLoadingInstance
+          if (video && video.onSlideChange && this.hasVideos) {
+            const isAutoRotating = this.autoScrollTimer !== null
+            video.onSlideChange(slideIndex + 1, isAutoRotating) // Convert to 1-based index for video system
+          }
+        } catch (error) {
+          console.warn('Carousel: Failed to integrate with video system', error)
         }
       },
 

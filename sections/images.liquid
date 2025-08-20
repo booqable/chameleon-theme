@@ -20,7 +20,7 @@
   {%- for block in blocks -%}
     {%- assign video_url = block.settings.video_url | strip -%}
 
-    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "vimeo.com" -%}
+    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "youtu.be" or video_url != blank and video_url contains "vimeo.com" -%}
         {%- assign has_video = true -%}
 
         {%- break -%}
@@ -382,7 +382,7 @@
 
                   <div class="images__vision{% if video_url != blank %} images__vision--video{%- endif -%}" {% if show_overlay %}style="{{- image_variables | escape -}}"{%- endif -%}>
 
-                    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "vimeo.com" -%}
+                    {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "youtu.be" or video_url != blank and video_url contains "vimeo.com" -%}
                       <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}" data-video-container data-video-url="{{- video_url | escape -}}"{% if show_video_poster %} data-video-poster="true"{%- endif -%}></div>
 
                     {%- elsif image != blank or image_mobile != blank -%}
@@ -779,7 +779,7 @@
         "min": 0,
         "max": 100,
         "default": 5,
-        "info": "In seconds. Set to 0 to disable auto rotation"
+        "info": "In seconds. Set to 0 to disable auto rotation. If using background video, set to at least 10"
       },
       {
         "type": "checkbox",

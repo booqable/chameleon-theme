@@ -122,7 +122,9 @@
         })
       }
 
-      window.requestIdleCallback(loadScripts, { timeout: 3000 })
+      'requestIdleCallback' in window ?
+        window.requestIdleCallback(loadScripts, { timeout: 3000 }) :
+        setTimeout(loadScripts, 200)
     }, { once: true })
   </script>
 {%- endif -%}
