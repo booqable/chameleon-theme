@@ -769,7 +769,7 @@ const VideoUtils = {
         ...options
       })
       iframe.src = `https://www.youtube.com/embed/${videoId}?${params.toString()}`
-      iframe.allow = 'autoplay; encrypted-media; fullscreen'
+      iframe.allow = 'autoplay; muted; encrypted-media; fullscreen'
     }
 
     const vimeoIframe = () => {
