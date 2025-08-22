@@ -15,9 +15,6 @@
     // Mark LCP and log it
     window.performance.mark('LCP');
     window.performance.measure('LCP-measure', 'start', 'LCP');
-
-    // Optional: Log LCP details for debugging
-    console.log('LCP:', lastEntry.startTime, 'Element:', lastEntry.element);
   })
 
   // Start observing LCP
@@ -31,9 +28,6 @@
         clsValue += entry.value;
       }
     }
-
-    // Optional: Log CLS for debugging
-    console.log('CLS:', clsValue);
   })
 
   // Start observing CLS
@@ -43,9 +37,6 @@
   const fidObserver = new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
       const delay = entry.processingStart - entry.startTime;
-
-      // Optional: Log FID for debugging
-      console.log('FID:', delay, 'ms');
     }
   })
 
