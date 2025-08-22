@@ -31,6 +31,123 @@ const VideoHelpers = {
       console.warn(`VideoLoader: ${operation}`, context, error)
       return fallback
     }
+  },
+
+  handleError (moduleName, operation, error, fallback = null) {
+    console.warn(`${moduleName}: Failed to ${operation}`, error)
+    return fallback
+  },
+
+  getContainerElements (slideIndex = null) {
+    try {
+      const containers = VideoDOMCache.getContainers()
+
+      if (slideIndex !== null) {
+        const container = containers[slideIndex - 1]
+        if (!container) return null
+
+        return {
+          container,
+          iframe: container.querySelector(VideoConfig.selectors.iframe),
+          videoUrl: container.dataset.videoUrl
+        }
+      }
+
+      return { containers }
+    } catch (error) {
+      console.warn('VideoHelpers: Failed to get container elements', error)
+      return null
+    }
+  },
+
+  detectPlatform (iframe) {
+    if (!iframe || !iframe.src) return null
+    if (iframe.src.includes('youtube')) return 'youtube'
+    if (iframe.src.includes('vimeo')) return 'vimeo'
+    return null
+  },
+
+  isValidVideoState (state) {
+    if (!state) return false
+
+    return state.currentTime > 0 &&
+      state.currentTime < VideoConfig.timing.maxVideoLength &&
+      (Date.now() - state.timestamp) < VideoConfig.timing.stateValidityTimeout
+  },
+
+  isValidVideoTime (time) {
+    return time > 0 && time < VideoConfig.timing.maxVideoLength && time !== Infinity
+  },
+
+  isValidIframe (iframe) {
+    return iframe && iframe.src && !iframe.src.includes('about:blank')
+  },
+
+  createThrottler (throttleTime) {
+    let lastTime = 0
+    return () => {
+      const now = Date.now()
+      if (now - lastTime < throttleTime) return true
+      lastTime = now
+      return false
+    }
+  },
+
+  createTTLCache (ttl) {
+    const cache = new Map()
+    return {
+      get (key) {
+        const cached = cache.get(key)
+        if (cached && Date.now() - cached.timestamp < ttl) {
+          return cached.data
+        }
+        cache.delete(key)
+        return null
+      },
+
+      set (key, data) {
+        cache.set(key, { data, timestamp: Date.now() })
+      },
+
+      cleanup () {
+        const now = Date.now()
+        for (const [key, entry] of cache.entries()) {
+          if (now - entry.timestamp > ttl) {
+            cache.delete(key)
+          }
+        }
+      },
+
+      clear () {
+        cache.clear()
+      },
+
+      get size () {
+        return cache.size
+      }
+    }
+  },
+
+  clampIndex (index, max) {
+    return Math.max(0, Math.min(index, max))
+  },
+
+  getNextIndex (currentIndex, maxIndex, isInfinite = true) {
+    if (currentIndex < maxIndex) return currentIndex + 1
+    return isInfinite ? 0 : maxIndex
+  },
+
+  getPrevIndex (currentIndex, maxIndex, isInfinite = true) {
+    if (currentIndex > 0) return currentIndex - 1
+    return isInfinite ? maxIndex : 0
+  },
+
+  slideIndexToContainerIndex (slideIndex) {
+    return slideIndex - 1
+  },
+
+  containerIndexToSlideIndex (containerIndex) {
+    return containerIndex + 1
   }
 }
 
@@ -61,7 +178,11 @@ const VideoConfig = {
   timing: {
     autoplayDelay: 500,
     fadeOutDelay: 300,
-    slowConnectionDelay: 1500
+    maxVideoLength: 7200,
+    stateValidityTimeout: 300000,
+    slowConnectionDelay: 1500,
+    trackingInterval: 2000,
+    throttleTime: 2500
   },
   cache: {
     data: new Map(),
@@ -75,22 +196,135 @@ const VideoConfig = {
   }
 }
 
-const VideoCache = {
-  get (key) {
-    const cached = VideoConfig.cache.data.get(key)
-    if (cached && Date.now() - cached.timestamp < VideoConfig.cache.ttl) {
-      return cached.data
+const VideoCache = VideoHelpers.createTTLCache(VideoConfig.cache.ttl)
+
+const VideoStateManager = {
+  currentSlideIndex: 1,
+  estimatedTimes: new Map(),
+  loadedVideos: new Set(),
+  pendingRequests: new Set(),
+  videoStartTimes: new Map(),
+  videoStates: new Map(),
+  throttler: null,
+
+  init () {
+    this.throttler = VideoHelpers.createThrottler(VideoConfig.timing.throttleTime)
+  },
+
+  saveVideoState (videoUrl, currentTime, slideIndex, source = 'api') {
+    try {
+      const existingState = this.videoStates.get(videoUrl)
+      if (!this.shouldSaveState(existingState, currentTime, source)) return
+
+      const stateData = {
+        currentTime,
+        source,
+        priority: source !== 'estimated',
+        slideIndex,
+        timestamp: Date.now()
+      }
+
+      this.videoStates.set(videoUrl, stateData)
+    } catch (error) {
+      return VideoHelpers.handleError('VideoStateManager', 'save video state', error)
     }
-    VideoConfig.cache.data.delete(key)
-    return null
   },
 
-  set (key, data) {
-    VideoConfig.cache.data.set(key, { data, timestamp: Date.now() })
+  getVideoState (videoUrl) {
+    try {
+      const state = this.videoStates.get(videoUrl)
+      if (!state) return null
+
+      if (!VideoHelpers.isValidVideoState(state)) {
+        this.videoStates.delete(videoUrl)
+        return null
+      }
+
+      return state
+    } catch (error) {
+      return VideoHelpers.handleError('VideoStateManager', 'get video state', error, null)
+    }
   },
 
-  clear () {
-    VideoConfig.cache.data.clear()
+  shouldSaveState (existingState, newTime, source) {
+    if (!existingState) return true
+    if (newTime > existingState.currentTime) return true
+    if (existingState.source === 'estimated' && source !== 'estimated') return true
+    if (source === 'estimated' && existingState.source === 'estimated' && newTime > existingState.currentTime) return true
+
+    const maxAge = source === 'estimated' ? 5000 : 2000
+    if ((Date.now() - existingState.timestamp) > maxAge) return true
+
+    return false
+  },
+
+  startEstimatedTracking (videoUrl, initialTime = 0) {
+    try {
+      this.videoStartTimes.set(videoUrl, Date.now())
+      this.estimatedTimes.set(videoUrl, initialTime)
+    } catch (error) {
+      return VideoHelpers.handleError('VideoStateManager', 'start estimated tracking', error)
+    }
+  },
+
+  getEstimatedTime (videoUrl) {
+    try {
+      const startTime = this.videoStartTimes.get(videoUrl),
+        estimatedTime = this.estimatedTimes.get(videoUrl)
+
+      if (!startTime) return estimatedTime || 0
+
+      const playDuration = (Date.now() - startTime) / 1000,
+        lastEstimatedTime = estimatedTime || 0
+
+      return lastEstimatedTime + playDuration
+    } catch (error) {
+      return VideoHelpers.handleError('VideoStateManager', 'get estimated time', error, 0)
+    }
+  },
+
+  stopEstimatedTracking (videoUrl) {
+    try {
+      const finalTime = this.getEstimatedTime(videoUrl)
+      if (VideoHelpers.isValidVideoTime(finalTime)) {
+        this.estimatedTimes.set(videoUrl, finalTime)
+      }
+      this.videoStartTimes.delete(videoUrl)
+      return finalTime
+    } catch (error) {
+      return VideoHelpers.handleError('VideoStateManager', 'stop estimated tracking', error, 0)
+    }
+  },
+
+  updateCurrentSlide (slideIndex) {
+    this.currentSlideIndex = slideIndex
+  },
+
+  throttlingNavigation () {
+    if (!this.throttler) this.init()
+    return this.throttler()
+  },
+
+  isVideoLoaded (slideIndex) {
+    return this.loadedVideos.has(slideIndex)
+  },
+
+  markVideoLoaded (slideIndex) {
+    this.loadedVideos.add(slideIndex)
+  },
+
+  markVideoUnloaded (slideIndex) {
+    this.loadedVideos.delete(slideIndex)
+  },
+
+  cleanup () {
+    this.videoStates.clear()
+    this.loadedVideos.clear()
+    this.estimatedTimes.clear()
+    this.videoStartTimes.clear()
+    this.pendingRequests.clear()
+    this.currentSlideIndex = 1
+    this.throttler = null
   }
 }
 
@@ -181,6 +415,273 @@ const VideoPreconnect = {
 
   cleanup () {
     this.connected.clear()
+  }
+}
+
+const VideoPlayback = {
+  commands: {
+    youtube: {
+      play: 'playVideo',
+      pause: 'pauseVideo',
+      seek: 'seekTo',
+      getCurrentTime: 'getCurrentTime'
+    },
+    vimeo: {
+      play: 'play',
+      pause: 'pause',
+      seek: 'setCurrentTime',
+      getCurrentTime: 'getCurrentTime'
+    }
+  },
+
+  executeCommand (iframe, command, args = null, platform = null) {
+    try {
+      const detectedPlatform = platform || VideoHelpers.detectPlatform(iframe)
+      if (!detectedPlatform || !this.commands[detectedPlatform]) {
+        return VideoHelpers.handleError('VideoPlayback', `execute command on unsupported platform: ${detectedPlatform}`, new Error('Unsupported platform'))
+      }
+
+      const platformCommand = this.commands[detectedPlatform][command]
+      if (!platformCommand) {
+        return VideoHelpers.handleError('VideoPlayback', `execute unknown command '${command}' for platform '${detectedPlatform}'`, new Error('Unknown command'))
+      }
+
+      if (detectedPlatform === 'youtube') {
+        this.sendYouTubeCommand(iframe, platformCommand, args)
+      } else if (detectedPlatform === 'vimeo') {
+        const message = args !== null ?
+          `{"method":"${platformCommand}","value":${args}}` :
+          `{"method":"${platformCommand}"}`
+        iframe.contentWindow.postMessage(message, '*')
+      }
+    } catch (error) {
+      return VideoHelpers.handleError('VideoPlayback', `execute ${command}`, error)
+    }
+  },
+
+  playVideo (iframe, platform = null) {
+    this.executeCommand(iframe, 'play', null, platform)
+  },
+
+  pauseVideo (iframe, platform = null) {
+    this.executeCommand(iframe, 'pause', null, platform)
+  },
+
+  seekToTime (iframe, time, platform = null) {
+    const args = platform === 'youtube' ? [time, true] : time
+    this.executeCommand(iframe, 'seek', args, platform)
+  },
+
+  getCurrentTime (iframe, platform = null) {
+    this.executeCommand(iframe, 'getCurrentTime', null, platform)
+  },
+
+  sendYouTubeCommand (iframe, func, args = '', id = '', channel = '') {
+    try {
+      if (!iframe || !iframe.contentWindow) return
+
+      let message
+      if (func === 'listening') {
+        message = `{"event":"${func}","id":"${id}","channel":"${channel}"}`
+      } else {
+        const argsStr = Array.isArray(args) ? JSON.stringify(args) : (args ? `"${args}"` : '""')
+        message = `{"event":"command","func":"${func}","args":${argsStr}}`
+      }
+
+      iframe.contentWindow.postMessage(message, '*')
+    } catch (error) {
+      return VideoHelpers.handleError('VideoPlayback', 'send YouTube command', error)
+    }
+  }
+}
+
+const VideoAPITracker = {
+  periodicTracker: null,
+  messageHandler: null,
+
+  startPeriodicTracking () {
+    try {
+      if (this.periodicTracker) {
+        clearInterval(this.periodicTracker)
+      }
+
+      this.setupGlobalMessageListener()
+
+      this.periodicTracker = setInterval(() => {
+        const { containers } = VideoHelpers.getContainerElements() || {}
+        if (!containers) return
+
+        const currentSlide = VideoStateManager.currentSlideIndex,
+          totalSlides = containers.length,
+          nextSlide = currentSlide === totalSlides ? 1 : currentSlide + 1,
+          slidesToTrack = [currentSlide, nextSlide]
+
+        slidesToTrack.forEach((slideIndex) => {
+          const elements = VideoHelpers.getContainerElements(slideIndex)
+          if (!elements || !VideoHelpers.isValidIframe(elements.iframe)) return
+
+          const platform = VideoHelpers.detectPlatform(elements.iframe)
+          VideoPlayback.getCurrentTime(elements.iframe, platform)
+        })
+      }, VideoConfig.timing.trackingInterval)
+    } catch (error) {
+      console.warn('VideoAPITracker: Failed to start periodic tracking', error)
+    }
+  },
+
+  setupGlobalMessageListener () {
+    try {
+      if (this.messageHandler) {
+        $.eventListener('remove', window, 'message', this.messageHandler)
+      }
+
+      this.messageHandler = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          // Handle YouTube API responses
+          if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+            const currentSlide = VideoStateManager.currentSlideIndex,
+              elements = VideoHelpers.getContainerElements(currentSlide)
+
+            if (elements && VideoHelpers.isValidIframe(elements.iframe) &&
+              VideoHelpers.detectPlatform(elements.iframe) === 'youtube' && elements.videoUrl) {
+              VideoStateManager.saveVideoState(elements.videoUrl, data.info.currentTime, currentSlide, 'global_api')
+            }
+          }
+
+          // Handle Vimeo API responses
+          if (data.event === 'timeupdate' && typeof data.data === 'number') {
+            const { containers } = VideoHelpers.getContainerElements() || {}
+            if (!containers) return
+
+            containers.forEach((_container, index) => {
+              const slideIndex = index + 1,
+                elements = VideoHelpers.getContainerElements(slideIndex)
+
+              if (elements && VideoHelpers.isValidIframe(elements.iframe) &&
+                VideoHelpers.detectPlatform(elements.iframe) === 'vimeo' && elements.videoUrl) {
+                VideoStateManager.saveVideoState(elements.videoUrl, data.data, slideIndex, 'vimeo_api')
+              }
+            })
+          }
+        } catch {
+          // Ignore parsing errors from other postMessage sources
+        }
+      }
+
+      $.eventListener('add', window, 'message', this.messageHandler)
+    } catch (error) {
+      console.warn('VideoAPITracker: Failed to setup message listener', error)
+    }
+  },
+
+  cleanup () {
+    try {
+      if (this.periodicTracker) {
+        clearInterval(this.periodicTracker)
+        this.periodicTracker = null
+      }
+
+      if (this.messageHandler) {
+        $.eventListener('remove', window, 'message', this.messageHandler)
+        this.messageHandler = null
+      }
+    } catch (error) {
+      return VideoHelpers.handleError('VideoAPITracker', 'cleanup', error)
+    }
+  }
+}
+
+const VideoMemoryManager = {
+  shouldVideoBeLoaded (containerIndex, activeIndex, totalSlides) {
+    try {
+      const slideIndex = VideoHelpers.containerIndexToSlideIndex(containerIndex),
+        maxSlideIndex = totalSlides
+
+      // Always load current slide
+      if (slideIndex === activeIndex) return true
+
+      // Load next slide for preloading
+      const nextSlide = VideoHelpers.getNextIndex(activeIndex - 1, maxSlideIndex - 1, true) + 1
+      if (slideIndex === nextSlide) return true
+
+      return false
+    } catch (error) {
+      return VideoHelpers.handleError('VideoMemoryManager', 'check if video should be loaded', error, false)
+    }
+  },
+
+  destroyVideoIframe (container, slideIndex) {
+    try {
+      const videoUrl = container.dataset.videoUrl
+
+      if (videoUrl) {
+        // Save final state before destruction
+        const finalTime = VideoStateManager.stopEstimatedTracking(videoUrl)
+        if (VideoHelpers.isValidVideoTime(finalTime)) {
+          VideoStateManager.saveVideoState(videoUrl, finalTime, slideIndex, 'estimated')
+        }
+      }
+
+      const performDestroy = () => {
+        const iframe = container.querySelector(VideoConfig.selectors.iframe)
+        if (iframe) {
+          iframe.src = 'about:blank'
+          iframe.remove()
+        }
+
+        container.classList.remove(VideoConfig.classes.loaded)
+        VideoStateManager.markVideoUnloaded(slideIndex)
+      }
+
+      VideoHelpers.execute(performDestroy)
+    } catch (error) {
+      return VideoHelpers.handleError('VideoMemoryManager', 'destroy video iframe', error)
+    }
+  },
+
+  manageVideoMemory (activeSlideIndex) {
+    try {
+      const { containers } = VideoHelpers.getContainerElements() || {}
+      if (!containers) return
+
+      const totalSlides = containers.length,
+        videosToKeep = new Set(),
+        videosToDestroy = new Set()
+
+      containers.forEach((container, containerIndex) => {
+        const slideIndex = containerIndex + 1,
+          shouldKeep = this.shouldVideoBeLoaded(containerIndex, activeSlideIndex, totalSlides)
+
+        if (shouldKeep) {
+          videosToKeep.add(slideIndex)
+
+          // Load video if not already loaded
+          if (!VideoStateManager.isVideoLoaded(slideIndex)) {
+            VideoLoader.loadVideo(container)
+          }
+        } else if (VideoStateManager.isVideoLoaded(slideIndex)) {
+          videosToDestroy.add(slideIndex)
+        }
+      })
+
+      // Process video destruction
+      if (videosToDestroy.size > 0) {
+        const processDestruction = () => {
+          videosToDestroy.forEach((slideIndex) => {
+            const elements = VideoHelpers.getContainerElements(slideIndex)
+            if (elements) {
+              this.destroyVideoIframe(elements.container, slideIndex)
+            }
+          })
+        }
+
+        $.requestIdle(processDestruction, { timeout: 100 })
+      }
+    } catch (error) {
+      return VideoHelpers.handleError('VideoMemoryManager', 'manage video memory', error)
+    }
   }
 }
 
@@ -358,11 +859,26 @@ const VideoLoader = {
 
   createVideoIframe (container, videoId, platform, isSlowConnection = null) {
     const iframeOptions = {},
-      slowConnection = VideoHelpers.slowly(isSlowConnection)
+      slowConnection = VideoHelpers.slowly(isSlowConnection),
+      videoUrl = container.dataset.videoUrl,
+      containers = VideoDOMCache.getContainers(),
+      slideIndex = Array.from(containers).indexOf(container) + 1,
+      savedState = VideoStateManager.getVideoState(videoUrl),
+      startTime = savedState ? savedState.currentTime : 0
 
     if (slowConnection) {
       iframeOptions.quality = 'small'
       if (platform === 'youtube') iframeOptions.vq = 'small'
+    }
+
+    // Configure iframe for saved state
+    if (startTime > 0) {
+      if (platform === 'youtube') {
+        iframeOptions.autoplay = '0' // Don't auto-play, we'll control manually
+        iframeOptions.start = Math.floor(startTime)
+      } else if (platform === 'vimeo') {
+        iframeOptions.autoplay = '0'
+      }
     }
 
     const createIframe = () => VideoUtils.createIframe(videoId, platform, iframeOptions)
@@ -376,11 +892,83 @@ const VideoLoader = {
       this.fadeOutPoster(posterImg)
 
       container.classList.add(VideoConfig.classes.loaded)
+      VideoStateManager.markVideoLoaded(slideIndex)
+
+      // Start estimated time tracking
+      const initialTime = savedState ? savedState.currentTime : 0
+      VideoStateManager.startEstimatedTracking(videoUrl, initialTime)
+
+      // Handle playback position restoration
+      if (savedState && startTime > 0) {
+        this.waitForPlayerReady(iframe, platform, () => {
+          VideoPlayback.seekToTime(iframe, startTime, platform)
+
+          // Play if this is the current slide
+          if (slideIndex === VideoStateManager.currentSlideIndex) {
+            setTimeout(() => VideoPlayback.playVideo(iframe, platform), 500)
+          }
+        })
+      } else if (slideIndex === VideoStateManager.currentSlideIndex) {
+        // Auto-play only current slide for new videos
+        this.waitForPlayerReady(iframe, platform, () => {
+          VideoPlayback.playVideo(iframe, platform)
+        })
+      }
     }
 
     $.eventListener('add', iframe, 'load', handleIframeLoad, { once: true, passive: true })
 
     container.appendChild(iframe)
+  },
+
+  waitForPlayerReady (iframe, platform, callback) {
+    try {
+      let attempts = 0
+      const maxAttempts = 20,
+        checkInterval = 250
+
+      const checkReady = () => {
+        attempts++
+
+        if (attempts >= maxAttempts) {
+          console.warn('VideoLoader: Player ready timeout, executing callback anyway')
+          callback()
+          return
+        }
+
+        if (platform === 'youtube') {
+          VideoPlayback.sendYouTubeCommand(iframe, 'listening', '', 'widget', 'widget')
+
+          const readyListener = (event) => {
+            try {
+              const data = JSON.parse(event.data)
+              if (data.event === 'onReady' || data.event === 'video-progress') {
+                $.eventListener('remove', window, 'message', readyListener)
+                callback()
+                return
+              }
+            } catch {
+              // Ignore parsing errors
+            }
+          }
+
+          $.eventListener('add', window, 'message', readyListener)
+          setTimeout(() => {
+            $.eventListener('remove', window, 'message', readyListener)
+          }, checkInterval)
+
+          setTimeout(checkReady, checkInterval)
+        } else if (platform === 'vimeo') {
+          // Vimeo typically ready after a short delay
+          setTimeout(callback, 500)
+        }
+      }
+
+      setTimeout(checkReady, 500)
+    } catch (error) {
+      console.warn('VideoLoader: Failed to wait for player ready', error)
+      callback() // Execute callback anyway
+    }
   },
 
   loadVideo (container, isSlowConnection = null) {
@@ -456,7 +1044,7 @@ const VideoLoadingStrategy = {
   },
 
   loadInChunks (containers) {
-    const chunkSize = 5,
+    const chunkSize = 3,
       totalContainers = containers.length
 
     const loadChunk = (startIndex) => {
@@ -485,9 +1073,21 @@ const VideoHandler = {
     const containers = VideoLoadingStrategy.getVideoContainers()
     if (!containers.length) return false
 
+    // Initialize shared state management
+    VideoStateManager.init()
+
     VideoVisibility.setIntersectionObserver()
+    VideoAPITracker.startPeriodicTracking()
     this.processVideos(containers)
     this.setResizeHandler()
+
+    // Expose public API for carousel integration
+    window.videoLoadingInstance = {
+      onSlideChange: this.onSlideChange.bind(this),
+      playVideo: this.playVideo.bind(this),
+      pauseVideo: this.pauseVideo.bind(this),
+      throttlingNavigation: () => VideoStateManager.throttlingNavigation()
+    }
 
     return this.cleanup.bind(this)
   },
@@ -508,6 +1108,51 @@ const VideoHandler = {
     this.eventListeners.set('resize', { handler: this.resizeHandler, options })
   },
 
+  onSlideChange (slideIndex, isAutoRotate = false) {
+    try {
+      VideoStateManager.updateCurrentSlide(slideIndex)
+
+      // Small delay for auto-rotate to allow previous slide state saving
+      const managementDelay = isAutoRotate ? 1200 : 500
+
+      setTimeout(() => {
+        VideoMemoryManager.manageVideoMemory(slideIndex)
+        this.manageVideoPlayback(slideIndex)
+      }, managementDelay)
+    } catch (error) {
+      console.warn('VideoHandler: Failed to handle slide change', error)
+    }
+  },
+
+  manageVideoPlayback (activeSlideIndex) {
+    try {
+      const { containers } = VideoHelpers.getContainerElements() || {}
+      if (!containers) return
+
+      containers.forEach((_container, containerIndex) => {
+        const slideIndex = containerIndex + 1,
+          elements = VideoHelpers.getContainerElements(slideIndex)
+
+        if (!elements || !VideoHelpers.isValidIframe(elements.iframe)) return
+
+        const platform = VideoHelpers.detectPlatform(elements.iframe)
+
+        slideIndex === activeSlideIndex ?
+          VideoPlayback.playVideo(elements.iframe, platform) :
+          VideoPlayback.pauseVideo(elements.iframe, platform)
+      })
+    } catch (error) {
+      return VideoHelpers.handleError('VideoHandler', 'manage video playback', error)
+    }
+  },
+
+  playVideo (iframe, platform = null) {
+    VideoPlayback.playVideo(iframe, platform)
+  },
+
+  pauseVideo (iframe, platform = null) {
+    VideoPlayback.pauseVideo(iframe, platform)
+  },
 
   cleanup () {
     this.eventListeners.forEach(({ handler, options }, eventType) => {
@@ -528,15 +1173,31 @@ const VideoHandler = {
     VideoVisibility.cleanup()
     VideoCache.clear()
     VideoPreconnect.cleanup()
+    VideoAPITracker.cleanup()
+    VideoStateManager.cleanup()
+
+    // Clean up global API
+    if (window.videoLoadingInstance) {
+      window.videoLoadingInstance = null
+    }
 
     return null
   }
 }
 
-const initVideoLoading = () => {
+const initVideoLoading = (retryCount = 0) => {
   if (typeof $ === 'undefined' || !$.cleanup) {
-    console.warn('VideoLoading: Utils not loaded, retrying...')
-    setTimeout(() => initVideoLoading(), 250)
+    const maxRetries = (typeof $ !== 'undefined' && $.slowConnection) ? 40 : 20,
+      timeoutDuration = maxRetries === 40 ? 10 : 5
+
+    if (retryCount >= maxRetries) {
+      console.error(`VideoLoading: Utils failed to load after ${timeoutDuration} seconds, aborting`)
+      return
+    }
+    if (retryCount === 0 || retryCount % 10 === 0) { // Only show every 10th retry to reduce console spam
+      console.warn(`VideoLoading: Utils not loaded, retrying... (${retryCount + 1}/${maxRetries})`)
+    }
+    setTimeout(() => initVideoLoading(retryCount + 1), 250)
     return
   }
   $.cleanup('cleanupVideoLoading', () => VideoHandler.init())

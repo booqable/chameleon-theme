@@ -9,6 +9,8 @@
  * @requires js-utils.js
  */
 
+/* global VideoHelpers */
+
 const CarouselConfig = {
   selector: {
     carousel: '.carousel',
@@ -22,7 +24,8 @@ const CarouselConfig = {
     prev: '.carousel__btn.prev',
     region: '.carousel__live-region',
     wrapper: '.carousel__wrapper',
-    imageHidden: '.image-main.hidden'
+    imageHidden: '.image-main.hidden',
+    video: '[data-video-container]'
   },
   carouselTypes: {
     big: 'big',
@@ -72,6 +75,9 @@ const CarouselConfig = {
   width: {
     desktop: 294,
     mobile: 298
+  },
+  time: {
+    throttleTime: 150 // Basic throttling for carousel navigation
   }
 }
 
@@ -895,6 +901,8 @@ const CarouselController = {
       timer: $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0,
       autoScrollTimer: null,
       isPaused: false,
+      hasVideos: carousel.querySelectorAll(CarouselConfig.selector.video).length > 0,
+      throttler: null,
       eventHandlers: {
         prev: null,
         next: null,
@@ -1028,7 +1036,11 @@ const CarouselController = {
 
           dots.forEach((dot, index) => {
             if (index <= maxIndex) {
-              const handler = () => this.goToSlide(index)
+              const handler = () => {
+                if (!this.throttleNavigation()) {
+                  this.goToSlide(index)
+                }
+              }
               this.eventHandlers.dots[index] = handler
               $.eventListener('add', dot, 'click', handler)
               $.toggleClass(dot, CarouselConfig.classes.hidden, false)
@@ -1041,19 +1053,59 @@ const CarouselController = {
         $.frameSequence(read, write)
       },
 
+      throttleNavigation () {
+        try {
+          const video = window.videoLoadingInstance
+          if (video && video.throttlingNavigation) {
+            if (video.throttlingNavigation()) return true
+          }
+
+          if (!this.throttler) {
+            if (typeof VideoHelpers !== 'undefined' && VideoHelpers.createThrottler) {
+              this.throttler = VideoHelpers.createThrottler(CarouselConfig.time.throttleTime)
+            } else {
+              // Fallback if VideoHelpers not available
+              this.lastNavigationTime = this.lastNavigationTime || 0
+              this.throttler = () => {
+                const now = Date.now(),
+                  timeSinceLastNavigation = now - this.lastNavigationTime
+                if (timeSinceLastNavigation < CarouselConfig.time.throttleTime) return true
+                this.lastNavigationTime = now
+                return false
+              }
+            }
+          }
+
+          return this.throttler()
+        } catch (error) {
+          console.warn('Carousel: Failed to check navigation throttling', error)
+          return false
+        }
+      },
+
       goToPrev () {
-        this.goToSlide(this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
+        if (this.throttleNavigation()) return
+        const prevIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getPrevIndex) ?
+          VideoHelpers.getPrevIndex(this.currentIndex, this.maxIndex, true) :
+          (this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
+        this.goToSlide(prevIndex)
       },
 
       goToNext () {
-        this.goToSlide(this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
+        if (this.throttleNavigation()) return
+        const nextIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getNextIndex) ?
+          VideoHelpers.getNextIndex(this.currentIndex, this.maxIndex, true) :
+          (this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
+        this.goToSlide(nextIndex)
       },
 
       goToSlide (targetIndex) {
         try {
           if (targetIndex === this.currentIndex) return
 
-          const newIndex = Math.max(0, Math.min(targetIndex, this.maxIndex))
+          const newIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.clampIndex) ?
+            VideoHelpers.clampIndex(targetIndex, this.maxIndex) :
+            Math.max(0, Math.min(targetIndex, this.maxIndex))
           if (newIndex === this.currentIndex) return
 
           this.currentIndex = newIndex
@@ -1083,8 +1135,26 @@ const CarouselController = {
 
           // Announce slide change for accessibility
           CarouselAccessibility.announceSlideChange(this)
+
+          // Integrate with video system if available
+          this.handleVideoIntegration(this.currentIndex)
         } catch (error) {
           console.error('Carousel: Failed to go to slide', error)
+        }
+      },
+
+      handleVideoIntegration (slideIndex) {
+        try {
+          const video = window.videoLoadingInstance
+          if (video && video.onSlideChange && this.hasVideos) {
+            const isAutoRotating = this.autoScrollTimer !== null
+            const videoSlideIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.containerIndexToSlideIndex) ?
+              VideoHelpers.containerIndexToSlideIndex(slideIndex) :
+              (slideIndex + 1)
+            video.onSlideChange(videoSlideIndex, isAutoRotating)
+          }
+        } catch (error) {
+          console.warn('Carousel: Failed to integrate with video system', error)
         }
       },
 
