@@ -1,13 +1,16 @@
 {%- if section.blocks.size > 0 -%}
 
-  {{ "numbered-blocks.css" | asset_url | stylesheet_tag }}
-
   {%- assign color_palette         = section.settings.color_palette -%}
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
   {%- assign image_placeholder     = settings.image_placeholder -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -73,6 +76,7 @@
           {%- assign button_url_1   = block.settings.button_url_1 -%}
           {%- assign button_url_2   = block.settings.button_url_2 -%}
           {%- assign image          = block.settings.image -%}
+          {%- assign image_alt      = block.settings.image_alt -%}
           {%- assign image_position = block.settings.image_position -%}
 
           {%- if image != blank -%}
@@ -143,9 +147,10 @@
               <div class="numbered-blocks__item-col">
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'numbered-blocks__image',
-                  size: 'm'
+                  image_alt: image_alt,
+                  image_class: 'numbered-blocks__image',
+                  image_size: 'm',
+                  loading: loading_strategy
                 -%}
               </div>
             {%- endif -%}
@@ -162,6 +167,14 @@
     "description": "Add a section of numbered blocks",
     "tag": "section",
     "class": "numbered-blocks",
+    "css_assets": [
+      {
+        "file": "numbered-blocks.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",
@@ -319,6 +332,12 @@
             "id": "image",
             "label": "Image",
             "info": "Square images are recommended"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "header",

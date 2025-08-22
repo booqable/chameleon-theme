@@ -30,7 +30,7 @@
   width: auto;
   height: auto;
   margin: 10px;
-  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .accordion-block__heading path {
@@ -50,7 +50,7 @@
   overflow: hidden;
   max-height: 0;
   padding: 0 70px 0 25px;
-  transition: max-height .5s var(--transition-function-ease);
+  transition: max-height .5s var(--transition-function-ease-in-out);
   position: relative;
   z-index: 1;
 }

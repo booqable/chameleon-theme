@@ -5,12 +5,13 @@ import stylistic from '@stylistic/eslint-plugin'
 export default [
   { files: ['**/*.js'] },
   { ignores: ['**/*.min.js'] },
-  { 
-    languageOptions: { 
+  {
+    languageOptions: {
       globals: {
         ...globals.browser,
-        initFocalImages: 'readonly',
-        ol: 'readonly'
+        $: 'readonly',
+        ol: 'readonly',
+        Utils: 'readonly'
       }
     }
   },

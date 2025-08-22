@@ -1,6 +1,5 @@
 .map {
   aspect-ratio: 16 / 9;
-  height: 100%;
   width: 100%;
   overflow: hidden;
 }
@@ -52,7 +51,7 @@
   width: 24px;
   background-color: var(--color-white, #FFF);
   border: 1px solid transparent;
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   pointer-events: all !important;
   cursor: pointer;
 }
@@ -83,4 +82,10 @@
 
 .palette-three .map .ol-control button:active {
   border-color: var(--background-accent-3-active, #0B1A26BA);
+}
+
+@media (width >= 768px) {
+  .map {
+    height: 100%;
+  }
 }

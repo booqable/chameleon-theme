@@ -1,7 +1,6 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {{ "images.css" | asset_url | stylesheet_tag }}
 
   {%- assign color_palette            = section.settings.color_palette -%}
   {%- assign full_width               = section.settings.full_width -%}
@@ -31,8 +30,6 @@
   {%- assign carousel = false -%}
 
   {%- if blocks.size > 1 -%}
-    {{ "carousel.css" | asset_url | stylesheet_tag }}
-
     {%- assign carousel = true -%}
   {%- else -%}
     {%- assign overlay_color = nil -%}
@@ -44,13 +41,6 @@
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
-    {%- if carousel -%}
-      --slide-width: 100%;
-      --slide-width-mobile: 100%;
-    {%- else -%}
-      --overlay-color: {{- overlay_color -}};
-    {%- endif -%}
-
     {%- case height -%}
       {%- when 'small' -%}
         --height: 640px;
@@ -98,6 +88,15 @@
         --padding-bottom-mobile: 40px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- capture slide_variables -%}
+    {%- if carousel -%}
+      --slide-width: 100%;
+      --slide-width-mobile: 100%;
+    {%- else -%}
+      --overlay-color: {{- overlay_color -}};
+    {%- endif -%}
+  {%- endcapture -%}
   {% comment %} CSS variables end {% endcomment %}
 
   {%- assign default_color = nil -%}
@@ -129,8 +128,10 @@
 
   <div class="images__wrapper{% if full_width %} images__wrapper-full-width{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} section-with-date-picker{% endif %}{% if color_palette != blank %} palette-{{ color_palette }}{%- endif -%}" style="{{- variables | escape -}}">
     {%- if carousel -%}
-      <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" aria-role="Gallery" data-default-color="{{- default_color -}}">
-        <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
+    {%- assign timer_val = timer | plus: 0 -%}
+
+    <div class="carousel carousel__edges carousel__{{- effect -}}-effect{% if pause %} carousel__pause{% endif %}{% if show_datepicker and datepicker_position == "bottom" %} carousel-with-date-picker{%- endif -%}" data-default-color="{{- default_color -}}"{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel">
+      <div class="carousel__list">
         <div class="carousel__wrapper">
     {%- endif -%}
 
@@ -146,8 +147,11 @@
             {%- assign text_position        = block.settings.text_position -%}
             {%- assign text_position_mobile = block.settings.text_position_mobile -%}
             {%- assign video_url            = block.settings.video_url | strip -%}
+            {%- assign show_video_poster    = block.settings.show_video_poster -%}
+            {%- assign index                = forloop.index -%}
             {%- assign image                = block.settings.image -%}
             {%- assign image_mobile         = block.settings.image_mobile -%}
+            {%- assign image_alt            = block.settings.image_alt -%}
             {%- assign image_placeholder    = settings.image_placeholder -%}
             {%- assign limit_content_width  = block.settings.limit_content_width -%}
             {%- assign show_overlay         = block.settings.show_overlay -%}
@@ -331,7 +335,7 @@
             {% comment %} CSS variables end {% endcomment %}
 
             {%- if carousel -%}
-              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{%- endif -%}>
+              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} data-index="{{- index -}}" aria-label="Slide {{ index }}">
                 <div class="carousel__inner">
             {%- endif -%}
                   <div
@@ -377,28 +381,29 @@
                   </div>
 
                   <div class="images__vision{% if video_url != blank %} images__vision--video{%- endif -%}" {% if show_overlay %}style="{{- image_variables | escape -}}"{%- endif -%}>
+
                     {%- if video_url != blank and video_url contains "youtube.com" or video_url != blank and video_url contains "youtu.be" or video_url != blank and video_url contains "vimeo.com" -%}
-                      <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}" data-video-container data-video-url="{{- video_url | escape -}}"></div>
+                      <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}" data-video-container data-video-url="{{- video_url | escape -}}"{% if show_video_poster %} data-video-poster="true"{%- endif -%}></div>
 
                     {%- elsif image != blank or image_mobile != blank -%}
                       {%- if image.url != blank -%}
-                        <div class="images__vision-wrapper{% if image_mobile != blank %} images__vision-wrapper--desktop{% endif %}{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
-                          {%- render 'image',
-                            image: image,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'xxl'
-                          -%}
-                        </div>
-                      {%- endif -%}
+                        {%- assign fetch_priority   = "" -%}
+                        {%- assign loading_strategy = "lazy" -%}
 
-                      {%- if image_mobile.url != blank -%}
-                        <div class="images__vision-wrapper images__vision-wrapper--mobile{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
+                        {%- if forloop.index == 1 -%}
+                          {%- assign fetch_priority   = "high" -%}
+                          {%- assign loading_strategy = "eager" -%}
+                        {%- endif -%}
+
+                        <div class="images__vision-wrapper{% if show_overlay %} images__vision-wrapper--overlay{%- endif -%}">
                           {%- render 'image',
-                            image: image_mobile,
-                            loading: 'lazy',
-                            class: 'images__image',
-                            size: 'l'
+                              image: image,
+                              image_mobile: image_mobile,
+                              image_alt: image_alt,
+                              image_class: 'images__image',
+                              image_size: 'xxl',
+                              fetchpriority: fetch_priority,
+                              loading: loading_strategy
                           -%}
                         </div>
                       {%- endif -%}
@@ -412,39 +417,40 @@
 
     {%- if carousel -%}
         </div>
-
-        <div class="carousel__navigation" aria-role="Carousel navigation">
-          <span class="carousel__btn prev" aria-label="Prev slide">
-            Previous slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-          <span class="carousel__btn next" aria-label="Next slide">
-            Next slide
-            {%- render 'icon-arrow-right' -%}
-          </span>
-        </div>
-
-        <div class="carousel__pagination" aria-role="Carousel pagination">
-          {%- for block in blocks -%}
-            {%- assign first = forloop.first -%}
-            {%- assign index = forloop.index -%}
-
-            <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
-              Go to slide {{ index -}}
-            </span>
-          {%- endfor -%}
-        </div>
-
-        <div class="carousel__counter">
-          {%- for block in blocks -%}
-            {%- assign length = forloop.length -%}
-          {%- endfor -%}
-
-          <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
-          <span class="carousel__divider">|</span>
-          <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
-        </div>
       </div>
+
+      <div class="carousel__navigation" role="navigation" aria-label="Carousel navigation">
+        <span class="carousel__btn prev" aria-label="Prev slide">
+          Previous slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
+        <span class="carousel__btn next" aria-label="Next slide">
+          Next slide
+          {%- render 'icon-arrow-right' -%}
+        </span>
+      </div>
+
+      <div class="carousel__pagination" role="navigation" aria-label="Carousel pagination">
+        {%- for block in blocks -%}
+          {%- assign first = forloop.first -%}
+          {%- assign index = forloop.index -%}
+
+          <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index -}}">
+            Go to slide {{ index -}}
+          </span>
+        {%- endfor -%}
+      </div>
+
+      <div class="carousel__counter">
+        {%- for block in blocks -%}
+          {%- assign length = forloop.length -%}
+        {%- endfor -%}
+
+        <span class="carousel__count">{%- if length < 10 -%}0{%- endif -%}1</span>
+        <span class="carousel__divider">|</span>
+        <span class="carousel__summary">{%- if length < 10 -%}0{%- endif -%}{{- length -}}</span>
+      </div>
+    </div>
     {%- endif -%}
 
     {%- if datepicker_position == "bottom" -%}
@@ -453,7 +459,7 @@
   </div>
 
   {%- if has_video -%}
-    <script src="{{ "video-loading.js" | asset_url }}" defer></script>
+    <script src="{{ "js-video-loading.js" | asset_url }}" defer></script>
   {%- endif -%}
 {%- endif -%}
 
@@ -463,6 +469,20 @@
     "tag": "section",
     "class": "images",
     "description": "Engage visitors by giving great first impression",
+    "css_assets": [
+      {
+        "file": "images.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      },
+      {
+        "file": "carousel.css",
+        "include_if": [
+          "has_multiple_blocks"
+        ]
+      }
+    ],
     "blocks":[
       {
         "type": "slide",
@@ -484,9 +504,21 @@
           },
           {
             "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
+          },
+          {
+            "type": "text",
             "id": "video_url",
             "label": "Video URL (optional)",
             "info": "Youtube, Vimeo. If you paste video link here, any images will be ignored. Preferred format 16:9"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_video_poster",
+            "label": "Show video poster",
+            "default": false
           },
           {
             "type": "text",

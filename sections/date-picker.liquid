@@ -1,4 +1,3 @@
-{{ "date-picker.css" | asset_url | stylesheet_tag }}
 
 {%- assign title                 = section.settings.title -%}
 {%- assign color_palette         = section.settings.color_palette -%}
@@ -78,6 +77,11 @@
     "description": "Let your visitors select a rental period",
     "tag": "section",
     "class": "date-picker-section",
+    "css_assets": [
+      {
+        "file": "date-picker.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

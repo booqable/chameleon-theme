@@ -2,17 +2,20 @@
 
 {%- if blocks.size > 0 -%}
 
-  {{ "mosaic.css" | asset_url | stylesheet_tag }}
-
   {%- assign button_label          = section.settings.button_label -%}
   {%- assign button_url            = section.settings.button_url -%}
   {%- assign layout                = section.settings.layout -%}
   {%- assign color_palette         = section.settings.color_palette -%}
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
   {%- assign image_placeholder     = settings.image_placeholder -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -89,9 +92,9 @@
               {%- if image.url != blank -%}
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'mosaic__image',
-                  size: 'm'
+                  image_class: 'mosaic__image',
+                  image_size: 'm',
+                  loading: loading_strategy
                 -%}
               {%- endif -%}
             </div>
@@ -141,6 +144,14 @@
     "description": "Add text with images in various layouts",
     "tag": "section",
     "class": "mosaic",
+    "css_assets": [
+      {
+        "file": "mosaic.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

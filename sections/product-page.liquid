@@ -1,4 +1,3 @@
-{{ "product-page.css" | asset_url | stylesheet_tag }}
 
 {%- assign title                         = product.name -%}
 {%- assign description                   = product.description -%}
@@ -154,6 +153,11 @@
     "tag": "section",
     "class": "product-main",
     "templates": ["product"],
+    "css_assets": [
+      {
+        "file": "product-page.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

@@ -1,5 +1,3 @@
-{{ "collection-page.css" | asset_url | stylesheet_tag }}
-{{ "product-card.css" | asset_url | stylesheet_tag }}
 
 {%- assign grid                  = section.settings.grid -%}
 {%- assign message               = section.settings.message -%}
@@ -126,6 +124,26 @@
     "tag": "section",
     "class": "collection-page",
     "templates": ["collection"],
+    "css_assets": [
+      {
+        "file": "collection-page.css"
+      },
+      {
+        "file": "product-card.css"
+      },
+      {
+        "file": "focal-image.css"
+      },
+      {
+        "file": "pagination.css"
+      },
+      {
+        "file": "sidebar.css",
+        "include_if": [
+          "has_menu"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

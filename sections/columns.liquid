@@ -1,14 +1,18 @@
 {%- assign blocks = section.blocks -%}
 
 {%- if blocks.size > 0 -%}
-  {{ "columns.css" | asset_url | stylesheet_tag }}
 
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign grid                  = section.settings.grid -%}
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -70,6 +74,7 @@
       <div class="columns__grid">
         {%- for block in blocks -%}
           {%- assign image        = block.settings.image -%}
+          {%- assign image_alt    = block.settings.image_alt -%}
           {%- assign icon         = block.settings.icon -%}
           {%- assign title        = block.settings.title -%}
           {%- assign text         = block.settings.text -%}
@@ -82,9 +87,10 @@
               <div class="columns__image-wrapper">
                 {%- render 'image',
                   image: image,
-                  loading: 'lazy',
-                  class: 'columns__image',
-                  size: 'm'
+                  image_alt: image_alt,
+                  image_class: 'columns__image',
+                  image_size: 'm',
+                  loading: loading_strategy
                 -%}
               </div>
             {%- elsif icon != "empty" -%}
@@ -126,7 +132,15 @@
     "name": "Columns",
     "tag": "section",
     "class": "columns",
-    "description": "Add sections to highhlight features or contact details",
+    "description": "Add sections to highlight features or contact details",
+    "css_assets": [
+      {
+        "file": "columns.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "blocks":[
       {
         "type": "column",
@@ -193,6 +207,12 @@
             "type": "image_picker",
             "id": "image",
             "label": "Image (optional)"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           },
           {
             "type": "header",

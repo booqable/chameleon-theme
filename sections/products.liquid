@@ -23,24 +23,25 @@
 {%- endif -%}
 
 {%- if size > 0 -%}
-  {{ "products.css" | asset_url | stylesheet_tag }}
-  {{ "product-card.css" | asset_url | stylesheet_tag }}
+  {%- assign show_carousel = section.settings.show_carousel -%}
 
   {%- assign carousel              = false -%}
   {%- assign color_palette         = section.settings.color_palette -%}
   {%- assign items_limit           = 12 -%}
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
   {%- assign padding_top           = section.settings.padding_top -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
-  {%- assign show_carousel         = section.settings.show_carousel -%}
   {%- assign show_navigation       = section.settings.show_navigation -%}
   {%- assign show_pagination       = section.settings.show_pagination -%}
   {%- assign timer                 = section.settings.timer -%}
 
-  {%- if size > 1 and show_carousel -%}
-    {{ "carousel.css" | asset_url | stylesheet_tag }}
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
+  {%- if size > 1 and show_carousel -%}
     {%- assign carousel = true -%}
   {%- endif -%}
 
@@ -94,6 +95,13 @@
         --padding-bottom-mobile: 60px;
     {%- endcase -%}
   {%- endcapture -%}
+
+  {%- if carousel -%}
+    {%- capture slide_variables -%}
+      --slide-width: 294px;
+      --slide-width-mobile: 298px;
+    {%- endcapture -%}
+  {%- endif -%}
   {% comment %} CSS variables end {% endcomment %}
 
   <div
@@ -101,13 +109,19 @@
     style="{{- variables | escape -}}"
   >
     <div class="products__container container">
-      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %} aria-role="Gallery"{% endif %}>
+      {%- if carousel -%}
+        {%- assign timer_val = timer | plus: 0 -%}
+      {%- endif -%}
+
+      <div class="products__list{% if carousel %} carousel carousel__pause{% if show_pagination or show_navigation %} carousel--controls{% endif %}{%- endif -%}"{% if carousel %}{% if timer_val > 0 %} data-carousel-timer="{{- timer_val -}}"{% endif %} style="{{- slide_variables | escape -}}" aria-label="Carousel"{%- endif -%}>
         {%- if carousel -%}
-          <input class="carousel__timer" type="hidden" name="hidden" value="{{- timer -}}" aria-hidden="true">
-          <div class="carousel__wrapper">
+          <div class="carousel__list">
+            <div class="carousel__wrapper">
         {%- endif -%}
 
             {%- for item in items limit: items_limit -%}
+              {%- assign index = forloop.index -%}
+
               {% case items_type %}
                 {% when "blocks" %}
                   {% assign product = item.settings.product %}
@@ -116,12 +130,13 @@
               {% endcase %}
 
               {%- if carousel -%}
-                <div class="carousel__item">
+                <div class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
               {%- endif -%}
                     {%- render 'product-card',
                         product: product,
-                        settings: settings
+                        settings: settings,
+                        image_loading: loading_strategy
                     -%}
               {%- if carousel -%}
                   </div>
@@ -130,33 +145,30 @@
             {%- endfor -%}
 
         {%- if carousel -%}
+            </div>
           </div>
 
-          {%- if show_navigation -%}
-            <div class="carousel__navigation hidden" aria-role="Carousel navigation">
-              <span class="carousel__btn prev" aria-label="Prev slide">
-                Previous slide
-                {%- render 'icon-arrow-right-full' -%}
-              </span>
-              <span class="carousel__btn next" aria-label="Next slide">
-                Next slide
-                {%- render 'icon-arrow-right-full' -%}
-              </span>
-            </div>
-          {%- endif -%}
+          <div class="carousel__navigation hidden"{% unless show_navigation %} style="display: none;"{% endunless %} role="navigation" aria-label="Carousel navigation">
+            <span class="carousel__btn prev" aria-label="Prev slide">
+              Previous slide
+              {%- render 'icon-arrow-right-full' -%}
+            </span>
+            <span class="carousel__btn next" aria-label="Next slide">
+              Next slide
+              {%- render 'icon-arrow-right-full' -%}
+            </span>
+          </div>
 
-          {%- if show_pagination -%}
-            <div class="carousel__pagination hidden" aria-role="Carousel pagination">
-              {%- for item in items limit: items_limit -%}
-                {%- assign first = forloop.first -%}
-                {%- assign index = forloop.index -%}
+          <div class="carousel__pagination hidden"{% unless show_pagination %} style="display: none;"{% endunless %} role="navigation" aria-label="Carousel pagination">
+            {%- for item in items limit: items_limit -%}
+              {%- assign first = forloop.first -%}
+              {%- assign index = forloop.index -%}
 
-                <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index }}">
-                  Go to slide {{ index }}
-                </span>
-              {%- endfor -%}
-            </div>
-          {%- endif -%}
+              <span class="carousel__dot{% if first %} active{%- endif -%}" data-index="{{- index -}}" aria-label="Jump to slide {{ index }}">
+                Go to slide {{ index }}
+              </span>
+            {%- endfor -%}
+          </div>
         {%- endif -%}
       </div>
     </div>
@@ -169,6 +181,33 @@
     "description": "Display individual products or items from a collection in a grid or sliding carousel",
     "tag": "section",
     "class": "products",
+    "css_assets": [
+      {
+        "file": "products.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "product-card.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "focal-image.css",
+        "include_if": [
+          "has_collection_or_blocks"
+        ]
+      },
+      {
+        "file": "carousel.css",
+        "include_if": [
+          "settings.show_carousel",
+          "has_multiple_collection_or_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",

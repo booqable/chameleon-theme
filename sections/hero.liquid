@@ -1,10 +1,10 @@
-{{ "hero.css" | asset_url | stylesheet_tag }}
 
 {%- assign background_style      = settings.background_style -%}
 {%- assign color_palette         = section.settings.color_palette -%}
 {%- assign custom_description    = section.settings.custom_description -%}
 {%- assign custom_title          = section.settings.custom_title -%}
 {%- assign image                 = section.settings.image -%}
+{%- assign loading_strategy      = 'lazy' -%}
 {%- assign overlay_opacity       = section.settings.overlay_opacity -%}
 {%- assign padding_bottom        = section.settings.padding_bottom -%}
 {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
@@ -12,13 +12,17 @@
 {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
 {%- assign show_datepicker       = section.settings.show_datepicker -%}
 
+{%- if section_preview -%}
+  {%- assign loading_strategy    = 'eager' -%}
+{%- endif -%}
+
 {%- if show_datepicker -%}
   {%- render 'background-accent', color_palette: color_palette, settings: settings -%}
 {%- endif -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
-  --overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }};
+  --opacity-overlay: {{ overlay_opacity | divided_by: 100.0 }};
 
   {%- case padding_top -%}
     {%- when 'small' -%}
@@ -114,9 +118,9 @@
       <div class="hero__vision-wrapper">
           {%- render 'image',
             image: image,
-            loading: 'lazy',
-            class: 'hero__image',
-            size: 'xxl'
+            image_class: 'hero__image',
+            image_size: 'xxl',
+            loading: loading_strategy
           -%}
       </div>
       <div class="hero__vision-wrapper-overlay container"></div>
@@ -145,6 +149,11 @@
     "tag": "section",
     "class": "hero",
     "description": "Engage visitors by giving great first impression",
+    "css_assets": [
+      {
+        "file": "hero.css"
+      }
+    ],
     "settings": [
       {
         "type": "header",

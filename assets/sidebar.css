@@ -30,7 +30,7 @@
 }
 
 .sidebar__menu-item {
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   overflow: hidden;
   position: relative;
 }
@@ -130,8 +130,7 @@
 }
 
 [id^="side-menu-opener-"]:checked ~ .sidebar__menu-opener::after {
-  visibility: hidden;
-  opacity: 0;
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 [id^="side-menu-opener-"]:checked ~ .sidebar__menu-wrapper {

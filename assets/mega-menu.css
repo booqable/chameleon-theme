@@ -17,7 +17,7 @@
   right: 27%;
   height: 2px;
   transform: translate(0, -50%);
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   pointer-events: none;
 }
 
@@ -54,10 +54,10 @@
   inset: calc(var(--header-height, 73px) - 1px) var(--menu-right) 0 var(--menu-left);
   width: var(--menu-width);
   max-height: var(--menu-max-height);
-  transition: width var(--animation-duration, 200ms) var(--transition-function-ease-out),
-    top var(--animation-duration, 200ms) var(--transition-function-ease-out),
-    transform var(--animation-duration, 200ms) var(--transition-function-ease-out),
-    max-height var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: width var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+    top var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+    transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+    max-height var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   overflow: hidden;
   pointer-events: none;
   display: block !important;
@@ -75,7 +75,7 @@
   flex-direction: column;
   justify-content: space-between;
   transform: var(--menu-transform);
-  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .menu__list {
@@ -133,7 +133,7 @@
   max-height: var(--menu-max-height);
   margin: 0;
   grid-area: item-3;
-  transition: width var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: width var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   overflow: hidden;
   pointer-events: none;
   display: block !important;
@@ -148,7 +148,7 @@
   padding: 25px 0 100px;
   overflow: hidden;
   transform: translate(100%, 0);
-  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .menu__dropdown-list {
@@ -301,7 +301,7 @@
   max-height: 0;
   padding: 0 8px;
   overflow-y: auto;
-  transition: max-height var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: max-height var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .mobile-menu-top .menu__dropdown-wrapper {
@@ -309,7 +309,7 @@
   width: 100%;
   padding: 10px 0;
   transform: translate(0, -100%);
-  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .mobile-menu-top .menu__dropdown-item {
@@ -720,7 +720,7 @@
     bottom: 0;
     height: 2px;
     width: 0;
-    transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+    transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .menu__item.active > .menu__link::after,
@@ -770,7 +770,7 @@
     transform: translate(-50%, 30px);
     transition: visibility var(--animation-duration, 200ms) var(--transition-function-linear),
       opacity var(--animation-duration, 200ms),
-      transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+      transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .menu__dropdown-wrapper {
@@ -855,9 +855,9 @@
     overflow-y: auto;
     overflow-x: initial;
     padding: 0;
-    transition: visibility var(--animation-duration, 200ms) var(--transition-function-ease-out),
+    transition: visibility var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
       opacity var(--animation-duration, 200ms),
-      transform var(--animation-duration, 200ms) var(--transition-function-ease-out);
+      transform var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .mobile-menu-top .menu__dropdown-wrapper {
@@ -959,8 +959,8 @@
     visibility: visible;
     overflow-y: auto;
     z-index: -1;
-    transition: max-height var(--animation-duration, 200ms) var(--transition-function-ease-out),
-      top var(--animation-duration, 200ms) var(--transition-function-ease-out);
+    transition: max-height var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+      top var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .menu-wide.mobile-menu-top .menu__dropdown-wrapper,
@@ -1070,8 +1070,8 @@
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: visibility var(--animation-duration, 200ms) var(--transition-function-ease-out),
-      opacity var(--animation-duration, 200ms) var(--transition-function-ease-out);
+    transition: visibility var(--animation-duration, 200ms) var(--transition-function-ease-in-out),
+      opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
   }
 
   .header-logo-centered .menu-wide .menu__item.active > .menu__dropdown,

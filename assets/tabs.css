@@ -1,6 +1,7 @@
 .tabs {
-  display: grid;
-  gap: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .tabs__tab {
@@ -14,10 +15,15 @@
   cursor: pointer;
   border-bottom: 1px solid transparent;
   display: block;
-  padding: 16px;
   position: relative;
   border-radius: var(--border-radius-block-rounded);
-  transition: border-radius var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: border-radius var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+}
+
+.tabs__trigger-label {
+  padding: 16px;
+  display: block;
+  cursor: pointer;
 }
 
 .tabs__tab .tabs__trigger {
@@ -35,10 +41,9 @@
   border-top-right-radius: var(--border-radius-block-rounded);
   border-bottom-right-radius: var(--border-radius-block-rounded);
   visibility: hidden;
-  transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: opacity var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
-.tabs__trigger.active::before,
 .tabs__trigger:hover::before {
   opacity: 1;
   visibility: visible;
@@ -76,10 +81,6 @@
   border-radius: var(--border-radius-block-rounded);
 }
 
-.tabs__content.active {
-  display: block;
-}
-
 .tabs__image-wrapper {
   height: 100%;
   max-width: 100%;
@@ -109,7 +110,7 @@
 
 .tabs__select-opener svg {
   transform: rotate(90deg);
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
 }
 
 .tabs__select-drop {
@@ -122,7 +123,22 @@
   border-bottom-width: 0;
   border-bottom-right-radius: var(--border-radius-rounded);
   border-bottom-left-radius: var(--border-radius-rounded);
-  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-out);
+  transition: all var(--animation-duration, 200ms) var(--transition-function-ease-in-out);
+}
+
+.tabs__select #tabs-select-opener:checked ~ .tabs__select-opener {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.tabs__select #tabs-select-opener:checked ~ .tabs__select-opener svg {
+  transform: rotate(270deg);
+}
+
+.tabs__select #tabs-select-opener:checked ~ .tabs__select-drop {
+  pointer-events: all;
+  max-height: 1000px;
+  border-bottom-width: 1px;
 }
 
 .palette-one .tabs {
@@ -150,6 +166,10 @@
   border-color: var(--color-border, #0B1A2626);
 }
 
+.palette-one .tabs__select-opener path {
+  fill: var(--color-outline, #F4B841);
+}
+
 .palette-two .tabs {
   color: var(--color-secondary-2, #E1E4E8);
 }
@@ -173,6 +193,10 @@
 .palette-two .tabs__select-opener,
 .palette-two .tabs__select-drop {
   border-color: var(--color-border-2, #FFFFFF47);
+}
+
+.palette-two .tabs__select-opener path {
+  fill: var(--color-outline-2, #F4B841);
 }
 
 .palette-three .tabs {
@@ -200,22 +224,20 @@
   border-color: var(--color-border-3, #0B1A2626);
 }
 
-.tabs__select #tabs-select-opener:checked ~ .tabs__select-opener {
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.tabs__select #tabs-select-opener:checked ~ .tabs__select-opener svg {
-  transform: rotate(270deg);
-}
-
-.tabs__select #tabs-select-opener:checked ~ .tabs__select-drop {
-  pointer-events: all;
-  max-height: 1000px;
-  border-bottom-width: 1px;
+.palette-three .tabs__select-opener path {
+  fill: var(--color-outline-3, #0B1A26);
 }
 
 @media (width >= 768px) {
+  .tabs {
+    flex-direction: var(--direction, row);
+    gap: 30px;
+  }
+
+  .tabs__select {
+    width: 40%;
+  }
+
   .tabs__select-opener {
     display: none;
   }
@@ -239,6 +261,10 @@
     border-bottom-width: 1px;
   }
 
+  .tabs__contents {
+    width: 60%;
+  }
+
   .tabs__image-wrapper {
     aspect-ratio: auto;
   }
@@ -257,19 +283,13 @@
 }
 
 @media (width >= 992px) {
-  .tabs {
-    grid-template-columns: 1.5fr 2fr;
-    direction : var(--direction, ltr);
-    gap: 30px;
-  }
-
-  .tabs__trigger {
+  .tabs__trigger-label {
     padding: 16px 32px;
   }
 }
 
 @media (width >= 1200px) {
   .tabs__tab {
-    padding: 0 9% 0 0;
+    padding: var(--tabs-gap);
   }
 }

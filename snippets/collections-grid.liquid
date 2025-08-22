@@ -4,6 +4,7 @@
 
   items - { object } *required
   items_type - "string" *required,
+  image_loading - "string" optional,
   settings - { settings } *required,
   placeholder - image optional
 
@@ -12,12 +13,13 @@
   {%- render 'collections-grid',
       items: your_id,
       items_type: "your_string",
+      image_loading: "your_string",
       settings: settings,
       placeholder: your_id
   -%}
 
 {% endcomment %}
-{%- assign multiple = false -%}
+{%- assign multiple  = false -%}
 {%- assign image_fit = settings.collection_card_image_fit -%}
 
 {%- for item in items -%}
@@ -46,13 +48,13 @@
         {%- assign collection = item -%}
     {%- endcase -%}
 
-    {%- assign id = item.id -%}
-    {%- assign url = "" -%}
-    {%- assign name = "" -%}
+    {%- assign id    = item.id -%}
+    {%- assign url   = "" -%}
+    {%- assign name  = "" -%}
     {%- assign image = "" -%}
 
     {%- if collection != blank -%}
-      {%- assign url = collection.url -%}
+      {%- assign url  = collection.url -%}
       {%- assign name = collection.name -%}
       {%- assign first_product = collection.products | first -%}
 
@@ -62,7 +64,7 @@
         {%- assign image = first_product.images.first -%}
       {%- endif -%}
     {%- else -%}
-      {%- assign image = placeholder -%}
+      {%- assign image   = placeholder -%}
     {%- endif -%}
 
     <li class="collections__item" id="{{- id -}}">
@@ -72,9 +74,10 @@
           <span class="collections__image-item">
             {%- render 'image',
               image: image,
-              loading: 'lazy',
-              class: 'collections__image',
-              size: 'm'
+              image_class: 'collections__image',
+              image_size: 'm',
+              use_ratio: false,
+              loading: image_loading
             -%}
           </span>
       {%- if collection != blank -%}

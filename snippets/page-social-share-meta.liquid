@@ -1,0 +1,30 @@
+<meta property="og:title" content="{{ page_title }}">
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta name="twitter:title" content="{{ page_title }}">
+
+{% if page_description != blank %}
+  <meta property="og:description" content="{{ page_description }}">
+  <meta name="twitter:description" content="{{ page_description }}">
+{% endif %}
+
+<meta property="og:locale" content="{{ locale }}">
+<meta name="twitter:card" content="summary">
+
+{% if product == blank %}
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ canonical_url }}">
+{% else %}
+  <meta property="og:type" content="product">
+  <meta property="og:url" content="{{ canonical_url | append: product.url }}">
+{% endif %}
+
+{% if image_url != blank %}
+  <meta property="og:image" content="{{ image_url }}">
+  <meta property="og:image:secure_url" content="{{ image_url }}">
+  <meta name="twitter:image" content="{{ image_url }}">
+
+  {% if image_alt != blank %}
+    <meta property="og:image:alt" content="{{ image_alt }}">
+    <meta name="twitter:image:alt" content="{{ image_alt }}">
+  {% endif %}
+{% endif %}

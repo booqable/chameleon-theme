@@ -1,7 +1,6 @@
 {%- unless section.blocks.size == 0 -%}
 
-  {{ "logos.css" | asset_url | stylesheet_tag }}
-
+  {%- assign loading_strategy      = 'lazy' -%}
   {%- assign title                 = section.settings.title -%}
   {%- assign text_position         = section.settings.text_position -%}
   {%- assign text_position_mobile  = section.settings.text_position_mobile -%}
@@ -10,6 +9,10 @@
   {%- assign padding_bottom        = section.settings.padding_bottom -%}
   {%- assign padding_top_mobile    = section.settings.padding_top_mobile -%}
   {%- assign padding_bottom_mobile = section.settings.padding_bottom_mobile -%}
+
+  {%- if section_preview -%}
+    {%- assign loading_strategy    = 'eager' -%}
+  {%- endif -%}
 
   {% comment %} CSS variables start {% endcomment %}
   {%- capture variables -%}
@@ -110,16 +113,18 @@
         {%- if section.blocks.size >= 1 -%}
           <div class="logos__col logos__logos">
             {%- for block in section.blocks -%}
-              {%- assign image = block.settings.image -%}
+              {%- assign image     = block.settings.image -%}
+              {%- assign image_alt = block.settings.alt -%}
 
               <div class="logos__image-wrapper" id="{{- block.id -}}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
-                    loading: 'lazy',
-                    class: 'logos__image',
+                    image_alt: image_alt,
+                    image_class: 'logos__image',
                     custom_width: '450',
-                    custom_size: '450px'
+                    custom_size: '450px',
+                    loading: loading_strategy
                   -%}
                 {%- endif -%}
               </div>
@@ -138,6 +143,14 @@
     "description": "Show logos of your partners or brands you cary",
     "tag": "section",
     "class": "logos",
+    "css_assets": [
+      {
+        "file": "logos.css",
+        "include_if": [
+          "has_blocks"
+        ]
+      }
+    ],
     "settings": [
       {
         "type": "header",
@@ -325,6 +338,12 @@
             "id": "image",
             "label": "Image",
             "default": "booqable://assets/image-partner-logo-preview-black.png"
+          },
+          {
+            "type": "text",
+            "id": "image_alt",
+            "label": "Alternative text (optional)",
+            "info": "For SEO and Accessibility purposes"
           }
         ]
       }

@@ -1,0 +1,56 @@
+{% comment %}
+  Performance monitoring for Core Web Vitals
+  This snippet adds enhanced performance monitoring for Core Web Vitals
+{% endcomment %}
+
+<script>
+  // Basic performance marks
+  window.performance.mark('start');
+
+  // Create a PerformanceObserver to monitor LCP
+  const lcpObserver = new PerformanceObserver((entryList) => {
+    const entries = entryList.getEntries();
+    const lastEntry = entries[entries.length - 1];
+
+    // Mark LCP and log it
+    window.performance.mark('LCP');
+    window.performance.measure('LCP-measure', 'start', 'LCP');
+  })
+
+  // Start observing LCP
+  lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+
+  // Create a PerformanceObserver to monitor CLS
+  const clsObserver = new PerformanceObserver((entryList) => {
+    let clsValue = 0;
+    for (const entry of entryList.getEntries()) {
+      if (!entry.hadRecentInput) {
+        clsValue += entry.value;
+      }
+    }
+  })
+
+  // Start observing CLS
+  clsObserver.observe({ type: 'layout-shift', buffered: true });
+
+  // Create a PerformanceObserver to monitor FID
+  const fidObserver = new PerformanceObserver((entryList) => {
+    for (const entry of entryList.getEntries()) {
+      const delay = entry.processingStart - entry.startTime;
+    }
+  })
+
+  // Start observing FID
+  fidObserver.observe({ type: 'first-input', buffered: true });
+
+  // Standard DOM event listeners
+  window.addEventListener('DOMContentLoaded', () => {
+    window.performance.mark('DOMContentLoaded');
+    window.performance.measure('DOMContentLoaded-measure', 'start', 'DOMContentLoaded');
+  })
+
+  window.addEventListener('load', () => {
+    window.performance.mark('loaded');
+    window.performance.measure('load-measure', 'start', 'loaded');
+  })
+</script>
