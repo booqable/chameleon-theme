@@ -165,7 +165,7 @@ const CarouselViewportManager = {
       const handleIntersection = (entries) => {
         entries.forEach((entry) => {
           const carousel = entry.target,
-             isVisible = entry.isIntersecting
+            isVisible = entry.isIntersecting
 
           isVisible ?
             this.activateCarousel(carousel) :
@@ -1323,6 +1323,10 @@ const CarouselController = {
 
       throttleNavigation () {
         try {
+          // Only apply throttling to carousels with videos
+          const isVideoCarousel = this.carousel.classList.contains(CarouselConfig.classes.edges)
+          if (!isVideoCarousel) return false
+
           const video = window.videoLoadingInstance
           if (video && video.throttlingNavigation) {
             if (video.throttlingNavigation()) return true
