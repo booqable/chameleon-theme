@@ -59,7 +59,9 @@ const CarouselConfig = {
     widthMobile: '--slide-width-mobile'
   },
   viewport: {
-    mobileBreakpoint: 992
+    mobileBreakpoint: 992,
+    intersectionMargin: '100px',
+    intersectionThreshold: 0.1
   },
   touch: {
     resistance: 0.25,
@@ -78,6 +80,10 @@ const CarouselConfig = {
   },
   time: {
     throttleTime: 150 // Basic throttling for carousel navigation
+  },
+  lifecycle: {
+    poolSize: 10,
+    idleTimeout: 5000 // 5 seconds before cleanup
   }
 }
 
@@ -142,6 +148,260 @@ const CarouselCache = {
       this.data.clear()
     } catch (error) {
       console.warn('CarouselCache: Failed to clear cache', error)
+    }
+  }
+}
+
+const CarouselViewportManager = {
+  observer: null,
+  pendingCarousels: new Set(),
+  activeCarousels: new Map(),
+  idleTimers: new Map(),
+
+  init () {
+    try {
+      if (this.observer) return this.observer
+
+      const handleIntersection = (entries) => {
+        entries.forEach((entry) => {
+          const carousel = entry.target,
+             isVisible = entry.isIntersecting
+
+          isVisible ?
+            this.activateCarousel(carousel) :
+            this.scheduleDeactivation(carousel)
+        })
+      }
+
+      this.observer = $.intersectionObserver(handleIntersection, {
+        rootMargin: CarouselConfig.viewport.intersectionMargin,
+        threshold: CarouselConfig.viewport.intersectionThreshold
+      })
+
+      return this.observer
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to initialize', error)
+      return null
+    }
+  },
+
+  observe (carousel) {
+    try {
+      if (!this.observer) this.init()
+      if (!this.observer) return false
+
+      this.pendingCarousels.add(carousel)
+      this.observer.observe(carousel)
+      return true
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to observe carousel', error)
+      return false
+    }
+  },
+
+  unobserve (carousel) {
+    try {
+      if (this.observer) {
+        this.observer.unobserve(carousel)
+      }
+      this.pendingCarousels.delete(carousel)
+      this.clearIdleTimer(carousel)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to unobserve carousel', error)
+    }
+  },
+
+  activateCarousel (carousel) {
+    try {
+      this.clearIdleTimer(carousel)
+
+      if (this.activeCarousels.has(carousel)) return
+
+      // Use requestIdle for non-blocking initialization
+      $.requestIdle(() => {
+        const instance = CarouselInstancePool.getOrCreateInstance(carousel)
+        if (instance) {
+          this.activeCarousels.set(carousel, instance)
+          instance.init()
+        }
+      })
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to activate carousel', error)
+    }
+  },
+
+  scheduleDeactivation (carousel) {
+    try {
+      this.clearIdleTimer(carousel)
+
+      const timer = setTimeout(() => {
+        this.deactivateCarousel(carousel)
+      }, CarouselConfig.lifecycle.idleTimeout)
+
+      this.idleTimers.set(carousel, timer)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to schedule deactivation', error)
+    }
+  },
+
+  deactivateCarousel (carousel) {
+    try {
+      const instance = this.activeCarousels.get(carousel)
+      if (instance) {
+        instance.cleanup()
+        CarouselInstancePool.returnInstance(carousel, instance)
+        this.activeCarousels.delete(carousel)
+      }
+      this.clearIdleTimer(carousel)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to deactivate carousel', error)
+    }
+  },
+
+  clearIdleTimer (carousel) {
+    try {
+      const timer = this.idleTimers.get(carousel)
+      if (timer) {
+        clearTimeout(timer)
+        this.idleTimers.delete(carousel)
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to clear idle timer', error)
+    }
+  },
+
+  cleanup () {
+    try {
+      if (this.observer) {
+        this.observer.disconnect()
+        this.observer = null
+      }
+
+      this.idleTimers.forEach((timer) => clearTimeout(timer))
+      this.idleTimers.clear()
+
+      this.activeCarousels.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.activeCarousels.clear()
+
+      this.pendingCarousels.clear()
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to cleanup', error)
+    }
+  }
+}
+
+const CarouselInstancePool = {
+  pool: [],
+  activeInstances: new Map(),
+
+  getOrCreateInstance (carousel) {
+    try {
+      let instance = this.pool.pop()
+
+      if (!instance) {
+        instance = CarouselController.createInstance(carousel)
+        if (!instance) return null
+      } else {
+        instance = this.reinitializeInstance(instance, carousel)
+      }
+
+      this.activeInstances.set(carousel, instance)
+      return instance
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to get or create instance', error)
+      return null
+    }
+  },
+
+  returnInstance (carousel, instance) {
+    try {
+      if (!instance) return
+
+      instance.cleanup()
+      this.activeInstances.delete(carousel)
+
+      if (this.pool.length < CarouselConfig.lifecycle.poolSize) {
+        this.resetInstanceState(instance)
+        this.pool.push(instance)
+      }
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to return instance', error)
+    }
+  },
+
+  reinitializeInstance (instance, carousel) {
+    try {
+      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
+      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+
+      if (!wrapper || !items.length) return null
+
+      const prevBtn = carousel.querySelector(CarouselConfig.selector.prev)
+      const nextBtn = carousel.querySelector(CarouselConfig.selector.next)
+      const dots = carousel.querySelectorAll(CarouselConfig.selector.dot)
+      const timerVal = carousel.getAttribute(CarouselConfig.attr.timer)
+      const visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel)
+      const maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
+
+      instance.carousel = carousel
+      instance.wrapper = wrapper
+      instance.items = items
+      instance.prevBtn = prevBtn
+      instance.nextBtn = nextBtn
+      instance.dots = dots
+      instance.currentIndex = 0
+      instance.maxIndex = maxTranslateIndex
+      instance.totalSlides = items.length
+      instance.visibleSlides = visibleSlides
+      instance.timer = $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0
+      instance.hasVideos = carousel.querySelectorAll(CarouselConfig.selector.video).length > 0
+
+      return instance
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to reinitialize instance', error)
+      return null
+    }
+  },
+
+  resetInstanceState (instance) {
+    try {
+      instance.currentIndex = 0
+      instance.autoScrollTimer = null
+      instance.isPaused = false
+      instance.touch = null
+      instance.wheelState = null
+      instance.wheelResumeTimer = null
+      instance.keyboardHandler = null
+      instance.liveRegion = null
+      instance.throttler = null
+
+      Object.keys(instance.eventHandlers || {}).forEach((key) => {
+        if (Array.isArray(instance.eventHandlers[key])) {
+          instance.eventHandlers[key] = []
+        } else {
+          instance.eventHandlers[key] = null
+        }
+      })
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to reset instance state', error)
+    }
+  },
+
+  cleanup () {
+    try {
+      this.activeInstances.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.activeInstances.clear()
+
+      this.pool.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.pool = []
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to cleanup', error)
     }
   }
 }
@@ -838,8 +1098,16 @@ const CarouselDetection = {
     const handleResize = () => {
       CarouselCache.clear()
 
+      // Handle traditional instances
       CarouselController.instances.forEach((instance) => {
         instance.handleResize()
+      })
+
+      // Handle viewport-managed instances
+      CarouselViewportManager.activeCarousels.forEach((instance) => {
+        if (instance && instance.handleResize) {
+          instance.handleResize()
+        }
       })
     }
 
@@ -1356,14 +1624,21 @@ const CarouselController = {
     if (!CarouselDOM.init()) return null
 
     CarouselDetection.setResizeObserver()
+    CarouselViewportManager.init()
 
     const carousels = CarouselDOM.elements.carousels
     carousels.forEach((carousel, index) => {
       carousel.dataset.carouselId = `carousel-${index}`
-      const instance = this.createInstance(carousel)
-      if (instance) {
-        this.instances.push(instance)
-        instance.init()
+
+      // Use viewport management for lazy initialization
+      if ($.inViewport(carousel)) {
+        const instance = this.createInstance(carousel)
+        if (instance) {
+          this.instances.push(instance)
+          instance.init()
+        }
+      } else {
+        CarouselViewportManager.observe(carousel)
       }
     })
 
@@ -1376,6 +1651,8 @@ const CarouselController = {
     })
     this.instances = []
 
+    CarouselViewportManager.cleanup()
+    CarouselInstancePool.cleanup()
     CarouselDetection.cleanup()
     CarouselDOM.cleanup()
     return null
