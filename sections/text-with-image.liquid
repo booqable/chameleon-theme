@@ -180,17 +180,15 @@
       {%- if image.url != blank -%}
         <div class="text-image__col">
           <div class="text-image__holder">
-            <div class="text-image__image-wrapper">
-              {%- if image.url != blank -%}
-                {%- render 'image',
-                  image: image,
-                  image_alt: image_alt,
-                  image_class: 'text-image__image',
-                  image_size: 'm',
-                  loading: loading_strategy
-                -%}
-              {%- endif -%}
-            </div>
+            {%- if image.url != blank -%}
+              {%- render 'image',
+                image: image,
+                image_alt: image_alt,
+                image_class: 'text-image__image',
+                image_size: 'm',
+                loading: loading_strategy
+              -%}
+            {%- endif -%}
           </div>
         </div>
       {%- endif -%}
