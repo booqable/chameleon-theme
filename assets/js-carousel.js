@@ -155,11 +155,16 @@ const CarouselCache = {
 }
 
 const CarouselViewportManager = {
+  activeCarousels: new Map(),
+  carouselStates: new Map(), // Store individual carousel states
+  currentlyInitializing: 0,
+  idleTimers: new Map(),
+  initializationQueue: [],
+  isInitializing: false,
+  maxConcurrentInit: 1, // Only allow 1 carousel to initialize at a time
   observer: null,
   pendingCarousels: new Set(),
-  activeCarousels: new Map(),
-  idleTimers: new Map(),
-  carouselStates: new Map(), // Store individual carousel states
+  visibleCarousels: new Set(), // Track which carousels are currently visible
 
   init () {
     try {
@@ -170,9 +175,13 @@ const CarouselViewportManager = {
           const carousel = entry.target,
             isVisible = entry.isIntersecting
 
-          isVisible ?
-            this.activateCarousel(carousel) :
+          if (isVisible) {
+            this.visibleCarousels.add(carousel)
+            this.activateCarousel(carousel)
+          } else {
+            this.visibleCarousels.delete(carousel)
             this.scheduleDeactivation(carousel)
+          }
         })
       }
 
@@ -209,6 +218,15 @@ const CarouselViewportManager = {
       }
       this.pendingCarousels.delete(carousel)
       this.clearIdleTimer(carousel)
+
+      // Remove from initialization queue if present
+      const queueIndex = this.initializationQueue.indexOf(carousel)
+      if (queueIndex > -1) {
+        this.initializationQueue.splice(queueIndex, 1)
+      }
+
+      // Remove from visible carousels
+      this.visibleCarousels.delete(carousel)
     } catch (error) {
       console.error('CarouselViewportManager: Failed to unobserve carousel', error)
     }
@@ -220,11 +238,48 @@ const CarouselViewportManager = {
 
       if (this.activeCarousels.has(carousel)) return
 
-      // Initialize all carousels directly - viewport management already provides natural rate limiting
-      this.initializeCarousel(carousel)
+      // Check if multiple carousels are visible simultaneously
+      const multipleVisible = this.visibleCarousels.size > 1
+
+      multipleVisible ?
+        this.queueCarouselInitialization(carousel) :
+        this.initializeCarousel(carousel)
     } catch (error) {
       console.error('CarouselViewportManager: Failed to activate carousel', error)
     }
+  },
+
+  queueCarouselInitialization (carousel) {
+    // Already checked in activateCarousel(), only need to check queue
+    if (this.initializationQueue.includes(carousel)) return
+
+    this.initializationQueue.push(carousel)
+    this.processInitializationQueue()
+  },
+
+  processInitializationQueue () {
+    if (this.currentlyInitializing >= this.maxConcurrentInit || this.initializationQueue.length === 0) return
+
+    const carousel = this.initializationQueue.shift()
+    if (!carousel) return
+
+    this.currentlyInitializing++
+
+    const initWithDelay = () => {
+      this.initializeCarousel(carousel)
+
+      // Process next in queue after initialization completes
+      $.requestIdle(() => {
+        this.currentlyInitializing--
+        this.processInitializationQueue()
+      }, { timeout: 100 })
+    }
+
+    // Add delay for video carousels to prevent Safari crashes
+    const isVideoCarousel = CarouselCalculator.hugeCarousel(carousel)
+    const delay = isVideoCarousel ? 2000 : 1000
+
+    setTimeout(initWithDelay, delay)
   },
 
   initializeCarousel (carousel) {
@@ -353,6 +408,9 @@ const CarouselViewportManager = {
       this.pendingCarousels.clear()
 
       this.carouselStates.clear()
+      this.initializationQueue.length = 0
+      this.currentlyInitializing = 0
+      this.visibleCarousels.clear()
     } catch (error) {
       console.error('CarouselViewportManager: Failed to cleanup', error)
     }
