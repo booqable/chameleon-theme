@@ -1204,3 +1204,6 @@ const initVideoLoading = (retryCount = 0) => {
 }
 
 initVideoLoading()
+
+$.VideoHelper = VideoHelpers
+window.VideoHelper = $.VideoHelper

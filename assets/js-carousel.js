@@ -9,8 +9,6 @@
  * @requires js-utils.js
  */
 
-/* global VideoHelpers */
-
 const CarouselConfig = {
   selector: {
     carousel: '.carousel',
@@ -55,6 +53,9 @@ const CarouselConfig = {
     timer: 'data-carousel-timer'
   },
   cssProp: {
+    overlay: '--overlay-color',
+    overlay08: '--overlay-color-08',
+    overlay45: '--overlay-color-45',
     widthDesktop: '--slide-width',
     widthMobile: '--slide-width-mobile'
   },
@@ -83,7 +84,8 @@ const CarouselConfig = {
   },
   lifecycle: {
     poolSize: 10,
-    idleTimeout: 5000 // 5 seconds before cleanup
+    idleTimeout: 2500, // 2.5 seconds before cleanup
+    videoIdleTimeout: 1500 // 1.5 second for video carousels
   }
 }
 
@@ -157,6 +159,7 @@ const CarouselViewportManager = {
   pendingCarousels: new Set(),
   activeCarousels: new Map(),
   idleTimers: new Map(),
+  carouselStates: new Map(), // Store individual carousel states
 
   init () {
     try {
@@ -217,16 +220,61 @@ const CarouselViewportManager = {
 
       if (this.activeCarousels.has(carousel)) return
 
-      // Use requestIdle for non-blocking initialization
-      $.requestIdle(() => {
-        const instance = CarouselInstancePool.getOrCreateInstance(carousel)
-        if (instance) {
-          this.activeCarousels.set(carousel, instance)
-          instance.init()
-        }
-      })
+      // Initialize all carousels directly - viewport management already provides natural rate limiting
+      this.initializeCarousel(carousel)
     } catch (error) {
       console.error('CarouselViewportManager: Failed to activate carousel', error)
+    }
+  },
+
+  initializeCarousel (carousel) {
+    try {
+      const instance = CarouselInstancePool.getOrCreateInstance(carousel)
+      if (instance) {
+        this.restoreCarouselState(carousel, instance) // Restore the carousel's individual state if it exists
+        this.activeCarousels.set(carousel, instance)
+        instance.init()
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to initialize carousel', error)
+    }
+  },
+
+  saveCarouselState (carousel, instance) {
+    try {
+      const carouselId = carousel.dataset.carouselId
+      if (!carouselId) return
+
+      const state = {
+        currentIndex: instance.currentIndex || 0,
+        isPaused: instance.isPaused || false,
+        timestamp: Date.now()
+      }
+
+      this.carouselStates.set(carouselId, state)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to save carousel state', error)
+    }
+  },
+
+  restoreCarouselState (carousel, instance) {
+    try {
+      const carouselId = carousel.dataset.carouselId
+      if (!carouselId) return
+
+      const savedState = this.carouselStates.get(carouselId)
+      if (savedState) {
+        // Restore the saved index, but ensure it's within bounds
+        const targetIndex = Math.max(0, Math.min(savedState.currentIndex, instance.maxIndex))
+        instance.currentIndex = targetIndex
+        instance.isPaused = savedState.isPaused
+
+        // Add a flag to indicate this carousel needs to restore its visual state after init
+        instance.needsStateRestore = true
+        instance.restoreTargetIndex = targetIndex
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to restore carousel state', error)
     }
   },
 
@@ -234,9 +282,15 @@ const CarouselViewportManager = {
     try {
       this.clearIdleTimer(carousel)
 
+      // Use more aggressive cleanup for video carousels to save memory
+      const isVideoCarousel = CarouselCalculator.hugeCarousel(carousel)
+      const timeout = isVideoCarousel ?
+        CarouselConfig.lifecycle.videoIdleTimeout :
+        CarouselConfig.lifecycle.idleTimeout
+
       const timer = setTimeout(() => {
         this.deactivateCarousel(carousel)
-      }, CarouselConfig.lifecycle.idleTimeout)
+      }, timeout)
 
       this.idleTimers.set(carousel, timer)
     } catch (error) {
@@ -248,9 +302,20 @@ const CarouselViewportManager = {
     try {
       const instance = this.activeCarousels.get(carousel)
       if (instance) {
+        this.saveCarouselState(carousel, instance) // Save the carousel's current state before deactivating
+
         instance.cleanup()
         CarouselInstancePool.returnInstance(carousel, instance)
         this.activeCarousels.delete(carousel)
+
+        // Clear cache entries for this specific carousel to free memory
+        const carouselId = carousel.dataset.carouselId
+        if (carouselId) {
+          CarouselCache.delete(`slideWidth-${carouselId}-mobile`)
+          CarouselCache.delete(`slideWidth-${carouselId}-desktop`)
+          CarouselCache.delete(`gap-${carouselId}-mobile`)
+          CarouselCache.delete(`gap-${carouselId}-desktop`)
+        }
       }
       this.clearIdleTimer(carousel)
     } catch (error) {
@@ -286,6 +351,8 @@ const CarouselViewportManager = {
       this.activeCarousels.clear()
 
       this.pendingCarousels.clear()
+
+      this.carouselStates.clear()
     } catch (error) {
       console.error('CarouselViewportManager: Failed to cleanup', error)
     }
@@ -333,17 +400,17 @@ const CarouselInstancePool = {
 
   reinitializeInstance (instance, carousel) {
     try {
-      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper)
-      const items = carousel.querySelectorAll(CarouselConfig.selector.item)
+      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper),
+        items = carousel.querySelectorAll(CarouselConfig.selector.item)
 
       if (!wrapper || !items.length) return null
 
-      const prevBtn = carousel.querySelector(CarouselConfig.selector.prev)
-      const nextBtn = carousel.querySelector(CarouselConfig.selector.next)
-      const dots = carousel.querySelectorAll(CarouselConfig.selector.dot)
-      const timerVal = carousel.getAttribute(CarouselConfig.attr.timer)
-      const visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel)
-      const maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
+      const prevBtn = carousel.querySelector(CarouselConfig.selector.prev),
+        nextBtn = carousel.querySelector(CarouselConfig.selector.next),
+        dots = carousel.querySelectorAll(CarouselConfig.selector.dot),
+        timerVal = carousel.getAttribute(CarouselConfig.attr.timer),
+        visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel),
+        maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
 
       instance.carousel = carousel
       instance.wrapper = wrapper
@@ -447,17 +514,24 @@ const CarouselCalculator = {
     }
   },
 
+  bigCarousel (carousel) {
+    return this.getCarouselType(carousel) === CarouselConfig.carouselTypes.big
+  },
+
+  hugeCarousel (carousel) {
+    return this.getCarouselType(carousel) === CarouselConfig.carouselTypes.huge
+  },
+
   getSlideWidth (carousel) {
     const isMobile = $.viewportSize().width < CarouselConfig.viewport.mobileBreakpoint,
       widthDesktop = CarouselConfig.width.desktop,
       widthMobile = CarouselConfig.width.mobile
 
     try {
-      if (!carousel) return widthDesktop // Safe fallback
+      if (!carousel) return widthDesktop
 
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels have fixed widths
       if (isBigCarousel || isHugeCarousel) return carousel.offsetWidth
@@ -509,7 +583,7 @@ const CarouselCalculator = {
         gap = gapValue === '0px' ? 0 : parseInt(gapValue)
 
       // Validate the result
-      if (gap < 0 || gap > 200) {
+      if (gap < 0 || gap > 100) {
         console.warn('CarouselCalculator: Invalid gap detected', gap)
         return defaultGap
       }
@@ -535,7 +609,7 @@ const CarouselCalculator = {
         totalPadding = paddingLeft + paddingRight
 
       // Validate the result
-      if (totalPadding < 0 || totalPadding > 500) {
+      if (totalPadding < 0 || totalPadding > 200) {
         console.warn('CarouselCalculator: Invalid padding detected', totalPadding)
         return 0
       }
@@ -549,9 +623,8 @@ const CarouselCalculator = {
 
   getVisibleSlidesCount (carousel) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: always show 1 slide
       if (isBigCarousel || isHugeCarousel) return 1
@@ -576,9 +649,8 @@ const CarouselCalculator = {
 
   getMaxTranslateIndex (carousel, totalSlides) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: max index is totalSlides - 1 (can navigate to each slide)
       if (isBigCarousel || isHugeCarousel) return Math.max(0, totalSlides - 1)
@@ -611,9 +683,8 @@ const CarouselCalculator = {
 
   getTranslateValue (carousel, targetIndex) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge,
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel),
         isFadeCarousel = carousel.classList.contains(CarouselConfig.classes.fade),
         isHugeFadeEffect = isHugeCarousel && isFadeCarousel
 
@@ -671,9 +742,8 @@ const CarouselCalculator = {
       const items = carousel.querySelectorAll(CarouselConfig.selector.item)
       if (!items.length) return false
 
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: show controls if there's more than 1 slide
       if (isBigCarousel || isHugeCarousel) return items.length > 1
@@ -781,9 +851,9 @@ const CarouselRenderer = {
 
       const { defaultColor, overlayColor } = data
       const setCss = (elem, color) => {
-        $.setCssVar({ key: '--overlay-color', value: color, element: elem })
-        $.setCssVar({ key: '--overlay-color-08', value: `${color}24`, element: elem })
-        $.setCssVar({ key: '--overlay-color-45', value: `${color}73`, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay, value: color, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay08, value: `${color}24`, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay45, value: `${color}73`, element: elem })
       }
 
       if (!overlayColor) {
@@ -1204,6 +1274,14 @@ const CarouselController = {
 
           this.preloadCarouselImages()
 
+          // Handle state restoration after initialization is complete
+          if (this.needsStateRestore && this.restoreTargetIndex !== undefined) {
+            // Restore to the saved slide position
+            this.goToSlide(this.restoreTargetIndex)
+            this.needsStateRestore = false
+            this.restoreTargetIndex = undefined
+          }
+
           this.markInitialized()
         } catch (error) {
           console.error('Carousel: Failed to initialize', error)
@@ -1324,7 +1402,7 @@ const CarouselController = {
       throttleNavigation () {
         try {
           // Only apply throttling to carousels with videos
-          const isVideoCarousel = this.carousel.classList.contains(CarouselConfig.classes.edges)
+          const isVideoCarousel = CarouselCalculator.hugeCarousel(this.carousel)
           if (!isVideoCarousel) return false
 
           const video = window.videoLoadingInstance
@@ -1333,10 +1411,12 @@ const CarouselController = {
           }
 
           if (!this.throttler) {
-            if (typeof VideoHelpers !== 'undefined' && VideoHelpers.createThrottler) {
-              this.throttler = VideoHelpers.createThrottler(CarouselConfig.time.throttleTime)
-            } else {
-              // Fallback if VideoHelpers not available
+            const throttleHandler = () => {
+              this.throttler = $.VideoHelper.createThrottler(CarouselConfig.time.throttleTime)
+            }
+
+            // Fallback if VideoHelper not available
+            const throtleFallback = () => {
               this.lastNavigationTime = this.lastNavigationTime || 0
               this.throttler = () => {
                 const now = Date.now(),
@@ -1346,6 +1426,10 @@ const CarouselController = {
                 return false
               }
             }
+
+            $.VideoHelper && $.VideoHelper.createThrottler ?
+              throttleHandler() :
+              throtleFallback()
           }
 
           return this.throttler()
@@ -1357,16 +1441,16 @@ const CarouselController = {
 
       goToPrev () {
         if (this.throttleNavigation()) return
-        const prevIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getPrevIndex) ?
-          VideoHelpers.getPrevIndex(this.currentIndex, this.maxIndex, true) :
+        const prevIndex = ($.VideoHelper && $.VideoHelper.getPrevIndex) ?
+          $.VideoHelper.getPrevIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
         this.goToSlide(prevIndex)
       },
 
       goToNext () {
         if (this.throttleNavigation()) return
-        const nextIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getNextIndex) ?
-          VideoHelpers.getNextIndex(this.currentIndex, this.maxIndex, true) :
+        const nextIndex = ($.VideoHelper && $.VideoHelper.getNextIndex) ?
+          $.VideoHelper.getNextIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
         this.goToSlide(nextIndex)
       },
@@ -1375,8 +1459,8 @@ const CarouselController = {
         try {
           if (targetIndex === this.currentIndex) return
 
-          const newIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.clampIndex) ?
-            VideoHelpers.clampIndex(targetIndex, this.maxIndex) :
+          const newIndex = ($.VideoHelper && $.VideoHelper.clampIndex) ?
+            $.VideoHelper.clampIndex(targetIndex, this.maxIndex) :
             Math.max(0, Math.min(targetIndex, this.maxIndex))
           if (newIndex === this.currentIndex) return
 
@@ -1420,8 +1504,8 @@ const CarouselController = {
           const video = window.videoLoadingInstance
           if (video && video.onSlideChange && this.hasVideos) {
             const isAutoRotating = this.autoScrollTimer !== null
-            const videoSlideIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.containerIndexToSlideIndex) ?
-              VideoHelpers.containerIndexToSlideIndex(slideIndex) :
+            const videoSlideIndex = ($.VideoHelper && $.VideoHelper.containerIndexToSlideIndex) ?
+              $.VideoHelper.containerIndexToSlideIndex(slideIndex) :
               (slideIndex + 1)
             video.onSlideChange(videoSlideIndex, isAutoRotating)
           }
@@ -1631,19 +1715,14 @@ const CarouselController = {
     CarouselViewportManager.init()
 
     const carousels = CarouselDOM.elements.carousels
+
+    // ALL carousels use viewport initialization, everything is lazy-loaded for memory efficiency
     carousels.forEach((carousel, index) => {
       carousel.dataset.carouselId = `carousel-${index}`
 
-      // Use viewport management for lazy initialization
-      if ($.inViewport(carousel)) {
-        const instance = this.createInstance(carousel)
-        if (instance) {
-          this.instances.push(instance)
-          instance.init()
-        }
-      } else {
-        CarouselViewportManager.observe(carousel)
-      }
+      // Use viewport management for both (regular and video) carousels
+      // This ensures optimal memory usage and prevents Safari crashes
+      CarouselViewportManager.observe(carousel)
     })
 
     return this.cleanup.bind(this)
