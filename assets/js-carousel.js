@@ -61,7 +61,6 @@ const CarouselConfig = {
   },
   viewport: {
     mobileBreakpoint: 992,
-    intersectionMargin: '100px',
     intersectionThreshold: 0.1
   },
   touch: {
@@ -186,7 +185,6 @@ const CarouselViewportManager = {
       }
 
       this.observer = $.intersectionObserver(handleIntersection, {
-        rootMargin: CarouselConfig.viewport.intersectionMargin,
         threshold: CarouselConfig.viewport.intersectionThreshold
       })
 
