@@ -59,6 +59,7 @@
 .header__logo-image {
   max-height: 64px;
   max-width: 200px;
+  width: auto;
 }
 
 .header--menu-opened {
