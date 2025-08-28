@@ -864,11 +864,16 @@ const VideoLoader = {
       containers = VideoDOMCache.getContainers(),
       slideIndex = Array.from(containers).indexOf(container) + 1,
       savedState = VideoStateManager.getVideoState(videoUrl),
-      startTime = savedState ? savedState.currentTime : 0
+      startTime = savedState ? savedState.currentTime : 0,
+      isMobile = $.viewportSize().width < 992
 
-    if (slowConnection) {
-      iframeOptions.quality = 'small'
-      if (platform === 'youtube') iframeOptions.vq = 'small'
+    // Reduce quality for slow connections or mobile devices to prevent crashes
+    if (slowConnection || isMobile) {
+      if (platform === 'youtube') {
+        iframeOptions.vq = 'small'
+      } else if (platform === 'vimeo') {
+        iframeOptions.quality = 'auto'
+      }
     }
 
     // Configure iframe for saved state
