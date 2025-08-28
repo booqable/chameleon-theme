@@ -1472,7 +1472,7 @@ const CarouselController = {
             }
 
             // Fallback if VideoHelper not available
-            const throtleFallback = () => {
+            const throttleFallback = () => {
               this.lastNavigationTime = this.lastNavigationTime || 0
               this.throttler = () => {
                 const now = Date.now(),
@@ -1485,7 +1485,7 @@ const CarouselController = {
 
             $.videoHelper && $.videoHelper.createThrottler ?
               throttleHandler() :
-              throtleFallback()
+              throttleFallback()
           }
 
           return this.throttler()
