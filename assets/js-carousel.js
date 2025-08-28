@@ -1468,7 +1468,7 @@ const CarouselController = {
 
           if (!this.throttler) {
             const throttleHandler = () => {
-              this.throttler = $.VideoHelper.createThrottler(CarouselConfig.time.throttleTime)
+              this.throttler = $.videoHelper.createThrottler(CarouselConfig.time.throttleTime)
             }
 
             // Fallback if VideoHelper not available
@@ -1483,7 +1483,7 @@ const CarouselController = {
               }
             }
 
-            $.VideoHelper && $.VideoHelper.createThrottler ?
+            $.videoHelper && $.videoHelper.createThrottler ?
               throttleHandler() :
               throtleFallback()
           }
@@ -1497,16 +1497,16 @@ const CarouselController = {
 
       goToPrev () {
         if (this.throttleNavigation()) return
-        const prevIndex = ($.VideoHelper && $.VideoHelper.getPrevIndex) ?
-          $.VideoHelper.getPrevIndex(this.currentIndex, this.maxIndex, true) :
+        const prevIndex = ($.videoHelper && $.videoHelper.getPrevIndex) ?
+          $.videoHelper.getPrevIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
         this.goToSlide(prevIndex)
       },
 
       goToNext () {
         if (this.throttleNavigation()) return
-        const nextIndex = ($.VideoHelper && $.VideoHelper.getNextIndex) ?
-          $.VideoHelper.getNextIndex(this.currentIndex, this.maxIndex, true) :
+        const nextIndex = ($.videoHelper && $.videoHelper.getNextIndex) ?
+          $.videoHelper.getNextIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
         this.goToSlide(nextIndex)
       },
@@ -1515,8 +1515,8 @@ const CarouselController = {
         try {
           if (targetIndex === this.currentIndex) return
 
-          const newIndex = ($.VideoHelper && $.VideoHelper.clampIndex) ?
-            $.VideoHelper.clampIndex(targetIndex, this.maxIndex) :
+          const newIndex = ($.videoHelper && $.videoHelper.clampIndex) ?
+            $.videoHelper.clampIndex(targetIndex, this.maxIndex) :
             Math.max(0, Math.min(targetIndex, this.maxIndex))
           if (newIndex === this.currentIndex) return
 
@@ -1560,8 +1560,8 @@ const CarouselController = {
           const video = window.videoLoadingInstance
           if (video && video.onSlideChange && this.hasVideos) {
             const isAutoRotating = this.autoScrollTimer !== null
-            const videoSlideIndex = ($.VideoHelper && $.VideoHelper.containerIndexToSlideIndex) ?
-              $.VideoHelper.containerIndexToSlideIndex(slideIndex) :
+            const videoSlideIndex = ($.videoHelper && $.videoHelper.containerIndexToSlideIndex) ?
+              $.videoHelper.containerIndexToSlideIndex(slideIndex) :
               (slideIndex + 1)
             video.onSlideChange(videoSlideIndex, isAutoRotating)
           }
