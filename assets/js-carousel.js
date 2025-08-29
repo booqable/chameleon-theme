@@ -54,8 +54,8 @@ const CarouselConfig = {
   },
   cssProp: {
     overlay: '--overlay-color',
-    overlay08: '--overlay-color-08',    // Overlay text color, ocacity 0.08
-    overlay45: '--overlay-color-45',    // Overlay text color, ocacity 0.45
+    overlay08: '--overlay-color-08', // Overlay text color, ocacity 0.08
+    overlay45: '--overlay-color-45', // Overlay text color, ocacity 0.45
     widthDesktop: '--slide-width',
     widthMobile: '--slide-width-mobile'
   },
