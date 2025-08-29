@@ -867,12 +867,11 @@ const VideoLoader = {
       startTime = savedState ? savedState.currentTime : 0,
       isMobile = $.viewportSize().width < 992
 
-    // Reduce quality for slow connections or mobile devices to prevent crashes
     if (slowConnection || isMobile) {
       if (platform === 'youtube') {
-        iframeOptions.vq = 'small'
+        iframeOptions.vq = 'medium'
       } else if (platform === 'vimeo') {
-        iframeOptions.quality = 'auto'
+        iframeOptions.quality = '360p'
       }
     }
 
