@@ -335,7 +335,7 @@
             {% comment %} CSS variables end {% endcomment %}
 
             {%- if carousel -%}
-              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} data-index="{{- index -}}" aria-label="Slide {{ index }}">
+              <div class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} aria-label="Slide {{ index }}">
                 <div class="carousel__inner">
             {%- endif -%}
                   <div

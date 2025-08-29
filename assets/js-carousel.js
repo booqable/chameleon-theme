@@ -9,8 +9,6 @@
  * @requires js-utils.js
  */
 
-/* global VideoHelpers */
-
 const CarouselConfig = {
   selector: {
     carousel: '.carousel',
@@ -55,11 +53,15 @@ const CarouselConfig = {
     timer: 'data-carousel-timer'
   },
   cssProp: {
+    overlay: '--overlay-color',
+    overlay08: '--overlay-color-08', // Overlay text color, ocacity 0.08
+    overlay45: '--overlay-color-45', // Overlay text color, ocacity 0.45
     widthDesktop: '--slide-width',
     widthMobile: '--slide-width-mobile'
   },
   viewport: {
-    mobileBreakpoint: 992
+    mobileBreakpoint: 992,
+    intersectionThreshold: 0.1
   },
   touch: {
     resistance: 0.25,
@@ -78,6 +80,11 @@ const CarouselConfig = {
   },
   time: {
     throttleTime: 150 // Basic throttling for carousel navigation
+  },
+  lifecycle: {
+    poolSize: 10,
+    idleTimeout: 2500, // 2.5 seconds before cleanup
+    videoIdleTimeout: 1500 // 1.5 second for video carousels
   }
 }
 
@@ -146,6 +153,382 @@ const CarouselCache = {
   }
 }
 
+const CarouselViewportManager = {
+  activeCarousels: new Map(),
+  carouselStates: new Map(), // Store individual carousel states
+  currentlyInitializing: 0,
+  idleTimers: new Map(),
+  initializationQueue: [],
+  isInitializing: false,
+  maxConcurrentInit: 1, // Only allow 1 carousel to initialize at a time
+  observer: null,
+  pendingCarousels: new Set(),
+  visibleCarousels: new Set(), // Track which carousels are currently visible
+
+  init () {
+    try {
+      if (this.observer) return this.observer
+
+      const handleIntersection = (entries) => {
+        entries.forEach((entry) => {
+          const carousel = entry.target,
+            isVisible = entry.isIntersecting
+
+          if (isVisible) {
+            this.visibleCarousels.add(carousel)
+            this.activateCarousel(carousel)
+          } else {
+            this.visibleCarousels.delete(carousel)
+            this.scheduleDeactivation(carousel)
+          }
+        })
+      }
+
+      this.observer = $.intersectionObserver(handleIntersection, {
+        threshold: CarouselConfig.viewport.intersectionThreshold
+      })
+
+      return this.observer
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to initialize', error)
+      return null
+    }
+  },
+
+  observe (carousel) {
+    try {
+      if (!this.observer) this.init()
+      if (!this.observer) return false
+
+      this.pendingCarousels.add(carousel)
+      this.observer.observe(carousel)
+      return true
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to observe carousel', error)
+      return false
+    }
+  },
+
+  unobserve (carousel) {
+    try {
+      if (this.observer) {
+        this.observer.unobserve(carousel)
+      }
+      this.pendingCarousels.delete(carousel)
+      this.clearIdleTimer(carousel)
+
+      // Remove from initialization queue if present
+      const queueIndex = this.initializationQueue.indexOf(carousel)
+      if (queueIndex > -1) {
+        this.initializationQueue.splice(queueIndex, 1)
+      }
+
+      // Remove from visible carousels
+      this.visibleCarousels.delete(carousel)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to unobserve carousel', error)
+    }
+  },
+
+  activateCarousel (carousel) {
+    try {
+      this.clearIdleTimer(carousel)
+
+      if (this.activeCarousels.has(carousel)) return
+
+      // Check if multiple carousels are visible simultaneously
+      const multipleVisible = this.visibleCarousels.size > 1
+
+      multipleVisible ?
+        this.queueCarouselInitialization(carousel) :
+        this.initializeCarousel(carousel)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to activate carousel', error)
+    }
+  },
+
+  queueCarouselInitialization (carousel) {
+    // Already checked in activateCarousel(), only need to check queue
+    if (this.initializationQueue.includes(carousel)) return
+
+    this.initializationQueue.push(carousel)
+    this.processInitializationQueue()
+  },
+
+  processInitializationQueue () {
+    if (this.currentlyInitializing >= this.maxConcurrentInit || this.initializationQueue.length === 0) return
+
+    const carousel = this.initializationQueue.shift()
+    if (!carousel) return
+
+    this.currentlyInitializing++
+
+    const initWithDelay = () => {
+      this.initializeCarousel(carousel)
+
+      // Process next in queue after initialization completes
+      $.requestIdle(() => {
+        this.currentlyInitializing--
+        this.processInitializationQueue()
+      }, { timeout: 100 })
+    }
+
+    // Add delay for video carousels to prevent Safari crashes
+    const isVideoCarousel = CarouselCalculator.hugeCarousel(carousel)
+    const delay = isVideoCarousel ? 2000 : 1000
+
+    setTimeout(initWithDelay, delay)
+  },
+
+  initializeCarousel (carousel) {
+    try {
+      const instance = CarouselInstancePool.getOrCreateInstance(carousel)
+      if (instance) {
+        this.restoreCarouselState(carousel, instance) // Restore the carousel's individual state if it exists
+        this.activeCarousels.set(carousel, instance)
+        instance.init()
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to initialize carousel', error)
+    }
+  },
+
+  saveCarouselState (carousel, instance) {
+    try {
+      const carouselId = carousel.dataset.carouselId
+      if (!carouselId) return
+
+      const state = {
+        currentIndex: instance.currentIndex || 0,
+        isPaused: instance.isPaused || false,
+        timestamp: Date.now()
+      }
+
+      this.carouselStates.set(carouselId, state)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to save carousel state', error)
+    }
+  },
+
+  restoreCarouselState (carousel, instance) {
+    try {
+      const carouselId = carousel.dataset.carouselId
+      if (!carouselId) return
+
+      const savedState = this.carouselStates.get(carouselId)
+      if (savedState) {
+        // Restore the saved index, but ensure it's within bounds
+        const targetIndex = Math.max(0, Math.min(savedState.currentIndex, instance.maxIndex))
+        instance.currentIndex = targetIndex
+        instance.isPaused = savedState.isPaused
+
+        // Add a flag to indicate this carousel needs to restore its visual state after init
+        instance.needsStateRestore = true
+        instance.restoreTargetIndex = targetIndex
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to restore carousel state', error)
+    }
+  },
+
+  scheduleDeactivation (carousel) {
+    try {
+      this.clearIdleTimer(carousel)
+
+      // Use more aggressive cleanup for video carousels to save memory
+      const isVideoCarousel = CarouselCalculator.hugeCarousel(carousel)
+      const timeout = isVideoCarousel ?
+        CarouselConfig.lifecycle.videoIdleTimeout :
+        CarouselConfig.lifecycle.idleTimeout
+
+      const timer = setTimeout(() => {
+        this.deactivateCarousel(carousel)
+      }, timeout)
+
+      this.idleTimers.set(carousel, timer)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to schedule deactivation', error)
+    }
+  },
+
+  deactivateCarousel (carousel) {
+    try {
+      const instance = this.activeCarousels.get(carousel)
+      if (instance) {
+        this.saveCarouselState(carousel, instance) // Save the carousel's current state before deactivating
+
+        instance.cleanup()
+        CarouselInstancePool.returnInstance(carousel, instance)
+        this.activeCarousels.delete(carousel)
+
+        // Clear cache entries for this specific carousel to free memory
+        const carouselId = carousel.dataset.carouselId
+        if (carouselId) {
+          CarouselCache.delete(`slideWidth-${carouselId}-mobile`)
+          CarouselCache.delete(`slideWidth-${carouselId}-desktop`)
+          CarouselCache.delete(`gap-${carouselId}-mobile`)
+          CarouselCache.delete(`gap-${carouselId}-desktop`)
+        }
+      }
+      this.clearIdleTimer(carousel)
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to deactivate carousel', error)
+    }
+  },
+
+  clearIdleTimer (carousel) {
+    try {
+      const timer = this.idleTimers.get(carousel)
+      if (timer) {
+        clearTimeout(timer)
+        this.idleTimers.delete(carousel)
+      }
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to clear idle timer', error)
+    }
+  },
+
+  cleanup () {
+    try {
+      if (this.observer) {
+        this.observer.disconnect()
+        this.observer = null
+      }
+
+      this.idleTimers.forEach((timer) => clearTimeout(timer))
+      this.idleTimers.clear()
+
+      this.activeCarousels.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.activeCarousels.clear()
+
+      this.pendingCarousels.clear()
+
+      this.carouselStates.clear()
+      this.initializationQueue.length = 0
+      this.currentlyInitializing = 0
+      this.visibleCarousels.clear()
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to cleanup', error)
+    }
+  }
+}
+
+const CarouselInstancePool = {
+  pool: [],
+  activeInstances: new Map(),
+
+  getOrCreateInstance (carousel) {
+    try {
+      let instance = this.pool.pop()
+
+      if (!instance) {
+        instance = CarouselController.createInstance(carousel)
+        if (!instance) return null
+      } else {
+        instance = this.reinitializeInstance(instance, carousel)
+      }
+
+      this.activeInstances.set(carousel, instance)
+      return instance
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to get or create instance', error)
+      return null
+    }
+  },
+
+  returnInstance (carousel, instance) {
+    try {
+      if (!instance) return
+
+      instance.cleanup()
+      this.activeInstances.delete(carousel)
+
+      if (this.pool.length < CarouselConfig.lifecycle.poolSize) {
+        this.resetInstanceState(instance)
+        this.pool.push(instance)
+      }
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to return instance', error)
+    }
+  },
+
+  reinitializeInstance (instance, carousel) {
+    try {
+      const wrapper = carousel.querySelector(CarouselConfig.selector.wrapper),
+        items = carousel.querySelectorAll(CarouselConfig.selector.item)
+
+      if (!wrapper || !items.length) return null
+
+      const prevBtn = carousel.querySelector(CarouselConfig.selector.prev),
+        nextBtn = carousel.querySelector(CarouselConfig.selector.next),
+        dots = carousel.querySelectorAll(CarouselConfig.selector.dot),
+        timerVal = carousel.getAttribute(CarouselConfig.attr.timer),
+        visibleSlides = CarouselCalculator.getVisibleSlidesCount(carousel),
+        maxTranslateIndex = CarouselCalculator.getMaxTranslateIndex(carousel, items.length)
+
+      instance.carousel = carousel
+      instance.wrapper = wrapper
+      instance.items = items
+      instance.prevBtn = prevBtn
+      instance.nextBtn = nextBtn
+      instance.dots = dots
+      instance.currentIndex = 0
+      instance.maxIndex = maxTranslateIndex
+      instance.totalSlides = items.length
+      instance.visibleSlides = visibleSlides
+      instance.timer = $.is(timerVal, 'string') && timerVal.length > 0 ? parseInt(timerVal) * 1000 : 0
+      instance.hasVideos = carousel.querySelectorAll(CarouselConfig.selector.video).length > 0
+
+      return instance
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to reinitialize instance', error)
+      return null
+    }
+  },
+
+  resetInstanceState (instance) {
+    try {
+      instance.currentIndex = 0
+      instance.autoScrollTimer = null
+      instance.isPaused = false
+      instance.touch = null
+      instance.wheelState = null
+      instance.wheelResumeTimer = null
+      instance.keyboardHandler = null
+      instance.liveRegion = null
+      instance.throttler = null
+
+      Object.keys(instance.eventHandlers || {}).forEach((key) => {
+        if (Array.isArray(instance.eventHandlers[key])) {
+          instance.eventHandlers[key] = []
+        } else {
+          instance.eventHandlers[key] = null
+        }
+      })
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to reset instance state', error)
+    }
+  },
+
+  cleanup () {
+    try {
+      this.activeInstances.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.activeInstances.clear()
+
+      this.pool.forEach((instance) => {
+        if (instance && instance.cleanup) instance.cleanup()
+      })
+      this.pool = []
+    } catch (error) {
+      console.error('CarouselInstancePool: Failed to cleanup', error)
+    }
+  }
+}
+
 const CarouselDOM = {
   elements: {
     carousels: null
@@ -187,17 +570,24 @@ const CarouselCalculator = {
     }
   },
 
+  bigCarousel (carousel) {
+    return this.getCarouselType(carousel) === CarouselConfig.carouselTypes.big
+  },
+
+  hugeCarousel (carousel) {
+    return this.getCarouselType(carousel) === CarouselConfig.carouselTypes.huge
+  },
+
   getSlideWidth (carousel) {
     const isMobile = $.viewportSize().width < CarouselConfig.viewport.mobileBreakpoint,
       widthDesktop = CarouselConfig.width.desktop,
       widthMobile = CarouselConfig.width.mobile
 
     try {
-      if (!carousel) return widthDesktop // Safe fallback
+      if (!carousel) return widthDesktop
 
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels have fixed widths
       if (isBigCarousel || isHugeCarousel) return carousel.offsetWidth
@@ -249,7 +639,7 @@ const CarouselCalculator = {
         gap = gapValue === '0px' ? 0 : parseInt(gapValue)
 
       // Validate the result
-      if (gap < 0 || gap > 200) {
+      if (gap < 0 || gap > 100) {
         console.warn('CarouselCalculator: Invalid gap detected', gap)
         return defaultGap
       }
@@ -275,7 +665,7 @@ const CarouselCalculator = {
         totalPadding = paddingLeft + paddingRight
 
       // Validate the result
-      if (totalPadding < 0 || totalPadding > 500) {
+      if (totalPadding < 0 || totalPadding > 200) {
         console.warn('CarouselCalculator: Invalid padding detected', totalPadding)
         return 0
       }
@@ -289,9 +679,8 @@ const CarouselCalculator = {
 
   getVisibleSlidesCount (carousel) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: always show 1 slide
       if (isBigCarousel || isHugeCarousel) return 1
@@ -316,9 +705,8 @@ const CarouselCalculator = {
 
   getMaxTranslateIndex (carousel, totalSlides) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: max index is totalSlides - 1 (can navigate to each slide)
       if (isBigCarousel || isHugeCarousel) return Math.max(0, totalSlides - 1)
@@ -351,9 +739,8 @@ const CarouselCalculator = {
 
   getTranslateValue (carousel, targetIndex) {
     try {
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge,
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel),
         isFadeCarousel = carousel.classList.contains(CarouselConfig.classes.fade),
         isHugeFadeEffect = isHugeCarousel && isFadeCarousel
 
@@ -411,9 +798,8 @@ const CarouselCalculator = {
       const items = carousel.querySelectorAll(CarouselConfig.selector.item)
       if (!items.length) return false
 
-      const carouselType = this.getCarouselType(carousel),
-        isBigCarousel = carouselType === CarouselConfig.carouselTypes.big,
-        isHugeCarousel = carouselType === CarouselConfig.carouselTypes.huge
+      const isBigCarousel = this.bigCarousel(carousel),
+        isHugeCarousel = this.hugeCarousel(carousel)
 
       // Big and Huge carousels: show controls if there's more than 1 slide
       if (isBigCarousel || isHugeCarousel) return items.length > 1
@@ -521,9 +907,9 @@ const CarouselRenderer = {
 
       const { defaultColor, overlayColor } = data
       const setCss = (elem, color) => {
-        $.setCssVar({ key: '--overlay-color', value: color, element: elem })
-        $.setCssVar({ key: '--overlay-color-08', value: `${color}24`, element: elem })
-        $.setCssVar({ key: '--overlay-color-45', value: `${color}73`, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay, value: color, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay08, value: `${color}24`, element: elem })
+        $.setCssVar({ key: CarouselConfig.cssProp.overlay45, value: `${color}73`, element: elem })
       }
 
       if (!overlayColor) {
@@ -838,8 +1224,16 @@ const CarouselDetection = {
     const handleResize = () => {
       CarouselCache.clear()
 
+      // Handle traditional instances
       CarouselController.instances.forEach((instance) => {
         instance.handleResize()
+      })
+
+      // Handle viewport-managed instances
+      CarouselViewportManager.activeCarousels.forEach((instance) => {
+        if (instance && instance.handleResize) {
+          instance.handleResize()
+        }
       })
     }
 
@@ -935,6 +1329,14 @@ const CarouselController = {
           }
 
           this.preloadCarouselImages()
+
+          // Handle state restoration after initialization is complete
+          if (this.needsStateRestore && this.restoreTargetIndex !== undefined) {
+            // Restore to the saved slide position
+            this.goToSlide(this.restoreTargetIndex)
+            this.needsStateRestore = false
+            this.restoreTargetIndex = undefined
+          }
 
           this.markInitialized()
         } catch (error) {
@@ -1055,16 +1457,22 @@ const CarouselController = {
 
       throttleNavigation () {
         try {
+          // Only apply throttling to carousels with videos
+          const isVideoCarousel = CarouselCalculator.hugeCarousel(this.carousel)
+          if (!isVideoCarousel) return false
+
           const video = window.videoLoadingInstance
           if (video && video.throttlingNavigation) {
             if (video.throttlingNavigation()) return true
           }
 
           if (!this.throttler) {
-            if (typeof VideoHelpers !== 'undefined' && VideoHelpers.createThrottler) {
-              this.throttler = VideoHelpers.createThrottler(CarouselConfig.time.throttleTime)
-            } else {
-              // Fallback if VideoHelpers not available
+            const throttleHandler = () => {
+              this.throttler = $.videoHelper.createThrottler(CarouselConfig.time.throttleTime)
+            }
+
+            // Fallback if VideoHelper not available
+            const throttleFallback = () => {
               this.lastNavigationTime = this.lastNavigationTime || 0
               this.throttler = () => {
                 const now = Date.now(),
@@ -1074,6 +1482,10 @@ const CarouselController = {
                 return false
               }
             }
+
+            $.videoHelper && $.videoHelper.createThrottler ?
+              throttleHandler() :
+              throttleFallback()
           }
 
           return this.throttler()
@@ -1085,16 +1497,16 @@ const CarouselController = {
 
       goToPrev () {
         if (this.throttleNavigation()) return
-        const prevIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getPrevIndex) ?
-          VideoHelpers.getPrevIndex(this.currentIndex, this.maxIndex, true) :
+        const prevIndex = ($.videoHelper && $.videoHelper.getPrevIndex) ?
+          $.videoHelper.getPrevIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex)
         this.goToSlide(prevIndex)
       },
 
       goToNext () {
         if (this.throttleNavigation()) return
-        const nextIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.getNextIndex) ?
-          VideoHelpers.getNextIndex(this.currentIndex, this.maxIndex, true) :
+        const nextIndex = ($.videoHelper && $.videoHelper.getNextIndex) ?
+          $.videoHelper.getNextIndex(this.currentIndex, this.maxIndex, true) :
           (this.currentIndex < this.maxIndex ? this.currentIndex + 1 : 0)
         this.goToSlide(nextIndex)
       },
@@ -1103,8 +1515,8 @@ const CarouselController = {
         try {
           if (targetIndex === this.currentIndex) return
 
-          const newIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.clampIndex) ?
-            VideoHelpers.clampIndex(targetIndex, this.maxIndex) :
+          const newIndex = ($.videoHelper && $.videoHelper.clampIndex) ?
+            $.videoHelper.clampIndex(targetIndex, this.maxIndex) :
             Math.max(0, Math.min(targetIndex, this.maxIndex))
           if (newIndex === this.currentIndex) return
 
@@ -1148,8 +1560,8 @@ const CarouselController = {
           const video = window.videoLoadingInstance
           if (video && video.onSlideChange && this.hasVideos) {
             const isAutoRotating = this.autoScrollTimer !== null
-            const videoSlideIndex = (typeof VideoHelpers !== 'undefined' && VideoHelpers.containerIndexToSlideIndex) ?
-              VideoHelpers.containerIndexToSlideIndex(slideIndex) :
+            const videoSlideIndex = ($.videoHelper && $.videoHelper.containerIndexToSlideIndex) ?
+              $.videoHelper.containerIndexToSlideIndex(slideIndex) :
               (slideIndex + 1)
             video.onSlideChange(videoSlideIndex, isAutoRotating)
           }
@@ -1356,15 +1768,17 @@ const CarouselController = {
     if (!CarouselDOM.init()) return null
 
     CarouselDetection.setResizeObserver()
+    CarouselViewportManager.init()
 
     const carousels = CarouselDOM.elements.carousels
+
+    // ALL carousels use viewport initialization, everything is lazy-loaded for memory efficiency
     carousels.forEach((carousel, index) => {
       carousel.dataset.carouselId = `carousel-${index}`
-      const instance = this.createInstance(carousel)
-      if (instance) {
-        this.instances.push(instance)
-        instance.init()
-      }
+
+      // Use viewport management for both (regular and video) carousels
+      // This ensures optimal memory usage and prevents Safari crashes
+      CarouselViewportManager.observe(carousel)
     })
 
     return this.cleanup.bind(this)
@@ -1376,6 +1790,8 @@ const CarouselController = {
     })
     this.instances = []
 
+    CarouselViewportManager.cleanup()
+    CarouselInstancePool.cleanup()
     CarouselDetection.cleanup()
     CarouselDOM.cleanup()
     return null

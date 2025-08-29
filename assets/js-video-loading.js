@@ -1201,6 +1201,9 @@ const initVideoLoading = (retryCount = 0) => {
     return
   }
   $.cleanup('cleanupVideoLoading', () => VideoHandler.init())
+
+  $.videoHelper = VideoHelpers
+  window.videoHelper = $.videoHelper
 }
 
 initVideoLoading()
