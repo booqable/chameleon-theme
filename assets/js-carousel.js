@@ -161,6 +161,7 @@ const CarouselViewportManager = {
   initializationQueue: [],
   isInitializing: false,
   maxConcurrentInit: 1, // Only allow 1 carousel to initialize at a time
+  maxConcurrentMobile: 1, // Even more restrictive on mobile
   observer: null,
   pendingCarousels: new Set(),
   visibleCarousels: new Set(), // Track which carousels are currently visible
@@ -227,6 +228,34 @@ const CarouselViewportManager = {
       this.visibleCarousels.delete(carousel)
     } catch (error) {
       console.error('CarouselViewportManager: Failed to unobserve carousel', error)
+    }
+  },
+
+  observeLazy (carousel, delay) {
+    try {
+      // Create a one-time intersection observer
+      const lazyObserver = $.intersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            lazyObserver.unobserve(carousel)
+            this.observe(carousel)
+          }
+        })
+      }, { threshold: CarouselConfig.viewport.intersectionThreshold })
+
+      lazyObserver.observe(carousel)
+
+      setTimeout(() => {
+        if (!carousel.classList.contains(CarouselConfig.classes.initialized)) {
+          lazyObserver.unobserve(carousel)
+          this.observe(carousel)
+        }
+      }, delay)
+
+      return true
+    } catch (error) {
+      console.error('CarouselViewportManager: Failed to observe lazy carousel', error)
+      return false
     }
   },
 
@@ -1770,18 +1799,47 @@ const CarouselController = {
     CarouselDetection.setResizeObserver()
     CarouselViewportManager.init()
 
-    const carousels = CarouselDOM.elements.carousels
+    const carousels = CarouselDOM.elements.carousels,
+      isMobile = $.viewportSize().width < 992,
+      hasVideoCarousels = this.detectVideoCarousels(carousels)
 
-    // ALL carousels use viewport initialization, everything is lazy-loaded for memory efficiency
-    carousels.forEach((carousel, index) => {
-      carousel.dataset.carouselId = `carousel-${index}`
+    if (isMobile && hasVideoCarousels) {
+      // Mobile: Only initialize first 2 carousels immediately, lazy-load the rest
+      const immediateCarousels = 2
 
-      // Use viewport management for both (regular and video) carousels
-      // This ensures optimal memory usage and prevents Safari crashes
-      CarouselViewportManager.observe(carousel)
-    })
+      carousels.forEach((carousel, index) => {
+        carousel.dataset.carouselId = `carousel-${index}`
+
+        index < immediateCarousels ?
+          // Initialize first 2 carousels immediately
+          CarouselViewportManager.observe(carousel) :
+          // Lazy-load remaining carousels with viewport detection and delays
+          this.setupLazyCarousel(carousel, index, immediateCarousels)
+      })
+    } else {
+      // Normal initialization: Desktop or mobile without video carousels
+      carousels.forEach((carousel, index) => {
+        carousel.dataset.carouselId = `carousel-${index}`
+        CarouselViewportManager.observe(carousel)
+      })
+    }
 
     return this.cleanup.bind(this)
+  },
+
+  detectVideoCarousels (carousels) {
+    return Array.from(carousels).some((carousel) => {
+      const isHugeCarousel = carousel.classList.contains(CarouselConfig.classes.edges)
+      if (!isHugeCarousel) return false
+
+      const hasVideoContainers = carousel.querySelectorAll(CarouselConfig.selector.video).length > 0
+      return hasVideoContainers
+    })
+  },
+
+  setupLazyCarousel (carousel, index, immediateCarousels) {
+    const delay = (index - immediateCarousels + 1) * 8000
+    CarouselViewportManager.observeLazy(carousel, delay)
   },
 
   cleanup () {
