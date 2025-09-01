@@ -1838,7 +1838,11 @@ const CarouselController = {
   },
 
   setupLazyCarousel (carousel, index, immediateCarousels) {
-    const delay = (index - immediateCarousels + 1) * 8000
+    const chunkSize = 2,
+      carouselPosition = index - immediateCarousels,
+      chunkIndex = Math.floor(carouselPosition / chunkSize),
+      delay = (chunkIndex + 1) * 5000 // Each chunk loads 6 seconds after the previous
+
     CarouselViewportManager.observeLazy(carousel, delay)
   },
 
