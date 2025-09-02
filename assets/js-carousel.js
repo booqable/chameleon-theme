@@ -1841,7 +1841,7 @@ const CarouselController = {
     const chunkSize = 2,
       carouselPosition = index - immediateCarousels,
       chunkIndex = Math.floor(carouselPosition / chunkSize),
-      delay = (chunkIndex + 1) * 5000 // Each chunk loads 6 seconds after the previous
+      delay = (chunkIndex + 1) * 5000 // Each chunk loads 5 seconds after the previous
 
     CarouselViewportManager.observeLazy(carousel, delay)
   },
