@@ -28,13 +28,13 @@ const VideoHelpers = {
     try {
       return fn()
     } catch (error) {
-      console.warn(`VideoLoader: ${operation}`, context, error)
-      return fallback
+      return this.handleError('VideoLoader', operation, error, fallback, context)
     }
   },
 
-  handleError (moduleName, operation, error, fallback = null) {
-    console.warn(`${moduleName}: Failed to ${operation}`, error)
+  handleError (moduleName, operation, error, fallback = null, context = null) {
+    const contextInfo = context ? `, context: ${JSON.stringify(context)}` : ''
+    console.warn(`${moduleName}: Failed to ${operation}${contextInfo}`, error)
     return fallback
   },
 
@@ -140,15 +140,8 @@ const VideoHelpers = {
   getPrevIndex (currentIndex, maxIndex, isInfinite = true) {
     if (currentIndex > 0) return currentIndex - 1
     return isInfinite ? maxIndex : 0
-  },
-
-  slideIndexToContainerIndex (slideIndex) {
-    return slideIndex - 1
-  },
-
-  containerIndexToSlideIndex (containerIndex) {
-    return containerIndex + 1
   }
+
 }
 
 const VideoConfig = {
@@ -540,7 +533,7 @@ const VideoAPITracker = {
           const data = JSON.parse(event.data)
 
           // Handle YouTube API responses
-          if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+          if (data.event === 'infoDelivery' && data.info && $.is('number', data.info.currentTime)) {
             const currentSlide = VideoStateManager.currentSlideIndex,
               elements = VideoHelpers.getContainerElements(currentSlide)
 
@@ -551,7 +544,7 @@ const VideoAPITracker = {
           }
 
           // Handle Vimeo API responses
-          if (data.event === 'timeupdate' && typeof data.data === 'number') {
+          if (data.event === 'timeupdate' && $.is('number', data.data)) {
             const { containers } = VideoHelpers.getContainerElements() || {}
             if (!containers) return
 
@@ -596,7 +589,7 @@ const VideoAPITracker = {
 const VideoMemoryManager = {
   shouldVideoBeLoaded (containerIndex, activeIndex, totalSlides) {
     try {
-      const slideIndex = VideoHelpers.containerIndexToSlideIndex(containerIndex),
+      const slideIndex = containerIndex + 1,
         maxSlideIndex = totalSlides
 
       // Always load current slide
@@ -751,45 +744,50 @@ const VideoUtils = {
     iframe.width = `${VideoConfig.size.width}`
     iframe.height = `${VideoConfig.size.height}`
 
-    const youtubeIframe = () => {
-      const params = new URLSearchParams({
-        autoplay: '1',
-        controls: '0',
-        disablekb: '1',
-        enablejsapi: '1',
-        fs: '0',
-        iv_load_policy: '3',
-        modestbranding: '1',
-        mute: '1',
-        loop: '1',
-        playlist: videoId,
-        playsinline: '1',
-        rel: '0',
-        showinfo: '0',
-        ...options
-      })
-      iframe.src = `https://www.youtube.com/embed/${videoId}?${params.toString()}`
-      iframe.allow = 'autoplay; muted; encrypted-media; fullscreen'
+    const setupIframe = (baseUrl, params, allowPermissions) => {
+      // options intentionally override platform defaults
+      const urlParams = new URLSearchParams({ ...params, ...options })
+      iframe.src = `${baseUrl}/${videoId}?${urlParams.toString()}`
+      iframe.allow = allowPermissions
     }
 
-    const vimeoIframe = () => {
-      const params = new URLSearchParams({
-        autopause: '0',
-        autoplay: '1',
-        background: '1',
-        controls: '0',
-        loop: '1',
-        muted: '1',
-        ...options
-      })
-      iframe.src = `https://player.vimeo.com/video/${videoId}?${params.toString()}`
-      iframe.allow = 'autoplay; fullscreen'
+    const platformConfigs = {
+      youtube: {
+        baseUrl: 'https://www.youtube.com/embed',
+        params: {
+          autoplay: '1',
+          controls: '0',
+          disablekb: '1',
+          enablejsapi: '1',
+          fs: '0',
+          iv_load_policy: '3',
+          modestbranding: '1',
+          mute: '1',
+          loop: '1',
+          playlist: videoId,
+          playsinline: '1',
+          rel: '0',
+          showinfo: '0'
+        },
+        allow: 'autoplay; muted; encrypted-media; fullscreen'
+      },
+      vimeo: {
+        baseUrl: 'https://player.vimeo.com/video',
+        params: {
+          autopause: '0',
+          autoplay: '1',
+          background: '1',
+          controls: '0',
+          loop: '1',
+          muted: '1'
+        },
+        allow: 'autoplay; fullscreen'
+      }
     }
 
-    if (platform === 'youtube') {
-      youtubeIframe()
-    } else if (platform === 'vimeo') {
-      vimeoIframe()
+    const config = platformConfigs[platform]
+    if (config) {
+      setupIframe(config.baseUrl, config.params, config.allow)
     }
 
     return iframe
@@ -857,19 +855,13 @@ const VideoLoader = {
     setTimeout(removePoster, VideoConfig.timing.fadeOutDelay)
   },
 
-  createVideoIframe (container, videoId, platform, isSlowConnection = null) {
+  createVideoIframe (container, videoId, platform) {
     const iframeOptions = {},
-      slowConnection = VideoHelpers.slowly(isSlowConnection),
       videoUrl = container.dataset.videoUrl,
       containers = VideoDOMCache.getContainers(),
       slideIndex = Array.from(containers).indexOf(container) + 1,
       savedState = VideoStateManager.getVideoState(videoUrl),
       startTime = savedState ? savedState.currentTime : 0
-
-    if (slowConnection) {
-      iframeOptions.quality = 'small'
-      if (platform === 'youtube') iframeOptions.vq = 'small'
-    }
 
     // Configure iframe for saved state
     if (startTime > 0) {
@@ -994,7 +986,7 @@ const VideoLoader = {
       VideoConfig.timing.autoplayDelay
 
     const loadVideoFrame = () => {
-      const createIframe = () => this.createVideoIframe(container, videoId, platform, slowConnection)
+      const createIframe = () => this.createVideoIframe(container, videoId, platform)
       VideoHelpers.execute(createIframe)
     }
 
