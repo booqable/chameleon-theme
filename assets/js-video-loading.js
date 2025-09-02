@@ -745,6 +745,7 @@ const VideoUtils = {
     iframe.height = `${VideoConfig.size.height}`
 
     const setupIframe = (baseUrl, params, allowPermissions) => {
+      // options intentionally override platform defaults
       const urlParams = new URLSearchParams({ ...params, ...options })
       iframe.src = `${baseUrl}/${videoId}?${urlParams.toString()}`
       iframe.allow = allowPermissions
