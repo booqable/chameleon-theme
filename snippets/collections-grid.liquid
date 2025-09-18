@@ -48,6 +48,7 @@
         {%- assign collection = item -%}
     {%- endcase -%}
 
+    {%- assign alt   = "" -%}
     {%- assign id    = item.id -%}
     {%- assign url   = "" -%}
     {%- assign name  = "" -%}
@@ -57,6 +58,7 @@
       {%- assign url  = collection.url -%}
       {%- assign name = collection.name -%}
       {%- assign first_product = collection.products | first -%}
+      {%- assign alt = first_product.name -%}
 
       {%- if collection.image -%}
         {%- assign image = collection.image -%}
@@ -74,6 +76,7 @@
           <span class="collections__image-item">
             {%- render 'image',
               image: image,
+              image_alt: alt,
               image_class: 'collections__image',
               image_size: 'm',
               use_ratio: false,
