@@ -57,13 +57,14 @@
     {%- if collection != blank -%}
       {%- assign url  = collection.url -%}
       {%- assign name = collection.name -%}
-      {%- assign first_product = collection.products | first -%}
-      {%- assign alt = first_product.name -%}
+      {%- assign first_product = collection.products | first -%}      
 
       {%- if collection.image -%}
         {%- assign image = collection.image -%}
+        {%- assign alt   = name -%}
       {%- elsif first_product and first_product.images.first != empty -%}
         {%- assign image = first_product.images.first -%}
+        {%- assign alt   = first_product.name -%}
       {%- endif -%}
     {%- else -%}
       {%- assign image   = placeholder -%}
