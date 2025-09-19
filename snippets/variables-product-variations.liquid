@@ -21,12 +21,14 @@
 
       {% if settings.primary_color != blank %}
         --variation-select-color: var(--color-primary);
+        --variation-select-placeholder-color: var(--color-variation-placeholder);
         --variation-select-border: 1px solid var(--color-border);
         --bundle-items-color: var(--color-primary);
         --bundle-items-image-border: 1px solid var(--color-border);
       {% else %}
         --variation-select-color: #0B1A26;
         --variation-select-border: 1px solid #0B1A2626;
+        --variation-select-placeholder-color: #0B1A2699;
         --bundle-items-color: #0B1A26;
         --bundle-items-image-border: 1px solid #0B1A2626;
       {% endif %}
@@ -43,11 +45,13 @@
       {% if settings.primary_color_2 != blank %}
         --variation-select-color: var(--color-primary-2);
         --variation-select-border: 1px solid var(--color-border-2);
+        --variation-select-placeholder-color: var(--color-variation-placeholder-2);
         --bundle-items-color: var(--color-primary-2);
         --bundle-items-image-border: 1px solid var(--color-border-2);
       {% else %}
         --variation-select-color: #FFFFFF;
         --variation-select-border: 1px solid #FFFFFF47;
+        --variation-select-placeholder-color: #FFFFFFBF;
         --bundle-items-color: #FFFFFF;
         --bundle-items-image-border: 1px solid #FFFFFF47;
       {% endif %}
@@ -64,11 +68,13 @@
       {% if settings.primary_color_3 != blank %}
         --variation-select-color: var(--color-primary-3);
         --variation-select-border: 1px solid var(--color-border-3);
+        --variation-select-placeholder-color: var(--color-variation-placeholder-3);
         --bundle-items-color: var(--color-primary-3);
         --bundle-items-image-border: 1px solid var(--color-border-3);
       {% else %}
         --variation-select-color: #0B1A26;
         --variation-select-border: 1px solid #0B1A2626;
+        --variation-select-placeholder-color: #0B1A26B3;
         --bundle-items-color: #0B1A26;
         --bundle-items-image-border: 1px solid #0B1A2626;
       {% endif %}
