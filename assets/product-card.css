@@ -34,8 +34,9 @@
   aspect-ratio: 1 / 0.97;
 }
 
-.product-card__image-wrapper:has(.image-placeholder) {
-  position: static;
+.product-card__image-wrapper:has(.product-card__image-placeholder) {
+  position: absolute;
+  inset: 0;
 }
 
 .product-card__image {
