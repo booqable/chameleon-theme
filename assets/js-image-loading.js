@@ -58,11 +58,11 @@ const ImageVisibility = {
   },
 
   observe (element) {
-    this.observer.observe(element)
+    if (this.observer && element) this.observer.observe(element)
   },
 
   unobserve (element) {
-    this.observer.unobserve(element)
+    if (this.observer && element) this.observer.unobserve(element)
   },
 
   checkVisibility (img, multiplier) {
@@ -188,6 +188,8 @@ const ImageLoader = {
     const wrapper = mainImage.closest(`.${ImageConfig.classes.wrapper}`),
       placeholder = wrapper && wrapper.querySelector(`.${ImageConfig.classes.placeholder}`)
 
+    if (!wrapper || !placeholder) return
+
     if ($.slowConnection() && $.isFetchPriority()) {
       mainImage.fetchPriority = 'low'
     }
@@ -244,6 +246,9 @@ const ImageLoadingStrategy = {
         ImageLoader.loadImage(img)
         ImageVisibility.unobserve(img)
       })
+
+      // Clear cache immediately after loading images to ensure fresh query on next call
+      if (visibilityResults.length > 0) this.clearCache()
     }
 
     $.batchDOM(loadingImages)
@@ -327,6 +332,7 @@ const ImageLoadingStrategy = {
 const ImageHandler = {
   windowLoadHandler: null,
   resizeHandler: null,
+  scrollHandler: null,
 
   init () {
     const wrappers = document.querySelectorAll(`.${ImageConfig.classes.wrapper}`)
@@ -336,6 +342,7 @@ const ImageHandler = {
     this.processImages(wrappers)
     this.setWindowLoad()
     this.setResizeHandler()
+    this.setScrollHandler()
 
     return this.cleanup.bind(this)
   },
@@ -355,6 +362,16 @@ const ImageHandler = {
 
     // Process any visible images that weren't covered above
     ImageLoadingStrategy.prioritizeVisible()
+
+    // Ensure any remaining unloaded images are observed
+    this.ensureObservation()
+  },
+
+  ensureObservation () {
+    const notLoaded = document.querySelectorAll(`.${ImageConfig.classes.main}.${ImageConfig.classes.hidden}`)
+    notLoaded.forEach((img) => {
+      if (!$.inViewport(img)) ImageVisibility.observe(img)
+    })
   },
 
   setWindowLoad () {
@@ -370,6 +387,15 @@ const ImageHandler = {
     $.eventListener('add', window, 'resize', this.resizeHandler, { passive: true })
   },
 
+  setScrollHandler () {
+    this.scrollHandler = () => {
+      // Re-check and observe any unloaded images after scroll
+      ImageLoadingStrategy.prioritizeVisible()
+      this.ensureObservation()
+    }
+    $.eventListener('add', window, 'scroll', this.scrollHandler, { passive: true })
+  },
+
   cleanup () {
     if (this.windowLoadHandler) {
       $.eventListener('remove', window, 'load', this.windowLoadHandler, { passive: true })
@@ -378,6 +404,10 @@ const ImageHandler = {
     if (this.resizeHandler) {
       $.eventListener('remove', window, 'resize', this.resizeHandler, { passive: true })
       this.resizeHandler = null
+    }
+    if (this.scrollHandler) {
+      $.eventListener('remove', window, 'scroll', this.scrollHandler, { passive: true })
+      this.scrollHandler = null
     }
 
     ImageDevice.clearCache()
