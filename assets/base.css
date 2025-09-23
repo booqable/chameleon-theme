@@ -457,23 +457,23 @@ textarea:-webkit-autofill:active {
 @media (width >= 1100px) {
   /* Mini cart responsive styles */
   body:has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position)) !important;
+    top: calc(var(--header-height) - var(--menu-height)) !important;
   }
 
   body:has(.header-menu-bottom) div[data-tippy-root] div[data-tid="Mini cart"] {
-    max-height: calc(100vh - var(--header-height) + var(--menu-position));
+    max-height: calc(100vh - var(--header-height) + var(--menu-height));
   }
 
   .scrolled-down:has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position) - var(--top-bar-height, 0)) !important;
+    top: calc(var(--header-height) - var(--menu-height) - var(--top-bar-height, 0)) !important;
   }
 
   body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position) + var(--preview-height, 0)) !important;
+    top: calc(var(--header-height) - var(--menu-height) + var(--preview-height, 0)) !important;
   }
 
   body:has(.preview-bar__container):has(.header-menu-bottom) div[data-tippy-root] [data-tid="Mini cart"] {
-    max-height: calc(100vh - var(--header-height) + var(--menu-position) - var(--preview-height, 0) / 2);
+    max-height: calc(100vh - var(--header-height) + var(--menu-height) - var(--preview-height, 0) / 2);
   }
 
   body:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
@@ -481,7 +481,7 @@ textarea:-webkit-autofill:active {
   }
 
   body:has(.preview-bar__container):has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position)) !important;
+    top: calc(var(--header-height) - var(--menu-height)) !important;
   }
 
   .scrolled-down:has(.preview-bar__container):has(.header--sticky) div[data-tippy-root]:has([data-tid="Mini cart"]) {
@@ -489,7 +489,7 @@ textarea:-webkit-autofill:active {
   }
 
   .scrolled-down:has(.preview-bar__container):has(.header--sticky):has(.header-menu-bottom) div[data-tippy-root]:has([data-tid="Mini cart"]) {
-    top: calc(var(--header-height) - var(--menu-position) - var(--top-bar-height, 0)) !important;
+    top: calc(var(--header-height) - var(--menu-height) - var(--top-bar-height, 0)) !important;
   }
 }
 

@@ -1081,7 +1081,7 @@
 
   .header-menu-bottom .menu-wide.mobile-menu-top .menu__dropdown,
   .header-menu-bottom .menu-wide .menu__dropdown {
-    top: calc(var(--menu-position, 48px) + 1px);
+    top: calc(var(--menu-height, 48px) + 1px);
     transform: translateX(-50%);
   }
 
