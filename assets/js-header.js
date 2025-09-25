@@ -16,14 +16,17 @@ const HeaderConfig = {
     preview: '.preview-bar__container',
     search: '.header__search',
     searchOpener: '#header-search-opener',
-    topBar: '.top-bar__wrapper'
+    topBar: '.top-bar__wrapper',
+    menuBottom: '.header-menu-bottom',
+    menuList: '.header__nav-list'
   },
   classes: {
     sticky: 'header--sticky'
   },
   cssVar: {
     height: '--header-height',
-    viewHeight: '--preview-height'
+    viewHeight: '--preview-height',
+    menuHeight: '--menu-height'
   },
   debounceTime: 150
 }
@@ -33,12 +36,15 @@ const HeaderDOM = {
     body: null,
     doc: null,
     header: null,
-    preview: null
+    preview: null,
+    menuBottom: null,
+    menuList: null
   },
 
   cacheData: {
     headerHeight: 0,
-    previewHeight: 0
+    previewHeight: 0,
+    menuListHeight: 0
   },
 
   init (element) {
@@ -46,6 +52,14 @@ const HeaderDOM = {
     this.elements.doc = document.documentElement
     this.elements.header = element
     this.elements.preview = document.querySelector(HeaderConfig.selector.preview)
+
+    const menuBottom = element?.querySelector(HeaderConfig.selector.menuBottom)
+
+    if (menuBottom) {
+      const menuList = menuBottom.querySelector(HeaderConfig.selector.menuList)
+      this.elements.menuBottom = menuBottom
+      this.elements.menuList = menuList
+    }
 
     return this.elements.header !== null
   },
@@ -55,11 +69,14 @@ const HeaderDOM = {
       body: null,
       doc: null,
       header: null,
-      preview: null
+      preview: null,
+      menuBottom: null,
+      menuList: null
     }
     this.cacheData = {
       headerHeight: 0,
-      previewHeight: 0
+      previewHeight: 0,
+      menuListHeight: 0
     }
   }
 }
@@ -118,6 +135,44 @@ const HeaderHeight = {
   }
 }
 
+const MenuBottomHeight = {
+  calculate () {
+    const elements = HeaderDOM.elements,
+      cache = HeaderDOM.cacheData,
+      menuHeightProp = HeaderConfig.cssVar.menuHeight
+
+    if (!elements.menuBottom || !elements.menuList) return
+
+    const read = () => {
+      const menuListDimensions = $.getDimensions(elements.menuList)
+
+      return {
+        menuListHeight: menuListDimensions.height
+      }
+    }
+
+    const write = (data) => {
+      const { menuListHeight } = data
+
+      if (menuListHeight > 0) {
+        $.setCssVar({
+          key: menuHeightProp,
+          value: Math.floor(menuListHeight),
+          element: elements.doc,
+          unit: 'px'
+        })
+        cache.menuListHeight = Math.floor(menuListHeight)
+      }
+    }
+
+    $.frameSequence(read, write)
+  },
+
+  recalculate () {
+    this.calculate()
+  }
+}
+
 const HeaderModals = {
   closeSearch (event) {
     const searchOpener = document.querySelector(HeaderConfig.selector.searchOpener)
@@ -155,9 +210,13 @@ const HeaderEvents = {
 
   init () {
     HeaderHeight.calculate()
+    MenuBottomHeight.calculate()
 
     this.handlers.click = HeaderModals.closeSearch.bind(HeaderModals)
-    this.handlers.resize = HeaderHeight.recalculate.bind(HeaderHeight)
+    this.handlers.resize = () => {
+      HeaderHeight.recalculate()
+      MenuBottomHeight.recalculate()
+    }
 
     $.eventListener('add', document, 'click', this.handlers.click)
     $.eventListener('add', window, 'resize', this.handlers.resize, { passive: true })
