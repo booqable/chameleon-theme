@@ -182,7 +182,7 @@ const VideoConfig = {
     ttl: 300000
   },
   cdn: {
-    youtube: 'https://www.youtube.com',
+    youtube: 'https://www.youtube-nocookie.com',
     youtubeThumbnail: 'https://img.youtube.com',
     vimeo: 'https://player.vimeo.com',
     vimeoThumbnail: 'https://vumbnail.com'
@@ -753,7 +753,7 @@ const VideoUtils = {
 
     const platformConfigs = {
       youtube: {
-        baseUrl: 'https://www.youtube.com/embed',
+        baseUrl: 'https://www.youtube-nocookie.com/embed',
         params: {
           autoplay: '1',
           controls: '0',
@@ -778,6 +778,7 @@ const VideoUtils = {
           autoplay: '1',
           background: '1',
           controls: '0',
+          dnt: '1',
           loop: '1',
           muted: '1'
         },
