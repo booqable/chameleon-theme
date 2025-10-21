@@ -778,6 +778,7 @@ const VideoUtils = {
           autoplay: '1',
           background: '1',
           controls: '0',
+          dnt: '1',
           loop: '1',
           muted: '1'
         },
