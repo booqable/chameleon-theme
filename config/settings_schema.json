@@ -799,6 +799,13 @@
         "id": "cookie_notice_preferences_modal_tracking_cookies_description",
         "label": "Tracking cookies description",
         "default": "These cookies collect information about how you use our website. All of the data is anonymized and cannot be used to identify you."
+      },
+      {
+        "type": "number",
+        "id": "cookie_notice_revision",
+        "label": "Cookie Consent Revision",
+        "info": "Increment when adding/removing tracking services to force user re-consent",
+        "default": 0
       }
     ]
   }
