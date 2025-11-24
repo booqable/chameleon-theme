@@ -30,7 +30,7 @@
 .product-main__price {
   margin: 0 0 20px;
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
 }
 
 .product-main__price bq-product-price {
