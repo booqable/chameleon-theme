@@ -23,13 +23,13 @@
 {%- assign snapchat              = settings.social_snapchat_link -%}
 {%- assign youtube               = settings.social_youtube_link -%}
 {%- assign vimeo                 = settings.social_vimeo_link -%}
-{%- assign app                   = section.blocks | where: "type", "app" | first -%}
+{%- assign apps                  = section.blocks | where: "type", "app" -%}
 
 {%- if show_search %}
   {{ "header-search.css" | asset_url | stylesheet_tag }}
 {%- endif -%}
 
-{%- if app %}
+{%- if apps.size > 0 %}
   {{ "app.css" | asset_url | stylesheet_tag }}
 {%- endif -%}
 
@@ -255,11 +255,11 @@
 
             {%- endfor -%}
 
-            {%- if app -%}
+            {%- for app in apps -%}
               <li class="header__app">
                 {% render 'app', block: app, section: section, size: "mobile" %}
               </li>
-            {%- endif -%}
+            {%- endfor -%}
           </ul>
 
           {{- social_icons -}}
@@ -296,11 +296,11 @@
 {% comment %} Right side buttons component {% endcomment %}
 {%- capture header_links -%}
   <div class="header__links{% if show_search %} header__links--with-search{% endif %}{% if show_mini_cart %} header__links--with-cart{%- endif -%}">
-    {%- if app -%}
+    {%- for app in apps -%}
       <div class="header__app">
         {% render 'app', block: app, section: section, size: "desktop" %}
       </div>
-    {%- endif -%}
+    {%- endfor -%}
 
     {%- if show_search -%}
       {{- header_search -}}
