@@ -129,15 +129,16 @@
                   {% assign product = item %}
               {% endcase %}
 
+              {%-  if items_type == 'blocks' -%}
+                {%  assign id = item.id %}  
+              {%- else -%}
+                {%  assign id = product.id %}
+              {%- endif -%}
+
               {%- if carousel -%}
-                <div class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+                <div id="{{ id }}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
               {%- endif -%}
-                    {%-  if items_type == 'blocks' -%}
-                      {%  assign id = item.id %}  
-                    {%- else -%}
-                      {%  assign id = product.id %}
-                    {%- endif -%}
                     {%- render 'product-card',
                         block_id: id,
                         product: product,

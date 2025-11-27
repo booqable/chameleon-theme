@@ -117,10 +117,10 @@
               {%- assign stars       = block.settings.stars -%}
 
               {%- if carousel -%}
-                <div class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+                <div id="{{ block.id }}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
               {%- endif -%}
-                    <div class="testimonials__content">
+                    <div  id="{{ block.id }}" class="testimonials__content">
                       {%- if title != blank or description != blank -%}
                         <div class="testimonials__col">
                           {%- if title != blank -%}
