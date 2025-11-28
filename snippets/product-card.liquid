@@ -82,7 +82,7 @@
 {%- endcapture -%}
 {% comment %} CSS variables end {% endcomment %}
 
-<div class="product-card{% if use_colors %} palette-{{ color_palette }}{%- endif -%}"{% if id != blank %} id="{{- id -}}"{% endif %} style="{{- card_variables | escape -}}">
+<div id={{ block_id }} class="product-card{% if use_colors %} palette-{{ color_palette }}{%- endif -%}"{% if id != blank %} id="{{- id -}}"{% endif %} style="{{- card_variables | escape -}}">
   <div class="product-card__vision{% if image_fit == 'contain' %}{% unless image_bg %} product-card__vision--white{% endunless %}{% endif %}{% unless image != blank %} no-image{%- endunless -%}">
     {%- if image.url != blank -%}
       {%- render 'image',
