@@ -11,9 +11,6 @@
 {%- assign period                        = product | product_price_label -%}
 {%- assign variation_label               = 'store.variant' | user_t -%}
 {%- assign message_label                 = section.settings.message_label -%}
-{%- assign show_controls                 = section.settings.show_controls -%}
-{%- assign show_thumbnails               = section.settings.show_thumbnails -%}
-{%- assign infinity_scroll               = section.settings.infinity_scroll -%}
 {%- assign color_palette                 = section.settings.color_palette -%}
 {%- assign description_placement         = section.settings.description_placement -%}
 {%- assign padding_top                   = section.settings.padding_top -%}
@@ -24,6 +21,14 @@
 {%- assign breadcrumbs_root_label        = section.settings.breadcrumbs_root_label -%}
 {%- assign breadcrumbs_root_url          = section.settings.breadcrumbs_root_url -%}
 {%- assign breadcrumbs_collections_label = section.settings.breadcrumbs_collections_label -%}
+{%- assign object_fit_desktop           = section.settings.object_fit_desktop -%}
+{%- assign object_fit_mobile            = section.settings.object_fit_mobile -%}
+{%- assign enable_thumbnails_desktop    = section.settings.enable_thumbnails_desktop -%}
+{%- assign enable_thumbnails_mobile     = section.settings.enable_thumbnails_mobile -%}
+{%- assign infinite_scroll_desktop      = section.settings.infinite_scroll_desktop -%}
+{%- assign infinite_scroll_mobile       = section.settings.infinite_scroll_mobile -%}
+{%- assign enable_controls_desktop      = section.settings.enable_controls_desktop -%}
+{%- assign enable_controls_mobile       = section.settings.enable_controls_mobile -%}
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -91,9 +96,14 @@
     <div class="product-main__wrapper">
       <div class="product-main__gallery">
         {{ product | product_gallery:
-          enable_thumbnails: show_thumbnails,
-          enable_controls: show_controls,
-          infinite_scroll: infinity_scroll
+          image_fit_desktop: object_fit_desktop,
+          enable_thumbnails_desktop: enable_thumbnails_desktop,
+          infinite_scroll_desktop: infinite_scroll_desktop,
+          enable_controls_desktop: enable_controls_desktop,
+          image_fit_mobile: object_fit_mobile,
+          enable_thumbnails_mobile: enable_thumbnails_mobile,
+          infinite_scroll_mobile: infinite_scroll_mobile,
+          enable_controls_mobile: enable_controls_mobile
         }}
       </div>
 
@@ -249,25 +259,81 @@
       },
       {
         "type": "header",
-        "content": "Carousel settings"
+        "content": "Desktop Carousel"
+      },
+      {
+        "type": "select",
+        "id": "image_fit_desktop",
+        "label": "Display images as",
+        "mode": "select",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Square"
+          },
+          {
+            "value": "contain",
+            "label": "Full image"
+          }
+        ],
+        "default": "cover"
       },
       {
         "type": "checkbox",
-        "id": "show_controls",
-        "default": true,
-        "label": "Show navigation buttons"
+        "id": "enable_controls_desktop",
+        "label": "Show navigation buttons",
+        "default": true
       },
       {
         "type": "checkbox",
-        "id": "show_thumbnails",
-        "default": true,
-        "label": "Show thumbnails"
+        "id": "enable_thumbnails_desktop",
+        "label": "Show thumbnails",
+        "default": true
       },
       {
         "type": "checkbox",
-        "id": "infinity_scroll",
-        "default": true,
-        "label": "Infinity scroll"
+        "id": "infinite_scroll_desktop",
+        "label": "Infinity scroll",
+        "default": true
+      },
+        {
+          "type": "header",
+          "content": "Mobile Carousel"
+        },
+        {
+        "type": "select",
+        "id": "image_fit_mobile",
+        "label": "Display images as",
+        "mode": "select",
+        "options": [
+          {
+            "value": "cover",
+            "label": "Square"
+          },
+          {
+            "value": "contain",
+            "label": "Full image"
+          }
+        ],
+        "default": "cover"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_controls_mobile",
+        "label": "Show navigation buttons",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_thumbnails_mobile",
+        "label": "Show thumbnails",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "infinite_scroll_mobile",
+        "label": "Infinity scroll",
+        "default": true
       },
       {
         "type": "header",
