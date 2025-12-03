@@ -1,34 +1,34 @@
-
-{%- assign title                         = product.name -%}
-{%- assign description                   = product.description -%}
-{%- assign variants                      = product.variants -%}
-{%- assign variant_selector              = product | product_variations_select -%}
-{%- assign bundle_items                  = product | bundle_items -%}
 {%- assign availability                  = product | product_availability -%}
 {%- assign availability_calendar         = product | availability_calendar -%}
-{%- assign quantity                      = product | product_button -%}
-{%- assign price                         = product | product_price -%}
-{%- assign period                        = product | product_price_label -%}
-{%- assign variation_label               = 'store.variant' | user_t -%}
-{%- assign message_label                 = section.settings.message_label -%}
+{%- assign breadcrumbs_collections_label = section.settings.breadcrumbs_collections_label -%}
+{%- assign breadcrumbs_root_label        = section.settings.breadcrumbs_root_label -%}
+{%- assign breadcrumbs_root_url          = section.settings.breadcrumbs_root_url -%}
+{%- assign bundle_items                  = product | bundle_items -%}
 {%- assign color_palette                 = section.settings.color_palette -%}
+{%- assign description                   = product.description -%}
 {%- assign description_placement         = section.settings.description_placement -%}
+{%- assign enable_controls_desktop       = section.settings.show_controls -%}
+{%- assign enable_controls_mobile        = section.settings.enable_controls_mobile -%}
+{%- assign enable_thumbnails_desktop     = section.settings.show_thumbnails -%}
+{%- assign enable_thumbnails_mobile      = section.settings.enable_thumbnails_mobile -%}
+{%- assign infinite_scroll_desktop       = section.settings.infinity_scroll -%}
+{%- assign infinite_scroll_mobile        = section.settings.infinite_scroll_mobile -%}
+{%- assign message_label                 = section.settings.message_label -%}
+{%- assign object_fit_desktop            = section.settings.object_fit_desktop -%}
+{%- assign object_fit_mobile             = section.settings.object_fit_mobile -%}
 {%- assign padding_top                   = section.settings.padding_top -%}
 {%- assign padding_bottom                = section.settings.padding_bottom -%}
 {%- assign padding_top_mobile            = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile         = section.settings.padding_bottom_mobile -%}
+{%- assign period                        = product | product_price_label -%}
+{%- assign price                         = product | product_price -%}
+{%- assign quantity                      = product | product_button -%}
 {%- assign show_breadcrumbs              = section.settings.show_breadcrumbs -%}
-{%- assign breadcrumbs_root_label        = section.settings.breadcrumbs_root_label -%}
-{%- assign breadcrumbs_root_url          = section.settings.breadcrumbs_root_url -%}
-{%- assign breadcrumbs_collections_label = section.settings.breadcrumbs_collections_label -%}
-{%- assign object_fit_desktop           = section.settings.object_fit_desktop -%}
-{%- assign object_fit_mobile            = section.settings.object_fit_mobile -%}
-{%- assign enable_thumbnails_desktop    = section.settings.enable_thumbnails_desktop -%}
-{%- assign enable_thumbnails_mobile     = section.settings.enable_thumbnails_mobile -%}
-{%- assign infinite_scroll_desktop      = section.settings.infinite_scroll_desktop -%}
-{%- assign infinite_scroll_mobile       = section.settings.infinite_scroll_mobile -%}
-{%- assign enable_controls_desktop      = section.settings.enable_controls_desktop -%}
-{%- assign enable_controls_mobile       = section.settings.enable_controls_mobile -%}
+{%- assign title                         = product.name -%}
+{%- assign variants                      = product.variants -%}
+{%- assign variant_selector              = product | product_variations_select -%}
+{%- assign variation_label               = 'store.variant' | user_t -%}
+
 
 {% comment %} CSS variables start {% endcomment %}
 {%- capture variables -%}
@@ -259,13 +259,16 @@
       },
       {
         "type": "header",
-        "content": "Desktop Carousel"
+        "content": "Carousel"
+      },
+      {
+        "type": "paragraph",
+        "content": "These settings will apply to the carousel on desktop devices."
       },
       {
         "type": "select",
         "id": "image_fit_desktop",
         "label": "Display images as",
-        "mode": "select",
         "options": [
           {
             "value": "cover",
@@ -280,31 +283,30 @@
       },
       {
         "type": "checkbox",
-        "id": "enable_controls_desktop",
+        "id": "show_controls",
         "label": "Show navigation buttons",
         "default": true
       },
       {
         "type": "checkbox",
-        "id": "enable_thumbnails_desktop",
+        "id": "show_thumbnails",
         "label": "Show thumbnails",
         "default": true
       },
       {
         "type": "checkbox",
-        "id": "infinite_scroll_desktop",
+        "id": "infinity_scroll",
         "label": "Infinity scroll",
         "default": true
       },
-        {
-          "type": "header",
-          "content": "Mobile Carousel"
-        },
-        {
+      {
+        "type": "paragraph",
+        "content": "These settings will apply to the carousel on mobile devices."
+      },
+      {
         "type": "select",
         "id": "image_fit_mobile",
         "label": "Display images as",
-        "mode": "select",
         "options": [
           {
             "value": "cover",
