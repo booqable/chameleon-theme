@@ -20,7 +20,7 @@
 
 {%- assign color_palette = settings.card_color_palette -%}
 {%- assign excerpt       = "" -%}
-{%- assign id            = "" -%}
+{%- assign id            = item_id -%}
 {%- assign image         = "" -%}
 {%- assign image_bg      = settings.card_image_background -%}
 {%- assign image_fit     = settings.card_image_fit -%}
@@ -51,7 +51,6 @@
     {%- assign points = image.coordinates -%}
   {%- endif -%}
 
-  {%- assign id      = product.id -%}
   {%- assign url     = product.url -%}
   {%- assign name    = product.name -%}
   {%- assign excerpt = product.excerpt -%}
@@ -82,7 +81,7 @@
 {%- endcapture -%}
 {% comment %} CSS variables end {% endcomment %}
 
-<div id={{ block_id }} class="product-card{% if use_colors %} palette-{{ color_palette }}{%- endif -%}"{% if id != blank %} id="{{- id -}}"{% endif %} style="{{- card_variables | escape -}}">
+<div class="product-card{% if use_colors %} palette-{{ color_palette }}{%- endif -%}"{% if id != blank %} id="{{- id -}}"{% endif %} style="{{- card_variables | escape -}}">
   <div class="product-card__vision{% if image_fit == 'contain' %}{% unless image_bg %} product-card__vision--white{% endunless %}{% endif %}{% unless image != blank %} no-image{%- endunless -%}">
     {%- if image.url != blank -%}
       {%- render 'image',

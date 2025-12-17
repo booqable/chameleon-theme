@@ -122,25 +122,29 @@
             {%- for item in items limit: items_limit -%}
               {%- assign index = forloop.index -%}
 
-              {% case items_type %}
-                {% when "blocks" %}
-                  {% assign product = item.settings.product %}
-                {% when "collection" %}
-                  {% assign product = item %}
-              {% endcase %}
-
-              {%-  if items_type == 'blocks' -%}
-                {%  assign id = item.id %}  
-              {%- else -%}
-                {%  assign id = product.id %}
-              {%- endif -%}
+              {%- case items_type -%}
+                {%- when "blocks" -%}
+                  {%- assign product = item.settings.product -%}
+                  {%- assign id      = item.id -%}
+                {%- when "collection" -%}
+                  {%- assign product = item -%}
+                  {%- assign id      = product.id -%}
+              {%- endcase -%}
 
               {%- if carousel -%}
-                <div id="{{ id }}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+                <div id="{{- id -}}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
+
+                  {%- if id contains '-' -%}
+                    {%- assign id = '' -%}
+                  {%- endif -%}
+
+                  {%- if id contains 'product' -%}
+                    {%- assign id = product.id -%}
+                  {%- endif -%}
               {%- endif -%}
                     {%- render 'product-card',
-                        block_id: id,
+                        item_id: id,
                         product: product,
                         settings: settings,
                         image_loading: loading_strategy
