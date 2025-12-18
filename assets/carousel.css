@@ -1,7 +1,6 @@
 .carousel {
   height: 100%;
   position: relative;
-  contain: content; /* Performance: Reduces the scope of layout recalculations */
   margin: 0 calc(-1 * var(--horizontal-padding));
   width: calc(100% + 2 * var(--horizontal-padding));
 }
