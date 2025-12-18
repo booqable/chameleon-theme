@@ -136,8 +136,12 @@
               {%- endif -%}
 
               {%- if carousel -%}
-                <div id="{{ id }}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+                <div id="{{ id }}" class="carousel__item"{% if items_type == 'blocks' %} data-block-key="{{ item.id }}" data-block-name="{{ item.name }}"{% endif %} data-index="{{- index -}}" aria-label="Slide {{ index }}">
                   <div class="carousel__inner">
+              {%- else -%}
+                {%- if items_type == 'blocks' -%}
+                  <div id="{{ id }}" data-block-key="{{ item.id }}" data-block-name="{{ item.name }}">
+                {%- endif -%}
               {%- endif -%}
                     {%- render 'product-card',
                         block_id: id,
@@ -148,6 +152,10 @@
               {%- if carousel -%}
                   </div>
                 </div>
+              {%- else -%}
+                {%- if items_type == 'blocks' -%}
+                  </div>
+                {%- endif -%}
               {%- endif -%}
             {%- endfor -%}
 

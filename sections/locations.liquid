@@ -115,7 +115,7 @@
         {%- assign country         = location.country -%}
         {%- assign label           = block.settings.label -%}
 
-        <li class="tabs__trigger" id="{{- block.id -}}">
+        <li class="tabs__trigger" id="{{- block.id -}}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
           <input type="radio" id="tab-{{- index -}}" name="tabs" class="tabs__input" style="display: none;"{% if first %} checked{%- endif -%}>
           <label for="tab-{{- index -}}" class="tabs__trigger-label">
             <span class="tabs__heading">

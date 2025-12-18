@@ -116,7 +116,7 @@
               {%- assign image     = block.settings.image -%}
               {%- assign image_alt = block.settings.alt -%}
 
-              <div class="logos__image-wrapper" id="{{- block.id -}}">
+              <div class="logos__image-wrapper" id="{{- block.id -}}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
                 {%- if image.url != blank -%}
                   {%- render 'image',
                     image: image,
