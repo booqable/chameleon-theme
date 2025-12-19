@@ -3,6 +3,11 @@
   position: relative;
   margin: 0 calc(-1 * var(--horizontal-padding));
   width: calc(100% + 2 * var(--horizontal-padding));
+  contain: content; /* Performance: Reduces the scope of layout recalculations */
+}
+
+.carousel__list {
+  padding: 12px 0;
 }
 
 .carousel__wrapper {
