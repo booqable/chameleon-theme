@@ -74,8 +74,8 @@
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col.no-image .mosaic__image-wrapper,
 .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col--image .mosaic__image-wrapper,
 .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col.no-image .mosaic__image-wrapper {
-  aspect-ratio: 1 / 0.76;
   width: 100%;
+  height: 100%;
 }
 
 .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col--image .mosaic__image-wrapper:has(.mosaic__image-placeholder),
@@ -320,14 +320,11 @@
   }
 
   .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col--image .mosaic__image-wrapper,
-  .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col.no-image .mosaic__image-wrapper,
-  .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col--image .mosaic__image-wrapper,
-  .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col.no-image .mosaic__image-wrapper {
+  .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col.no-image .mosaic__image-wrapper {
     aspect-ratio: auto;
     height: 100%;
   }
 
-  .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col.no-image,
   .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col.no-image,
   .mosaic__list-left .mosaic__item:nth-child(3n + 1) .mosaic__item-col--image,
   .mosaic__list-right .mosaic__item:nth-child(3n) .mosaic__item-col--image {
