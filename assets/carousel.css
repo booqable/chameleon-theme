@@ -6,10 +6,9 @@
   contain: content; /* Performance: Reduces the scope of layout recalculations */
 }
 
-.carousel__list {
-  padding: 12px 0;
+.carousel .carousel__list .block-frame .block-frame__buttons {
+  transform: translateX(-50%) !important;
 }
-
 .carousel__wrapper {
   height: 100%;
   padding: 0 var(--horizontal-padding);
