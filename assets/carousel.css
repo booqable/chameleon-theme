@@ -9,6 +9,7 @@
 .carousel .carousel__list .block-frame .block-frame__buttons {
   transform: translateX(-50%) !important;
 }
+
 .carousel__wrapper {
   height: 100%;
   padding: 0 var(--horizontal-padding);
