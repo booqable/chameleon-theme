@@ -70,7 +70,7 @@
       {%- assign image   = placeholder -%}
     {%- endif -%}
 
-    <li class="collections__item" id="{{- id -}}">
+    <li class="collections__item" id="{{- id -}}"{% if items_type == "blocks" %} data-block-key="{{ item.id }}" data-block-name="{{ item.name }}"{% endif %}>
       {%- if collection != blank -%}
         <a class="collections__link" href="{{ url }}">
       {%- endif -%}

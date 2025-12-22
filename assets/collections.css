@@ -26,7 +26,6 @@
 .collections__item {
   height: 100%;
   position: relative;
-  overflow: hidden;
   border-radius: var(--border-radius-block-rounded);
 }
 
@@ -73,6 +72,7 @@
 .collections__image-item {
   display: block;
   position: absolute;
+  overflow: hidden;
   inset: 0;
 }
 

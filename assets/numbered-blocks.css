@@ -28,7 +28,6 @@
   border: 1px solid transparent;
   border-top: none;
   border-radius: var(--border-radius-block-rounded);
-  overflow: hidden;
 }
 
 .numbered-blocks__item-col:last-child:not(:only-child) {

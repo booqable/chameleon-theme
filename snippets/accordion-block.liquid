@@ -22,7 +22,7 @@
       {%- assign heading = block.settings.heading -%}
       {%- assign content = block.settings.content -%}
 
-      <li class="accordion-block__item" id="{{- block.id -}}">
+      <li class="accordion-block__item" id="{{- block.id -}}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
         {%- if heading != blank -%}
           <input
             {% if behavior == "single" %}type="radio"{% else %}type="checkbox"{% endif %}

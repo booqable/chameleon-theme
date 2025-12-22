@@ -82,7 +82,7 @@
           {%- assign button_url   = block.settings.button_url -%}
           {%- assign button_style = block.settings.button_style -%}
 
-          <div class="columns__item" id="{{- block.id -}}">
+          <div class="columns__item" id="{{- block.id -}}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
             {%- if image.url != blank -%}
               <div class="columns__image-wrapper">
                 {%- render 'image',

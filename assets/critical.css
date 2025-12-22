@@ -292,7 +292,6 @@ img {
 /* Critical Images section styles */
 .images__wrapper {
   height: 100%;
-  overflow: hidden;
   position: relative;
   display: flex;
   align-items: stretch;

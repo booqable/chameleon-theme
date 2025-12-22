@@ -87,7 +87,7 @@
             {%- assign image = blank -%}
           {%- endif -%}
 
-          <div class="mosaic__item" id="{{- block.id -}}">
+          <div class="mosaic__item" id="{{- block.id -}}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
             <div class="mosaic__item-col{% if image == blank %} no-image{% else %} mosaic__item-col--image{%- endif -%}">
               {%- if image.url != blank -%}
                 {%- render 'image',
