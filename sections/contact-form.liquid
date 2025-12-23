@@ -162,6 +162,8 @@
             class="contact-form__holder{% if image == blank %} no-image{% endif %}"
             style="{{- image_variables | escape -}}"
             id="{{- block.id -}}"
+            data-block-key="{{ block.id }}"
+            data-block-name="{{ block.name }}"
           >
             {%- if image.url != blank -%}
               <div class="contact-form__image-wrapper">
@@ -183,6 +185,8 @@
               class="contact-form__content"
               style="{{- text_variables | escape -}}"
               id="{{- block.id -}}"
+              data-block-key="{{ block.id }}"
+              data-block-name="{{ block.name }}"
             >
               {%- if heading != blank -%}
                 <h2 class="contact-form__heading contact-form__heading--{{- heading_size -}}">{{- heading -}}</h2>

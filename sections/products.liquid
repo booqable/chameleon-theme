@@ -131,28 +131,19 @@
                   {%- assign id      = product.id -%}
               {%- endcase -%}
 
-              {%- if carousel -%}
-                <div id="{{- id -}}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+              <div class="products__item{% if carousel %} carousel__item{%- endif -%}" id="{{- id -}}"{% if items_type == 'blocks' %} data-block-key="{{- item.id -}}" data-block-name="{{- item.name -}}"{% endif %}{% if carousel %} data-index="{{- index -}}" aria-label="Slide {{ index }}"{%- endif -%}>
+                {%- if carousel -%}
                   <div class="carousel__inner">
-
-                  {%- if id contains '-' -%}
-                    {%- assign id = '' -%}
-                  {%- endif -%}
-
-                  {%- if id contains 'product' -%}
-                    {%- assign id = product.id -%}
-                  {%- endif -%}
-              {%- endif -%}
+                {%- endif -%}
                     {%- render 'product-card',
-                        item_id: id,
                         product: product,
                         settings: settings,
                         image_loading: loading_strategy
                     -%}
-              {%- if carousel -%}
+                {%- if carousel -%}
                   </div>
-                </div>
-              {%- endif -%}
+                {%- endif -%}
+              </div>
             {%- endfor -%}
 
         {%- if carousel -%}

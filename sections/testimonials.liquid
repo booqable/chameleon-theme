@@ -116,11 +116,11 @@
               {%- assign position    = block.settings.position -%}
               {%- assign stars       = block.settings.stars -%}
 
-              {%- if carousel -%}
-                <div id="{{- block.id -}}" class="carousel__item" data-index="{{- index -}}" aria-label="Slide {{ index }}">
+              <div class="testimonials__item{% if carousel %} carousel__item{%- endif -%}" id="{{- block.id -}}" data-block-key="{{- block.id -}}" data-block-name="{{- block.name -}}"{% if carousel %} data-index="{{- index -}}" aria-label="Slide {{ index }}"{%- endif -%}>
+                {%- if carousel -%}
                   <div class="carousel__inner">
-              {%- endif -%}
-                    <div {% unless carousel %}id="{{- block.id -}}" {% endunless %}class="testimonials__content">
+                {%- endif -%}
+                    <div class="testimonials__content">
                       {%- if title != blank or description != blank -%}
                         <div class="testimonials__col">
                           {%- if title != blank -%}
@@ -184,10 +184,10 @@
                         </div>
                       {%- endif -%}
                     </div>
-              {%- if carousel -%}
+                {%- if carousel -%}
                   </div>
-                </div>
-              {%- endif -%}
+                {%- endif -%}
+              </div>
             {%- endfor -%}
 
       {%- if carousel -%}
