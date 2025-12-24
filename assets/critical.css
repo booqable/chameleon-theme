@@ -304,6 +304,10 @@ img {
   flex-direction: column;
 }
 
+.images__item {
+  width: 100%;
+}
+
 .images__text-area {
   flex: 1 1 auto;
   display: flex;
