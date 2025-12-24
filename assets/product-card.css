@@ -3,6 +3,7 @@
   grid-template-rows: max-content 1fr;
   position: relative;
   min-width: 298px;
+  height: 100%;
   overflow: clip;
   border-radius: var(--border-radius-block-rounded);
   contain: content;

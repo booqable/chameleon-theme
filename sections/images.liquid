@@ -334,14 +334,12 @@
             {%- endif -%}
             {% comment %} CSS variables end {% endcomment %}
 
-            {%- if carousel -%}
-              <div id="{{ block.id }}" class="carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}" data-block-key="{{ block.id }}" data-block-name="{{ block.name }}"{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} aria-label="Slide {{ index }}">
+
+            <div class="images__item{% if carousel %} carousel__item{% if effect == 'fade' and first == false %} hide{% endif %}{% if effect == 'fade' and first %} show{%- endif -%}{%- endif -%}" id="{{- block.id -}}" data-block-key="{{- block.id -}}" data-block-name="{{- block.name -}}"{% if carousel %}{% if show_overlay %} data-overlay-color="{{- overlay_color | escape -}}"{% endif %} aria-label="Slide {{ index }}"{%- endif -%}>
+              {%- if carousel -%}
                 <div class="carousel__inner">
-            {%- else -%}
-              <div data-block-key="{{ block.id }}" data-block-name="{{ block.name }}">
-            {%- endif -%}
+              {%- endif -%}
                   <div
-                    id="{{ block.id }}"
                     class="images__container container{% if padding_top != blank or padding_top_mobile != blank %} images__container--padding-top{% endif %}{% if padding_bottom != blank or padding_bottom_mobile != blank %} images__container--padding-bottom{% endif %}"
                     style="{{- text_variables | escape -}}"
                   >
@@ -412,12 +410,10 @@
                       {%- endif -%}
                     {%- endif -%}
                   </div>
-            {%- if carousel -%}
+              {%- if carousel -%}
                 </div>
-              </div>
-            {%- else -%}
-              </div>
-            {%- endif -%}
+              {%- endif -%}
+            </div>
           {%- endfor -%}
 
     {%- if carousel -%}

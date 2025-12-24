@@ -1,3 +1,7 @@
+.images:not(:has(.carousel)) .block-frame .block-frame__buttons {
+  transform: translateX(-50%) !important;
+}
+
 .images__container--padding-top {
   padding-top: var(--padding-top-mobile, 0);
 }
