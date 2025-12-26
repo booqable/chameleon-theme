@@ -22,7 +22,10 @@
         "breadcrumbs_root_url": "collections",
         "color_palette": "one",
         "description_placement": "top",
+        "image_fit_desktop": "cover",
+        "image_fit_mobile": "cover",
         "infinity_scroll": true,
+        "infinity_scroll_mobile": true,
         "message_label": "Free shipping over $50",
         "padding_bottom": "small",
         "padding_bottom_mobile": "small",
@@ -30,7 +33,9 @@
         "padding_top_mobile": "small",
         "show_breadcrumbs": true,
         "show_controls": true,
-        "show_thumbnails": true
+        "show_controls_mobile": true,
+        "show_thumbnails": true,
+        "show_thumbnails_mobile": true
       },
       "disabled": null
     },
