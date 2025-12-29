@@ -7,26 +7,26 @@
 {%- assign color_palette                 = section.settings.color_palette -%}
 {%- assign description                   = product.description -%}
 {%- assign description_placement         = section.settings.description_placement -%}
-{%- assign enable_controls_desktop       = section.settings.show_controls -%}
-{%- assign enable_controls_mobile        = section.settings.enable_controls_mobile -%}
-{%- assign enable_thumbnails_desktop     = section.settings.show_thumbnails -%}
-{%- assign enable_thumbnails_mobile      = section.settings.enable_thumbnails_mobile -%}
+{%- assign image_fit_desktop             = section.settings.image_fit_desktop -%}
+{%- assign image_fit_mobile              = section.settings.image_fit_mobile -%}
 {%- assign infinite_scroll_desktop       = section.settings.infinity_scroll -%}
 {%- assign infinite_scroll_mobile        = section.settings.infinite_scroll_mobile -%}
 {%- assign message_label                 = section.settings.message_label -%}
-{%- assign object_fit_desktop            = section.settings.object_fit_desktop -%}
-{%- assign object_fit_mobile             = section.settings.object_fit_mobile -%}
-{%- assign padding_top                   = section.settings.padding_top -%}
 {%- assign padding_bottom                = section.settings.padding_bottom -%}
-{%- assign padding_top_mobile            = section.settings.padding_top_mobile -%}
 {%- assign padding_bottom_mobile         = section.settings.padding_bottom_mobile -%}
+{%- assign padding_top                   = section.settings.padding_top -%}
+{%- assign padding_top_mobile            = section.settings.padding_top_mobile -%}
 {%- assign period                        = product | product_price_label -%}
 {%- assign price                         = product | product_price -%}
 {%- assign quantity                      = product | product_button -%}
 {%- assign show_breadcrumbs              = section.settings.show_breadcrumbs -%}
+{%- assign show_controls_desktop         = section.settings.show_controls -%}
+{%- assign show_controls_mobile          = section.settings.show_controls_mobile -%}
+{%- assign show_thumbnails_desktop       = section.settings.show_thumbnails -%}
+{%- assign show_thumbnails_mobile        = section.settings.show_thumbnails_mobile -%}
 {%- assign title                         = product.name -%}
-{%- assign variants                      = product.variants -%}
 {%- assign variant_selector              = product | product_variations_select -%}
+{%- assign variants                      = product.variants -%}
 {%- assign variation_label               = 'store.variant' | user_t -%}
 
 
@@ -96,14 +96,14 @@
     <div class="product-main__wrapper">
       <div class="product-main__gallery">
         {{ product | product_gallery:
-          image_fit_desktop: object_fit_desktop,
-          enable_thumbnails_desktop: enable_thumbnails_desktop,
+          enable_controls_desktop: show_controls_desktop,
+          enable_controls_mobile: show_controls_mobile,
+          enable_thumbnails_desktop: show_thumbnails_desktop,
+          enable_thumbnails_mobile: show_thumbnails_mobile,
+          image_fit_desktop: image_fit_desktop,
+          image_fit_mobile: image_fit_mobile,
           infinite_scroll_desktop: infinite_scroll_desktop,
-          enable_controls_desktop: enable_controls_desktop,
-          image_fit_mobile: object_fit_mobile,
-          enable_thumbnails_mobile: enable_thumbnails_mobile,
           infinite_scroll_mobile: infinite_scroll_mobile,
-          enable_controls_mobile: enable_controls_mobile
         }}
       </div>
 
@@ -321,13 +321,13 @@
       },
       {
         "type": "checkbox",
-        "id": "enable_controls_mobile",
+        "id": "show_controls_mobile",
         "label": "Show navigation buttons",
         "default": true
       },
       {
         "type": "checkbox",
-        "id": "enable_thumbnails_mobile",
+        "id": "show_thumbnails_mobile",
         "label": "Show thumbnails",
         "default": true
       },
