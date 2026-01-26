@@ -56,6 +56,7 @@
 {% endcomment %}
 
 {%- assign image_url          = image.url -%}
+{%- assign image_url_lower    = image_url | downcase -%}
 {%- assign image_url_mobile   = image_mobile.url -%}
 
 {%- if image_url != blank or image_url_mobile != blank -%}
@@ -243,14 +244,14 @@
   {%- for type in featured_types -%}
     {%- assign image_type = '.' | append: type -%}
 
-    {%- if featured_type == '' and image_url contains image_type -%}
+    {%- if featured_type == '' and image_url_lower contains image_type -%}
       {%- assign featured_type = image_type -%}
       {%- break -%}
     {%- endif -%}
   {%- endfor -%}
 
   {% comment %} convert images to the most in-demand formats {% endcomment %}
-  {%- if featured_type != blank and image_url contains featured_type -%}
+  {%- if featured_type != blank and image_url_lower contains featured_type -%}
     {%- assign src_jpg  = '' -%}
     {%- assign src_png  = '' -%}
     {%- assign src_webp = '' -%}
